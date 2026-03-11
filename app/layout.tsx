@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   },
   description:
     "Majen Admin is the internal control center for managing designers, products, orders, and marketplace analytics.",
+  icons: {
+    icon: "/majenIcon.png",
+    shortcut: "/majenIcon.png",
+    apple: "/majenIcon.png",
+  },
 };
 
 export default function RootLayout({

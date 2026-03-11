@@ -2,7 +2,7 @@
 
 > A production-grade web-based admin console for the **Majen** fashion marketplace platform.
 
-The Majen Admin Console allows platform administrators to manage designers, clients, products, orders, analytics, and platform content efficiently. Built with a modern React/Next.js stack, it is fully responsive, scalable, and production-ready.
+The Majen Admin Console allows platform administrators to manage designers, clients, products, orders, analytics, and platform content efficiently. Built with a modern React/Next.js stack.
 
 ---
 
@@ -10,9 +10,10 @@ The Majen Admin Console allows platform administrators to manage designers, clie
 
 1. [Project Overview](#project-overview)
 2. [Features](#features)
-3. [Tech Stack](#tech-stack)
-4. [Folder Structure](#folder-structure)
-5. [License](#license)
+3. [Screenshots](#screenshots)
+4. [Tech Stack](#tech-stack)
+5. [Folder Structure](#folder-structure)
+6. [License](#license)
 
 ---
 
@@ -40,22 +41,34 @@ Majen is a fashion marketplace connecting **designers in Nigeria** with **client
 
 ---
 
+## **Screenshots**
+
+### **Landing Page**
+
+![Majen Admin Landing Page](public/screenshots/majen-admin-landing-page.png)
+
+### **Features Section**
+
+![Majen Admin Features Section](public/screenshots/majen-admin-feature.png)
+
+---
+
 ## **Tech Stack**
 
 - **Framework**: Next.js (App Router), TypeScript
 - **Styling**: Tailwind CSS, Shadcn UI
 - **State Management**: Zustand (UI state)
 - **Server State**: React Query (data fetching, caching)
-- **Forms**: Formik
+- **Forms**: Formik and Yup
 - **Tables**: TanStack Table
-- **Charts**: Recharts
+- **Charts**: Recharts (Tentative)
 - **Animations**: Framer Motion
 - **Icons**: React Icons
-- **Utilities**: Day.js (date formatting), Axios (API client)
+- **Utilities**: Axios (API client)
 
 ---
 
-## **Folder Structure**
+## **Folder Structure (Tentative)**
 
 ```plaintext
 src/
@@ -88,5 +101,5 @@ src/
 ## License
 
 This project is proprietary and all rights are reserved by Majen.
-Frontend Developed by Davisco.
+Frontend Developed by [Davisco](https://github.com/Dhavisco).
 See [LICENSE](./LICENSE) for details.
