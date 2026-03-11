@@ -13,6 +13,7 @@ import {
 import { DashboardPreview } from "./components/dashboard-preview";
 import { MajenLogo } from "./components/majen-logo";
 import Image from "next/image";
+import { BackToTop } from "./components/BackToTop";
 
 const featureCards = [
   {
@@ -198,6 +199,7 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      <BackToTop />
     </div>
   );
 }
