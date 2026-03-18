@@ -3,7 +3,7 @@ import React from 'react';
 interface Activity {
     description: string;
     time: string;
-    status: 'success' | 'warning' | 'error';
+    status: string;
 }
 
 interface ActivityListProps {

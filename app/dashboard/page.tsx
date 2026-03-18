@@ -5,7 +5,7 @@ import RevenueChart from '../components/RevenueChart/RevenueChart';
 import ProgressBar from '../components/ProgressBar/ProgressBar';
 import VerificationTable from '../components/VerificationTable/VerificationTable';
 import ActivityList from '../components/ActivityList/ActivityList';
-import { FaUsers, FaShoppingCart, FaDollarSign, FaChartLine } from 'react-icons/fa';
+import { FaUsers, FaShoppingCart, FaDollarSign } from 'react-icons/fa';
 
 const DashboardPage: React.FC = () => {
     const metrics = [
@@ -35,8 +35,11 @@ const DashboardPage: React.FC = () => {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
-                <RevenueChart />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+                <div className='lg:col-span-2'>
+                    <RevenueChart />
+                </div>
+
                 <div className="bg-white p-4 shadow rounded-lg">
                     <h3 className="text-lg font-bold mb-4">Platform Health</h3>
                     <ProgressBar label="Verified Designers" value={50} color="bg-blue-500" />

@@ -25,11 +25,6 @@ const Header: React.FC = () => {
                     <FaSearch className="absolute right-3 top-3 text-gray-400" />
                 </div>
                 <div className="flex items-center space-x-2">
-                    {/* <img
-                        src="/path-to-profile-pic.jpg"
-                        alt="Profile"
-                        className="w-8 h-8 rounded-full"
-                    /> */}
                     <span className="text-sm font-medium">Super Admin</span>
                 </div>
             </div>
