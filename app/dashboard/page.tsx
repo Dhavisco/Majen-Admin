@@ -8,6 +8,14 @@ import ActivityList from '../components/ActivityList/ActivityList';
 import { FaUsers, FaShoppingCart, FaDollarSign } from 'react-icons/fa';
 
 const DashboardPage: React.FC = () => {
+
+    const currentDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    });
+
     const metrics = [
         { title: 'Total Designers', value: 1000, percentageChange: 12, icon: <FaUsers />, color: 'bg-blue-100' },
         { title: 'Active Clients', value: 8420, percentageChange: 18, icon: <FaUsers />, color: 'bg-green-100' },
@@ -27,8 +35,17 @@ const DashboardPage: React.FC = () => {
         { description: 'Sarah Martin suspended', time: '1h', status: 'error' },
     ];
 
+
+
     return (
         <DashboardLayout>
+            <div className='mb-4'>
+                <div>
+                    <h1 className="text-xl font-bold">Good morning, Admin 👋</h1>
+                    <p className="text-sm text-gray-500">Here&apos;s what needs your attention today — {currentDate}</p>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {metrics.map((metric, index) => (
                     <MetricCard key={index} {...metric} />

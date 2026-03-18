@@ -1,19 +1,16 @@
 import React from 'react';
 import { FaSearch } from 'react-icons/fa';
+import { IoNotificationsOutline } from "react-icons/io5";
 
 const Header: React.FC = () => {
-    const currentDate = new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
+
 
     return (
         <header className="bg-white shadow p-4 flex justify-between items-center">
-            <div>
-                <h1 className="text-xl font-bold">Good morning, Admin 👋</h1>
-                <p className="text-sm text-gray-500">{currentDate}</p>
+
+
+            <div className='text-sm md:text-base font-semibold text-gray-700'>
+                Dashboard
             </div>
             <div className="flex items-center space-x-4">
                 <div className="relative">
@@ -25,7 +22,10 @@ const Header: React.FC = () => {
                     <FaSearch className="absolute right-3 top-3 text-gray-400" />
                 </div>
                 <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium">Super Admin</span>
+                    <IoNotificationsOutline className="text-gray-600 w-5 h-5" />
+                    <span className='text-xs bg-[#E4E0F8] flex justify-center items-center h-8 w-8 rounded-full text-[#1A0089] font-bold'>SA</span>
+                    <span className="text-sm font-medium hidden md:block">Super Admin</span>
+
                 </div>
             </div>
         </header>

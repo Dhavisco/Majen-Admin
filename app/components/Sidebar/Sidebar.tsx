@@ -12,6 +12,7 @@ import {
     FaChartLine,
     FaMoneyBillWave,
     FaCog,
+    FaUser,
 } from 'react-icons/fa';
 import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go';
 
@@ -28,7 +29,7 @@ const Sidebar: React.FC = () => {
         {
             title: 'People',
             items: [
-                { name: 'Designers', icon: <FaUsers />, route: '/dashboard/designers', badge: 4 },
+                { name: 'Designers', icon: <FaUser />, route: '/dashboard/designers', badge: 4 },
                 { name: 'Clients', icon: <FaUsers />, route: '/dashboard/clients', badge: null },
             ],
         },
