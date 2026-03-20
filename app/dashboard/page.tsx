@@ -6,6 +6,7 @@ import ProgressBar from '../components/ProgressBar/ProgressBar';
 import VerificationTable from '../components/VerificationTable/VerificationTable';
 import ActivityList from '../components/ActivityList/ActivityList';
 import { FaUsers, FaShoppingCart, FaDollarSign } from 'react-icons/fa';
+import { IoWarningOutline } from 'react-icons/io5';
 
 const DashboardPage: React.FC = () => {
 
@@ -43,6 +44,24 @@ const DashboardPage: React.FC = () => {
                 <div>
                     <h1 className="text-xl font-bold">Good morning, Admin 👋</h1>
                     <p className="text-sm text-gray-500">Here&apos;s what needs your attention today — {currentDate}</p>
+                </div>
+
+                {/* Attention details */}
+                <div className='p-4 mt-4 flex flex-col gap-2 md:flex-row justify-between rounded-[10px] bg-[#fde68a23] border-[#FDE68A] border'>
+                    <div className='flex flex-row items-center gap-3'>
+                        <div className='bg-[#FEF3C7] h-10 py-1 px-1.5 flex justify-center items-center rounded-[10px]'>
+                            <IoWarningOutline className='text-[#B45309] h-auto w-6' />
+                        </div>
+                        <div className='flex flex-col gap-0.5'>
+                            <div className='font-semibold text-[#92400E] text-sm lg:text-base'>4 pending designer verifications · 12 products awaiting review · 1 flagged account</div>
+                            <div className='text-xs lg:text-sm text-[#A16207]'>These require action before end of day to avoid affecting seller operations</div>
+                        </div>
+                    </div>
+
+                    <div className='flex flex-row items-center justify-end gap-3 text-xs md:text-sm'>
+                        <button className="bg-[#D97706] hover:bg-[#B45309] border border-[#B45309] cursor-pointer text-white px-3 py-1.5 lg:h-9 rounded-[10px]">Review designers</button>
+                        <button className="bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E] border border-[#FDE68A] cursor-pointer px-3 py-1.5 lg:h-9 rounded-[10px]">Review products</button>
+                    </div>
                 </div>
             </div>
 
