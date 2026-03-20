@@ -26,7 +26,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, percentageChange,
 
             <div className=''>
                 {percentageChange !== undefined && (
-                    <div className={`flex items-center p-1 rounded-2xl space-x-1 font-medium text-xs md:text-sm ${isIncrease ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <div className={`flex items-center p-1 rounded-2xl space-x-1 font-medium text-xs md:text-[13px] ${isIncrease ? 'bg-green-100' : 'bg-red-100'}`}>
                         {isIncrease ? (
                             <FaArrowUp className="text-green-500" />
                         ) : (
