@@ -5,7 +5,7 @@ import RevenueChart from '../components/RevenueChart/RevenueChart';
 import ProgressBar from '../components/ProgressBar/ProgressBar';
 import VerificationTable from '../components/VerificationTable/VerificationTable';
 import ActivityList from '../components/ActivityList/ActivityList';
-import { FaUsers, FaShoppingCart, FaDollarSign } from 'react-icons/fa';
+import { FaUsers, FaShoppingCart, FaDollarSign, FaUser } from 'react-icons/fa';
 import { IoWarningOutline } from 'react-icons/io5';
 
 const DashboardPage: React.FC = () => {
@@ -18,10 +18,10 @@ const DashboardPage: React.FC = () => {
     });
 
     const metrics = [
-        { title: 'Total Designers', value: 1000, percentageChange: 12, icon: <FaUsers />, color: 'bg-blue-100' },
-        { title: 'Active Clients', value: 8420, percentageChange: 18, icon: <FaUsers />, color: 'bg-green-100' },
-        { title: 'Total Orders', value: 3241, percentageChange: 7, icon: <FaShoppingCart />, color: 'bg-orange-100' },
-        { title: 'Platform Revenue', value: '₦48.2M', percentageChange: 22, icon: <FaDollarSign />, color: 'bg-purple-100' },
+        { title: 'Total Designers', value: 1000, percentageChange: 12, icon: <FaUser />, color: 'bg-blue-200' },
+        { title: 'Active Clients', value: 8420, percentageChange: 18, icon: <FaUsers />, color: 'bg-green-200' },
+        { title: 'Total Orders', value: 3241, percentageChange: -7, icon: <FaShoppingCart />, color: 'bg-orange-200' },
+        { title: 'Platform Revenue', value: '₦48.2M', percentageChange: 22, icon: <FaDollarSign />, color: 'bg-purple-200' },
     ];
 
     const verifications = [
