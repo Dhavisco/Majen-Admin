@@ -18,11 +18,35 @@ const DashboardPage: React.FC = () => {
     });
 
     const metrics = [
-        { title: 'Total Designers', value: 1000, percentageChange: 12, icon: <FaUser />, color: 'bg-blue-200' },
-        { title: 'Active Clients', value: 8420, percentageChange: 18, icon: <FaUsers />, color: 'bg-green-200' },
-        { title: 'Total Orders', value: 3241, percentageChange: -7, icon: <FaShoppingCart />, color: 'bg-orange-200' },
-        { title: 'Platform Revenue', value: '₦48.2M', percentageChange: 22, icon: <FaDollarSign />, color: 'bg-purple-200' },
-    ];
+        {
+            title: 'Total Designers',
+            value: 1000,
+            indicator: { type: 'percentage' as const, value: 12 },
+            icon: <FaUser />,
+            color: 'bg-blue-200',
+        },
+        {
+            title: 'Active Clients',
+            value: 8420,
+            indicator: { type: 'percentage' as const, value: 18 },
+            icon: <FaUsers />,
+            color: 'bg-green-200',
+        },
+        {
+            title: 'Total Orders',
+            value: 3241,
+            indicator: { type: 'percentage' as const, value: -7 },
+            icon: <FaShoppingCart />,
+            color: 'bg-orange-200',
+        },
+        {
+            title: 'Platform Revenue',
+            value: '₦48.2M',
+            indicator: { type: 'percentage' as const, value: 22 },
+            icon: <FaDollarSign />,
+            color: 'bg-purple-200',
+        },
+    ] as const;
 
     const verifications = [
         { designer: 'Kike Johnson', business: 'Liz&Co', submitted: 'Mar 14', actions: <button className="text-blue-600">Verify</button> },
