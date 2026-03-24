@@ -135,7 +135,7 @@ const DesignerPage: React.FC = () => {
             id: 6,
             name: 'Sarah Martin',
             email: 'smartin123@gmail.com',
-            business: 'Sarah’s Designs',
+            business: 'Sarah\u2019s Designs',
             cac: 'RC 1234567',
             products: 6,
             joined: 'Sep 2024',
@@ -221,7 +221,7 @@ const DesignerPage: React.FC = () => {
                     ))}
                 </div>
 
-                <div className='bg-white rounded-xl border shadow-sm py-2 px-4'>
+                <div className='bg-white rounded-xl border shadow-sm md:py-2 md:px-4 py-1 px-2'>
 
                     {/* Tabs */}
                     <Tabs
@@ -229,7 +229,7 @@ const DesignerPage: React.FC = () => {
                         onValueChange={setActiveTab}
                         className="w-full rounded-none"
                     >
-                        <div className="w-full overflow-x-auto max-w-[calc(100vw-4rem)] sm:max-w-full">
+                        <div className="w-full overflow-x-auto max-w-[calc(100vw-3rem)] sm:max-w-full">
                             <TabsList
                                 className="bg-transparent px-0 border-b h-auto w-max min-w-full justify-start gap-1 flex-nowrap"
                                 variant="line"
@@ -279,19 +279,23 @@ const DesignerPage: React.FC = () => {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto w-full mt-4 max-w-[calc(100vw-4rem)] sm:max-w-full">
+                    <div className="overflow-x-auto w-full mt-4 max-w-[calc(100vw-3rem)] sm:max-w-full">
 
                         <Table className='text-xs md:text-base'>
 
                             <TableHeader>
                                 <TableRow className='text-xs md:text-sm font-semibold'>
-                                    <TableHead>DESIGNER</TableHead>
+                                    <TableHead className="sticky left-0 bg-white z-10 after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                        DESIGNER
+                                    </TableHead>
                                     <TableHead>BUSINESS</TableHead>
                                     <TableHead>CAC</TableHead>
                                     <TableHead>PRODUCTS</TableHead>
                                     <TableHead>JOINED</TableHead>
                                     <TableHead>STATUS</TableHead>
-                                    <TableHead>ACTIONS</TableHead>
+                                    <TableHead className=" bg-white z-10">
+                                        ACTIONS
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
 
@@ -299,12 +303,12 @@ const DesignerPage: React.FC = () => {
 
                                 {filteredDesigners.map((designer) => (
 
-                                    <TableRow key={designer.id} className="hover:bg-muted/50 transition-colors">
+                                    <TableRow key={designer.id} className="group hover:bg-muted/50 transition-colors">
 
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
+                                        <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                            <div className="flex items-center gap-1 md:gap-3">
 
-                                                <div className="md:w-9 md:h-9 w-7 h-7 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[11px] rounded-full flex items-center justify-center font-medium">
+                                                <div className="md:w-9 md:h-9 w-5 h-5 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[8px] rounded-full flex items-center justify-center font-medium">
                                                     {designer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                                 </div>
 
@@ -320,7 +324,7 @@ const DesignerPage: React.FC = () => {
 
                                         <TableCell className="font-medium text-muted-foreground font-mono md:text-sm text-[11px]">{designer.cac}</TableCell>
 
-                                        <TableCell className=" font-medium md:text-sm text-[11px]">{designer.products}</TableCell>
+                                        <TableCell className="font-medium md:text-sm text-[11px]">{designer.products}</TableCell>
 
                                         <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
 
@@ -328,7 +332,7 @@ const DesignerPage: React.FC = () => {
                                             {getStatusBadge(designer.status)}
                                         </TableCell>
 
-                                        <TableCell>
+                                        <TableCell className=" bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
 
                                             <div className="flex gap-2 whitespace-nowrap">
 
@@ -382,7 +386,7 @@ const DesignerPage: React.FC = () => {
                                         <PaginationItem>
                                             <PaginationPrevious
                                                 href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px]  border-[0.5px]"
+                                                className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px]"
                                             />
                                         </PaginationItem>
                                         <PaginationItem>
@@ -419,8 +423,6 @@ const DesignerPage: React.FC = () => {
                                     </PaginationContent>
                                 </Pagination>
                             </div>
-
-
 
                         </div>
 
