@@ -49,37 +49,6 @@ const DesignerPage: React.FC = () => {
 
     const [activeTab, setActiveTab] = useState('all');
 
-    // const metrics = [
-    //     {
-    //         title: 'Total designers',
-    //         value: '1,000',
-    //         percentageChange: 12,
-    //         icon: <FaUsers className="w-5 h-5" />,
-    //         color: 'bg-blue-100 text-blue-600'
-    //     },
-    //     {
-    //         title: 'Verified',
-    //         value: '500',
-    //         percentageChange: 8,
-    //         icon: <FaCheckCircle className="w-5 h-5" />,
-    //         color: 'bg-green-100 text-green-600'
-    //     },
-    //     {
-    //         title: 'Pending review',
-    //         value: '4',
-    //         percentageChange: 0,
-    //         icon: <FaClock className="w-5 h-5" />,
-    //         color: 'bg-yellow-100 text-yellow-600'
-    //     },
-    //     {
-    //         title: 'Suspended / Banned',
-    //         value: '3',
-    //         percentageChange: -2,
-    //         icon: <FaBan className="w-5 h-5" />,
-    //         color: 'bg-red-100 text-red-600'
-    //     },
-    // ];
-
     const metrics = [
         {
             title: 'Total designers',
@@ -236,7 +205,7 @@ const DesignerPage: React.FC = () => {
 
     return (
         <DashboardLayout>
-            <div className="space-y-6 p-2 md:p-0">
+            <div className="space-y-6 md:p-0">
 
                 <div>
                     <h1 className="md:text-2xl text-lg font-bold tracking-tight">Designers</h1>
@@ -252,7 +221,7 @@ const DesignerPage: React.FC = () => {
                     ))}
                 </div>
 
-                <main className='bg-white rounded-xl border shadow-sm py-2 px-4'>
+                <div className='bg-white rounded-xl border shadow-sm py-2 px-4'>
 
                     {/* Tabs */}
                     <Tabs
@@ -260,21 +229,25 @@ const DesignerPage: React.FC = () => {
                         onValueChange={setActiveTab}
                         className="w-full rounded-none"
                     >
-
-                        <TabsList className="bg-transparent px-0 border-b h-auto w-full justify-start gap-1" variant="line">
-                            {tabs.map((tab) => (
-                                <TabsTrigger
-                                    key={tab.value}
-                                    value={tab.value}
-                                    className="px-4 text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium"
-                                >
-                                    {tab.label}
-                                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tab.color}`}>
-                                        {counts[tab.value] ?? 0}
-                                    </span>
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
+                        <div className="w-full overflow-x-auto max-w-[calc(100vw-4rem)] sm:max-w-full">
+                            <TabsList
+                                className="bg-transparent px-0 border-b h-auto w-max min-w-full justify-start gap-1 flex-nowrap"
+                                variant="line"
+                            >
+                                {tabs.map((tab) => (
+                                    <TabsTrigger
+                                        key={tab.value}
+                                        value={tab.value}
+                                        className="px-4 text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium"
+                                    >
+                                        {tab.label}
+                                        <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${tab.color}`}>
+                                            {counts[tab.value] ?? 0}
+                                        </span>
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </div>
                     </Tabs>
 
 
@@ -306,9 +279,9 @@ const DesignerPage: React.FC = () => {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-hidden mt-4">
+                    <div className="overflow-x-auto w-full mt-4 max-w-[calc(100vw-4rem)] sm:max-w-full">
 
-                        <Table>
+                        <Table className=''>
 
                             <TableHeader>
                                 <TableRow>
@@ -355,7 +328,7 @@ const DesignerPage: React.FC = () => {
 
                                         <TableCell>
 
-                                            <div className="flex gap-2">
+                                            <div className="flex gap-2 whitespace-nowrap">
 
                                                 {designer.status === 'Pending' ? (
 
@@ -451,7 +424,7 @@ const DesignerPage: React.FC = () => {
 
                     </div>
 
-                </main>
+                </div>
 
             </div>
         </DashboardLayout>
