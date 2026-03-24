@@ -86,16 +86,19 @@ const DesignerPage: React.FC = () => {
             name: 'Yvonne Onyata',
             email: 'info@yvelabel.com',
             business: 'YVE Label',
+            type: 'Ready to wear',
             cac: 'RC 1234567',
             products: 25,
             joined: 'Jun 2024',
             status: 'Active'
+
         },
         {
             id: 2,
             name: 'Kike Johnson',
             email: 'kikejohnson3@gmail.com',
             business: 'Liz&Co',
+            type: 'Ready to wear',
             cac: 'RC 1234567',
             products: 0,
             joined: 'Mar 2026',
@@ -106,6 +109,7 @@ const DesignerPage: React.FC = () => {
             name: 'Mary Johnson',
             email: 'maryjohnson@gmail.com',
             business: 'Mary Atelier',
+            type: 'Custom',
             cac: 'RC 1234567',
             products: 5,
             joined: 'Jan 2024',
@@ -116,6 +120,7 @@ const DesignerPage: React.FC = () => {
             name: 'Joy Akigbe',
             email: 'joyakigbe34@gmail.com',
             business: 'Kuwaj',
+            type: 'Ready to wear',
             cac: 'RC 1234567',
             products: 18,
             joined: 'Aug 2024',
@@ -126,6 +131,7 @@ const DesignerPage: React.FC = () => {
             name: 'Omowaju Ayotunde',
             email: 'shopmora.co@gmail.com',
             business: 'Shop Mora',
+            type: 'Custom',
             cac: 'RC 1234567',
             products: 0,
             joined: 'Mar 2026',
@@ -136,6 +142,7 @@ const DesignerPage: React.FC = () => {
             name: 'Sarah Martin',
             email: 'smartin123@gmail.com',
             business: 'Sarah\u2019s Designs',
+            type: 'Custom',
             cac: 'RC 1234567',
             products: 6,
             joined: 'Sep 2024',
@@ -146,6 +153,7 @@ const DesignerPage: React.FC = () => {
             name: 'Tolu Aribisala',
             email: 'spiceoflagos@gmail.com',
             business: 'Spice of Lagos',
+            type: 'Ready to wear',
             cac: 'RC 1234567',
             products: 5,
             joined: 'Nov 2024',
@@ -229,7 +237,7 @@ const DesignerPage: React.FC = () => {
                         onValueChange={setActiveTab}
                         className="w-full rounded-none"
                     >
-                        <div className="w-full overflow-x-auto max-w-[calc(100vw-3rem)] sm:max-w-full">
+                        <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] sm:max-w-full">
                             <TabsList
                                 className="bg-transparent px-0 border-b h-auto w-max min-w-full justify-start gap-1 flex-nowrap"
                                 variant="line"
@@ -279,7 +287,7 @@ const DesignerPage: React.FC = () => {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto w-full mt-4 max-w-[calc(100vw-3rem)] sm:max-w-full">
+                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] sm:max-w-full">
 
                         <Table className='text-xs md:text-base'>
 
@@ -313,22 +321,33 @@ const DesignerPage: React.FC = () => {
                                                 </div>
 
                                                 <div className='md:text-sm text-[11px]'>
-                                                    <div className="font-medium">{designer.name}</div>
+                                                    <div className="font-semibold">{designer.name}</div>
                                                     <div className="text-muted-foreground">{designer.email}</div>
                                                 </div>
 
                                             </div>
                                         </TableCell>
 
-                                        <TableCell className="font-medium md:text-sm text-[11px]">{designer.business}</TableCell>
+                                        <TableCell className="font-semibold md:text-sm text-[11px]">
+                                            <div className=''>
+                                                <div>{designer.business}</div>
+                                                <div className='md:text-xs text-[10px] text-muted-foreground font-medium'>{designer.type}</div>
+                                            </div>
 
-                                        <TableCell className="font-medium text-muted-foreground font-mono md:text-sm text-[11px]">{designer.cac}</TableCell>
+                                        </TableCell>
 
-                                        <TableCell className="font-medium md:text-sm text-[11px]">{designer.products}</TableCell>
+                                        <TableCell className="font-medium text-muted-foreground font-mono md:text-sm text-[11px]">
+                                            <div className=' bg-[#F4F4F5] px-2 py-0.5 border border-[#E4E4E7] p-1 rounded-sm'>
+                                                {designer.cac}
+                                            </div>
+
+                                        </TableCell>
+
+                                        <TableCell className="font-bold md:text-sm text-[11px]">{designer.products}</TableCell>
 
                                         <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
 
-                                        <TableCell className="md:text-sm text-[11px]">
+                                        <TableCell className="md:text-sm font-semibold text-[11px]">
                                             {getStatusBadge(designer.status)}
                                         </TableCell>
 
