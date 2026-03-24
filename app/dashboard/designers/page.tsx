@@ -238,7 +238,7 @@ const DesignerPage: React.FC = () => {
                                     <TabsTrigger
                                         key={tab.value}
                                         value={tab.value}
-                                        className="px-4 text-xs md:text-sm text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium"
+                                        className="px-4 text-xs md:text-sm text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium cursor-pointer"
                                     >
                                         {tab.label}
                                         <span className={`text-[10px] md:text-[11px] flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full font-medium ${tab.color}`}>
@@ -258,7 +258,7 @@ const DesignerPage: React.FC = () => {
                             <FaSearch className="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search by name, email or CAC number..."
-                                className="pl-10 bg-white text-xs md:text-base"
+                                className="pl-10 bg-white text-xs md:text-sm"
                             />
                         </div>
 
@@ -284,7 +284,7 @@ const DesignerPage: React.FC = () => {
                         <Table className='text-xs md:text-base'>
 
                             <TableHeader>
-                                <TableRow>
+                                <TableRow className='text-xs md:text-sm font-semibold'>
                                     <TableHead>DESIGNER</TableHead>
                                     <TableHead>BUSINESS</TableHead>
                                     <TableHead>CAC</TableHead>
@@ -304,11 +304,11 @@ const DesignerPage: React.FC = () => {
                                         <TableCell>
                                             <div className="flex items-center gap-3">
 
-                                                <div className="md:w-9 md:h-9 w-7 h-7 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[10px] rounded-full flex items-center justify-center font-medium">
+                                                <div className="md:w-9 md:h-9 w-7 h-7 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[11px] rounded-full flex items-center justify-center font-medium">
                                                     {designer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                                 </div>
 
-                                                <div className='md:text-xs text-[11px]'>
+                                                <div className='md:text-sm text-[11px]'>
                                                     <div className="font-medium">{designer.name}</div>
                                                     <div className="text-muted-foreground">{designer.email}</div>
                                                 </div>
@@ -316,15 +316,15 @@ const DesignerPage: React.FC = () => {
                                             </div>
                                         </TableCell>
 
-                                        <TableCell className="font-medium md:text-xs text-[11px]">{designer.business}</TableCell>
+                                        <TableCell className="font-medium md:text-sm text-[11px]">{designer.business}</TableCell>
 
-                                        <TableCell className="text-muted-foreground font-mono md:text-xs text-[11px]">{designer.cac}</TableCell>
+                                        <TableCell className="font-medium text-muted-foreground font-mono md:text-sm text-[11px]">{designer.cac}</TableCell>
 
-                                        <TableCell className="md:text-xs text-[11px]">{designer.products}</TableCell>
+                                        <TableCell className=" font-medium md:text-sm text-[11px]">{designer.products}</TableCell>
 
-                                        <TableCell className="text-muted-foreground md:text-xs text-[11px]">{designer.joined}</TableCell>
+                                        <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
 
-                                        <TableCell className="md:text-xs text-[11px]">
+                                        <TableCell className="md:text-sm text-[11px]">
                                             {getStatusBadge(designer.status)}
                                         </TableCell>
 
