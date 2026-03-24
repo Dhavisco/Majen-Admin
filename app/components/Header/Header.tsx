@@ -36,7 +36,7 @@ const Header: React.FC = () => {
                     <input
                         type="text"
                         placeholder="Search anything..."
-                        className="border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                        className="border rounded-full px-4 py-2 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                     />
                     <FaSearch className="absolute right-3 top-3 text-gray-400" />
                 </div>
