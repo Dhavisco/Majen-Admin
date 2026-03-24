@@ -216,7 +216,7 @@ const DesignerPage: React.FC = () => {
             <div className="space-y-6 md:p-0">
 
                 <div>
-                    <h1 className="md:text-2xl text-lg font-bold tracking-tight">Designers</h1>
+                    <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">Designers</h1>
                     <p className="text-muted-foreground md:text-sm text-xs mt-1">
                         Verify sellers, manage accounts and review applications
                     </p>
@@ -237,7 +237,7 @@ const DesignerPage: React.FC = () => {
                         onValueChange={setActiveTab}
                         className="w-full rounded-none"
                     >
-                        <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] sm:max-w-full">
+                        <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                             <TabsList
                                 className="bg-transparent px-0 border-b h-auto w-max min-w-full justify-start gap-1 flex-nowrap"
                                 variant="line"
@@ -287,7 +287,7 @@ const DesignerPage: React.FC = () => {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] sm:max-w-full">
+                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
 
                         <Table className='text-xs md:text-base'>
 
