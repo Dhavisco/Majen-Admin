@@ -293,15 +293,15 @@ const DesignerPage: React.FC = () => {
 
                             <TableHeader>
                                 <TableRow className='text-xs md:text-sm font-semibold'>
-                                    <TableHead className="sticky left-0 bg-white z-10 after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                    <TableHead className="sticky left-0 text-muted-foreground font-semibold bg-white z-10 after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
                                         DESIGNER
                                     </TableHead>
-                                    <TableHead>BUSINESS</TableHead>
-                                    <TableHead>CAC</TableHead>
-                                    <TableHead>PRODUCTS</TableHead>
-                                    <TableHead>JOINED</TableHead>
-                                    <TableHead>STATUS</TableHead>
-                                    <TableHead className=" bg-white z-10">
+                                    <TableHead className='text-muted-foreground font-semibold'>BUSINESS</TableHead>
+                                    <TableHead className='text-muted-foreground font-semibold'>CAC</TableHead>
+                                    <TableHead className='text-muted-foreground font-semibold'>PRODUCTS</TableHead>
+                                    <TableHead className='text-muted-foreground font-semibold'>JOINED</TableHead>
+                                    <TableHead className='text-muted-foreground font-semibold'>STATUS</TableHead>
+                                    <TableHead className="text-muted-foreground font-semibold bg-white z-10">
                                         ACTIONS
                                     </TableHead>
                                 </TableRow>
@@ -336,8 +336,8 @@ const DesignerPage: React.FC = () => {
 
                                         </TableCell>
 
-                                        <TableCell className="font-medium text-muted-foreground font-mono md:text-sm text-[11px]">
-                                            <div className=' bg-[#F4F4F5] px-2 py-0.5 border border-[#E4E4E7] p-1 rounded-sm'>
+                                        <TableCell className=" md:text-sm text-[11px]">
+                                            <div className=' bg-[#F4F4F5] px-2 font-extralight text-muted-foreground font-mono py-0.5 border border-[#E4E4E7] p-1 rounded-sm'>
                                                 {designer.cac}
                                             </div>
 
@@ -358,22 +358,22 @@ const DesignerPage: React.FC = () => {
                                                 {designer.status === 'Pending' ? (
 
                                                     <>
-                                                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] font-medium md:text-xs text-[11px]">
+                                                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]">
                                                             <FaCheck className="mr-1" /> Verify
                                                         </Button>
 
-                                                        <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 font-medium md:text-xs text-[11px]">
+                                                        <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
                                                             <FaTimes className="mr-1" /> Reject
                                                         </Button>
 
-                                                        <Button size="sm" variant="outline" className='text-[#1A0089] hover:bg-[#14006b] border-[#1900894b] font-medium md:text-xs text-[11px]'>
+                                                        <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
                                                             View
                                                         </Button>
                                                     </>
 
                                                 ) : (
 
-                                                    <Button size="sm" variant="outline">
+                                                    <Button size="sm" variant="outline" className='cursor-pointer'>
                                                         <FaEye className="mr-2" /> View profile
                                                     </Button>
 
