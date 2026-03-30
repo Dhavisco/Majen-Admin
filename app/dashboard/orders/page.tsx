@@ -169,7 +169,7 @@ const OrderPage: React.FC = () => {
             <div className="space-y-6 md:p-0">
                 <div className="flex justify-between">
                     <div>
-                        <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">Orders Management</h1>
+                        <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">Order Management</h1>
                         <p className="text-muted-foreground md:text-sm text-xs mt-1">
                             Track and manage all orders across the platform
                         </p>
@@ -276,7 +276,7 @@ const OrderPage: React.FC = () => {
                                                 </div> */}
 
                                                 <div className="md:text-sm text-[11px] px-1.5 py-0.5 bg-[#F4F4F5] text-[#52525B] rounded-sm border border-[#E4E4E7]">
-                                                    <div className="font-medium">{'#'}{order.orderId}</div>
+                                                    <div className="">{'#'}{order.orderId}</div>
                                                 </div>
                                             </div>
                                         </TableCell>
