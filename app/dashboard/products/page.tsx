@@ -9,7 +9,8 @@ import {
     FaClock,
     FaBan,
     FaCheck,
-    FaTimes
+    FaTimes,
+    FaFilter
 } from 'react-icons/fa';
 
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ import {
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
+import { FaArrowDownLong } from 'react-icons/fa6';
 
 const ProductPage: React.FC = () => {
 
@@ -175,11 +177,17 @@ const ProductPage: React.FC = () => {
         <DashboardLayout>
             <div className="space-y-6 md:p-0">
 
-                <div>
-                    <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">products</h1>
-                    <p className="text-muted-foreground md:text-sm text-xs mt-1">
-                        Manage product all listings across the platform
-                    </p>
+                <div className='flex justify-between'>
+                    <div>  <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">Products</h1>
+                        <p className="text-muted-foreground md:text-sm text-xs mt-1">
+                            Manage product all listings across the platform
+                        </p>
+                    </div>
+                    <div className='flex items-center bg-white px-4 gap-2 rounded-xl'>
+                        <FaArrowDownLong className='' />
+                        <div>Export</div>
+                    </div>
+
                 </div>
 
                 {/* Metric Cards */}
@@ -230,19 +238,19 @@ const ProductPage: React.FC = () => {
                             />
                         </div>
 
-                        {/* <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
 
                             <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
                                 <FaFilter className="md:h-4 md:w-4 h-2 w-2" />
                                 Filter
                             </Button>
 
-                            <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
+                            {/* <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
                                 <FaDownload className="md:h-4 md:w-4 h-2 w-2" />
                                 Export
-                            </Button>
+                            </Button> */}
 
-                        </div> */}
+                        </div>
 
                     </div>
 
