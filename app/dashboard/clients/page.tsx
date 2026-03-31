@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 
 import {
     FaSearch,
@@ -40,6 +41,7 @@ import {
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
+import { clients } from '@/app/dashboard/clients/data';
 
 const ClientPage: React.FC = () => {
 
@@ -76,80 +78,6 @@ const ClientPage: React.FC = () => {
         },
     ] as const;
 
-    const clients = useMemo(() => [
-        {
-            id: 1,
-            name: 'Yvonne Onyata',
-            email: 'info@yvelabel.com',
-            location: 'Lagos',
-            orders: '24',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Active'
-
-        },
-        {
-            id: 2,
-            name: 'Kike Johnson',
-            email: 'kikejohnson3@gmail.com',
-            location: 'Abuja',
-            orders: '18',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Pending'
-        },
-        {
-            id: 3,
-            name: 'Mary Johnson',
-            email: 'maryjohnson@gmail.com',
-            location: 'Abuja',
-            orders: '12',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Banned'
-        },
-        {
-            id: 4,
-            name: 'Joy Akigbe',
-            email: 'joyakigbe34@gmail.com',
-            location: 'Lagos',
-            orders: '12',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Flagged'
-        },
-        {
-            id: 5,
-            name: 'Omowaju Ayotunde',
-            email: 'shopmora.co@gmail.com',
-            location: 'Port Harcourt',
-            orders: '15',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Pending'
-        },
-        {
-            id: 6,
-            name: 'Sarah Martin',
-            email: 'smartin123@gmail.com',
-            location: 'Abuja',
-            orders: '17',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Suspended'
-        },
-        {
-            id: 7,
-            name: 'Tolu Aribisala',
-            email: 'spiceoflagos@gmail.com',
-            location: 'Lagos',
-            orders: '24',
-            totalspent: 620,
-            lastactive: 'Mar 14',
-            status: 'Active'
-        },
-    ], []);
-
     const tabs = [
         { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
         // { label: 'Pending', value: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
@@ -171,7 +99,7 @@ const ClientPage: React.FC = () => {
 
         return result;
 
-    }, [clients]);
+    }, []);
 
 
     const filteredClients = useMemo(() => {
@@ -180,7 +108,7 @@ const ClientPage: React.FC = () => {
 
         return clients.filter(d => d.status === activeTab);
 
-    }, [activeTab, clients]);
+    }, [activeTab]);
 
 
     const getStatusBadge = (status: string) => {
@@ -329,9 +257,9 @@ const ClientPage: React.FC = () => {
 
                                         </TableCell>
 
-                                        <TableCell className="font-bold md:text-sm text-[11px]">{'₦'}{client.totalspent}{'K'}</TableCell>
+                                        <TableCell className="font-bold md:text-sm text-[11px]">{client.totalSpent}</TableCell>
 
-                                        <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{client.lastactive}</TableCell>
+                                        <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{client.lastActive}</TableCell>
 
                                         <TableCell className="md:text-sm font-semibold text-[11px]">
                                             {getStatusBadge(client.status)}
@@ -344,9 +272,11 @@ const ClientPage: React.FC = () => {
                                                 {client.status === 'Flagged' ? (
 
                                                     <>
-                                                        <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
-                                                            View {'-->'}
-                                                        </Button>
+                                                        <Link href={`/dashboard/clients/${client.id}`}>
+                                                            <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
+                                                                View {'-->'}
+                                                            </Button>
+                                                        </Link>
 
                                                         <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
                                                             Ban
@@ -357,9 +287,11 @@ const ClientPage: React.FC = () => {
 
                                                 ) : (
 
-                                                    <Button size="sm" variant="outline" className='cursor-pointer'>
-                                                        <FaEye className="mr-2" /> View profile
-                                                    </Button>
+                                                    <Link href={`/dashboard/clients/${client.id}`}>
+                                                        <Button size="sm" variant="outline" className='cursor-pointer'>
+                                                            <FaEye className="mr-2" /> View profile
+                                                        </Button>
+                                                    </Link>
 
                                                 )}
 

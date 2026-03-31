@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 import {
     FaSearch,
@@ -45,8 +46,8 @@ import {
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
+import { designers, type DesignerStatus } from '@/app/dashboard/designers/data';
 
-type DesignerStatus = 'Active' | 'Pending' | 'Flagged' | 'Suspended' | 'Banned';
 type DesignerTab = 'all' | 'pending' | 'verified' | 'flagged' | 'suspended' | 'banned';
 
 const statusByTab: Record<Exclude<DesignerTab, 'all'>, DesignerStatus> = {
@@ -75,7 +76,7 @@ const queryToTab = (value: string | null): DesignerTab => {
     }
 };
 
-const DesignerPage: React.FC = () => {
+const DesignersPageContent: React.FC = () => {
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<DesignerTab>('all');
 
@@ -114,87 +115,6 @@ const DesignerPage: React.FC = () => {
         },
     ] as const;
 
-    const designers = useMemo(() => [
-        {
-            id: 1,
-            name: 'Yvonne Onyata',
-            email: 'info@yvelabel.com',
-            business: 'YVE Label',
-            type: 'Ready to wear',
-            cac: 'RC 1234567',
-            products: 25,
-            joined: 'Jun 2024',
-            status: 'Active'
-
-        },
-        {
-            id: 2,
-            name: 'Kike Johnson',
-            email: 'kikejohnson3@gmail.com',
-            business: 'Liz&Co',
-            type: 'Ready to wear',
-            cac: 'RC 1234567',
-            products: 0,
-            joined: 'Mar 2026',
-            status: 'Pending'
-        },
-        {
-            id: 3,
-            name: 'Mary Johnson',
-            email: 'maryjohnson@gmail.com',
-            business: 'Mary Atelier',
-            type: 'Custom',
-            cac: 'RC 1234567',
-            products: 5,
-            joined: 'Jan 2024',
-            status: 'Banned'
-        },
-        {
-            id: 4,
-            name: 'Joy Akigbe',
-            email: 'joyakigbe34@gmail.com',
-            business: 'Kuwaj',
-            type: 'Ready to wear',
-            cac: 'RC 1234567',
-            products: 18,
-            joined: 'Aug 2024',
-            status: 'Flagged'
-        },
-        {
-            id: 5,
-            name: 'Omowaju Ayotunde',
-            email: 'shopmora.co@gmail.com',
-            business: 'Shop Mora',
-            type: 'Custom',
-            cac: 'RC 1234567',
-            products: 0,
-            joined: 'Mar 2026',
-            status: 'Pending'
-        },
-        {
-            id: 6,
-            name: 'Sarah Martin',
-            email: 'smartin123@gmail.com',
-            business: 'Sarah\u2019s Designs',
-            type: 'Custom',
-            cac: 'RC 1234567',
-            products: 6,
-            joined: 'Sep 2024',
-            status: 'Suspended'
-        },
-        {
-            id: 7,
-            name: 'Tolu Aribisala',
-            email: 'spiceoflagos@gmail.com',
-            business: 'Spice of Lagos',
-            type: 'Ready to wear',
-            cac: 'RC 1234567',
-            products: 5,
-            joined: 'Nov 2024',
-            status: 'Active'
-        },
-    ], []);
-
     const tabs = [
         { label: 'All', value: 'all' as const, color: 'bg-gray-200 text-gray-700' },
         { label: 'Pending', value: 'pending' as const, color: 'bg-yellow-100 text-yellow-700' },
@@ -213,13 +133,13 @@ const DesignerPage: React.FC = () => {
             suspended: designers.filter((d) => d.status === 'Suspended').length,
             banned: designers.filter((d) => d.status === 'Banned').length,
         };
-    }, [designers]);
+    }, []);
 
 
     const filteredDesigners = useMemo(() => {
         if (activeTab === 'all') return designers;
         return designers.filter((d) => d.status === statusByTab[activeTab]);
-    }, [activeTab, designers]);
+    }, [activeTab]);
 
 
     const getStatusBadge = (status: string) => {
@@ -240,237 +160,236 @@ const DesignerPage: React.FC = () => {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6 md:p-0">
+        <div className="space-y-6 md:p-0">
 
-                <div>
-                    <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">Designers</h1>
-                    <p className="text-muted-foreground md:text-sm text-xs mt-1">
-                        Verify sellers, manage accounts and review applications
-                    </p>
-                </div>
+            <div>
+                <h1 className="md:text-xl lg:text-2xl text-lg font-bold tracking-tight">Designers</h1>
+                <p className="text-muted-foreground md:text-sm text-xs mt-1">
+                    Verify sellers, manage accounts and review applications
+                </p>
+            </div>
 
-                {/* Metric Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {metrics.map((metric, i) => (
-                        <MetricCard key={i} {...metric} />
-                    ))}
-                </div>
+            {/* Metric Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {metrics.map((metric, i) => (
+                    <MetricCard key={i} {...metric} />
+                ))}
+            </div>
 
-                <div className='bg-white rounded-xl border shadow-sm md:py-2 md:px-4 py-1 px-2'>
+            <div className='bg-white rounded-xl border shadow-sm md:py-2 md:px-4 py-1 px-2'>
 
-                    {/* Tabs */}
-                    <Tabs
-                        value={activeTab}
-                        onValueChange={(value) => setActiveTab(value as DesignerTab)}
-                        className="w-full rounded-none"
-                    >
-                        <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
-                            <TabsList
-                                className="bg-transparent px-0 border-b h-auto w-max min-w-full justify-start gap-1 flex-nowrap"
-                                variant="line"
-                            >
-                                {tabs.map((tab) => (
-                                    <TabsTrigger
-                                        key={tab.value}
-                                        value={tab.value}
-                                        className="px-4 text-xs md:text-sm text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium cursor-pointer"
-                                    >
-                                        {tab.label}
-                                        <span className={`text-[10px] md:text-[11px] flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full font-medium ${tab.color}`}>
-                                            {counts[tab.value] ?? 0}
-                                        </span>
-                                    </TabsTrigger>
-                                ))}
-                            </TabsList>
-                        </div>
-                    </Tabs>
+                {/* Tabs */}
+                <Tabs
+                    value={activeTab}
+                    onValueChange={(value) => setActiveTab(value as DesignerTab)}
+                    className="w-full rounded-none"
+                >
+                    <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
+                        <TabsList
+                            className="bg-transparent px-0 border-b h-auto w-max min-w-full justify-start gap-1 flex-nowrap"
+                            variant="line"
+                        >
+                            {tabs.map((tab) => (
+                                <TabsTrigger
+                                    key={tab.value}
+                                    value={tab.value}
+                                    className="px-4 text-xs md:text-sm text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium cursor-pointer"
+                                >
+                                    {tab.label}
+                                    <span className={`text-[10px] md:text-[11px] flex items-center justify-center w-4 h-4 md:w-5 md:h-5 rounded-full font-medium ${tab.color}`}>
+                                        {counts[tab.value] ?? 0}
+                                    </span>
+                                </TabsTrigger>
+                            ))}
+                        </TabsList>
+                    </div>
+                </Tabs>
 
 
-                    {/* Search + Actions */}
-                    <div className="flex flex-col sm:flex-row sm:justify-between gap-5 w-full mt-4">
+                {/* Search + Actions */}
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-5 w-full mt-4">
 
-                        <div className="relative flex-1">
-                            <FaSearch className="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search by name, email or CAC number..."
-                                className="pl-10 bg-white text-xs md:text-sm"
-                            />
-                        </div>
+                    <div className="relative flex-1">
+                        <FaSearch className="absolute left-3 top-2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by name, email or CAC number..."
+                            className="pl-10 bg-white text-xs md:text-sm"
+                        />
+                    </div>
 
-                        <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
 
-                            <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
-                                <FaFilter className="md:h-4 md:w-4 h-2 w-2" />
-                                Filter
-                            </Button>
+                        <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
+                            <FaFilter className="md:h-4 md:w-4 h-2 w-2" />
+                            Filter
+                        </Button>
 
-                            <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
-                                <FaDownload className="md:h-4 md:w-4 h-2 w-2" />
-                                Export
-                            </Button>
-
-                        </div>
+                        <Button variant="outline" className="flex items-center gap-2 text-xs md:text-sm">
+                            <FaDownload className="md:h-4 md:w-4 h-2 w-2" />
+                            Export
+                        </Button>
 
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
+                </div>
 
-                        <Table className='text-xs md:text-base'>
+                {/* Table */}
+                <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
 
-                            <TableHeader>
-                                <TableRow className='text-xs md:text-sm font-semibold'>
-                                    <TableHead className="sticky left-0 text-muted-foreground font-semibold bg-white z-10 after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
-                                        DESIGNER
-                                    </TableHead>
-                                    <TableHead className='text-muted-foreground font-semibold'>BUSINESS</TableHead>
-                                    <TableHead className='text-muted-foreground font-semibold'>CAC</TableHead>
-                                    <TableHead className='text-muted-foreground font-semibold'>PRODUCTS</TableHead>
-                                    <TableHead className='text-muted-foreground font-semibold'>JOINED</TableHead>
-                                    <TableHead className='text-muted-foreground font-semibold'>STATUS</TableHead>
-                                    <TableHead className="text-muted-foreground font-semibold bg-white z-10">
-                                        ACTIONS
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
+                    <Table className='text-xs md:text-base'>
 
-                            <TableBody>
+                        <TableHeader>
+                            <TableRow className='text-xs md:text-sm font-semibold'>
+                                <TableHead className="sticky left-0 text-muted-foreground font-semibold bg-white z-10 after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                    DESIGNER
+                                </TableHead>
+                                <TableHead className='text-muted-foreground font-semibold'>BUSINESS</TableHead>
+                                <TableHead className='text-muted-foreground font-semibold'>CAC</TableHead>
+                                <TableHead className='text-muted-foreground font-semibold'>PRODUCTS</TableHead>
+                                <TableHead className='text-muted-foreground font-semibold'>JOINED</TableHead>
+                                <TableHead className='text-muted-foreground font-semibold'>STATUS</TableHead>
+                                <TableHead className="text-muted-foreground font-semibold bg-white z-10">
+                                    ACTIONS
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
 
-                                {filteredDesigners.map((designer) => (
+                        <TableBody>
 
-                                    <TableRow key={designer.id} className="group hover:bg-muted/50 transition-colors">
+                            {filteredDesigners.map((designer) => (
 
-                                        <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
-                                            <div className="flex items-center gap-1 md:gap-3">
+                                <TableRow key={designer.id} className="group hover:bg-muted/50 transition-colors">
 
-                                                <div className="md:w-9 md:h-9 w-5 h-5 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[8px] rounded-full flex items-center justify-center font-medium">
-                                                    {designer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                                </div>
+                                    <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                        <div className="flex items-center gap-1 md:gap-3">
 
-                                                <div className='md:text-sm text-[11px]'>
-                                                    <div className="font-semibold">{designer.name}</div>
-                                                    <div className="text-muted-foreground">{designer.email}</div>
-                                                </div>
-
-                                            </div>
-                                        </TableCell>
-
-                                        <TableCell className="font-semibold md:text-sm text-[11px]">
-                                            <div className=''>
-                                                <div>{designer.business}</div>
-                                                <div className='md:text-xs text-[10px] text-muted-foreground font-medium'>{designer.type}</div>
+                                            <div className="md:w-9 md:h-9 w-5 h-5 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[8px] rounded-full flex items-center justify-center font-medium">
+                                                {designer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                                             </div>
 
-                                        </TableCell>
-
-                                        <TableCell className=" md:text-sm text-[11px]">
-                                            <div className=' bg-[#F4F4F5] px-2 font-extralight text-muted-foreground font-mono py-0.5 border border-[#E4E4E7] p-1 rounded-sm'>
-                                                {designer.cac}
+                                            <div className='md:text-sm text-[11px]'>
+                                                <div className="font-semibold">{designer.name}</div>
+                                                <div className="text-muted-foreground">{designer.email}</div>
                                             </div>
 
-                                        </TableCell>
+                                        </div>
+                                    </TableCell>
 
-                                        <TableCell className="font-bold md:text-sm text-[11px]">{designer.products}</TableCell>
+                                    <TableCell className="font-semibold md:text-sm text-[11px]">
+                                        <div className=''>
+                                            <div>{designer.business}</div>
+                                            <div className='md:text-xs text-[10px] text-muted-foreground font-medium'>{designer.type}</div>
+                                        </div>
 
-                                        <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
+                                    </TableCell>
 
-                                        <TableCell className="md:text-sm font-semibold text-[11px]">
-                                            {getStatusBadge(designer.status)}
-                                        </TableCell>
+                                    <TableCell className=" md:text-sm text-[11px]">
+                                        <div className=' bg-[#F4F4F5] px-2 font-extralight text-muted-foreground font-mono py-0.5 border border-[#E4E4E7] p-1 rounded-sm'>
+                                            {designer.cac}
+                                        </div>
 
-                                        <TableCell className=" bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
+                                    </TableCell>
 
-                                            <div className="flex gap-2 whitespace-nowrap">
+                                    <TableCell className="font-bold md:text-sm text-[11px]">{designer.products}</TableCell>
 
-                                                {designer.status === 'Pending' ? (
+                                    <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
 
-                                                    <>
-                                                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]">
-                                                            <FaCheck className="mr-1" /> Verify
-                                                        </Button>
+                                    <TableCell className="md:text-sm font-semibold text-[11px]">
+                                        {getStatusBadge(designer.status)}
+                                    </TableCell>
 
-                                                        <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
-                                                            <FaTimes className="mr-1" /> Reject
-                                                        </Button>
+                                    <TableCell className=" bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
 
-                                                        <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
-                                                            View
-                                                        </Button>
-                                                    </>
+                                        <div className="flex gap-2 whitespace-nowrap">
 
-                                                ) : (
+                                            {designer.status === 'Pending' ? (
 
-                                                    <Button size="sm" variant="outline" className='cursor-pointer'>
-                                                        <FaEye className="mr-2" /> View profile
+                                                <>
+                                                    <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]">
+                                                        <FaCheck className="mr-1" /> Verify
                                                     </Button>
 
-                                                )}
+                                                    <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
+                                                        <FaTimes className="mr-1" /> Reject
+                                                    </Button>
 
-                                            </div>
+                                                    <Button size="sm" variant="outline" asChild className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
+                                                        <Link href={`/dashboard/designers/${designer.id}`}>View</Link>
+                                                    </Button>
+                                                </>
 
-                                        </TableCell>
+                                            ) : (
 
-                                    </TableRow>
+                                                <Button size="sm" variant="outline" asChild className='cursor-pointer'>
+                                                    <Link href={`/dashboard/designers/${designer.id}`}>
+                                                        <FaEye className="mr-2" /> View profile
+                                                    </Link>
+                                                </Button>
 
-                                ))}
+                                            )}
 
-                            </TableBody>
+                                        </div>
 
-                        </Table>
+                                    </TableCell>
 
-                        {/* Pagination */}
+                                </TableRow>
 
-                        <div className="flex items-center justify-between border-t w-full py-4">
+                            ))}
 
-                            <p className="md:text-sm text-xs text-muted-foreground font-medium">
-                                Showing {filteredDesigners.length} of {designers.length} designers
-                            </p>
+                        </TableBody>
 
-                            <div className='font-medium'>
-                                <Pagination>
-                                    <PaginationContent>
-                                        <PaginationItem>
-                                            <PaginationPrevious
-                                                href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px]"
-                                            />
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                isActive
-                                                className="bg-[#1A0089] text-white! hover:bg-[#14006b] md:text-xs text-[11px]"
-                                            >
-                                                1
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            >
-                                                2
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            >
-                                                3
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationNext
-                                                href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            />
-                                        </PaginationItem>
-                                    </PaginationContent>
-                                </Pagination>
-                            </div>
+                    </Table>
 
+                    {/* Pagination */}
+
+                    <div className="flex items-center justify-between border-t w-full py-4">
+
+                        <p className="md:text-sm text-xs text-muted-foreground font-medium">
+                            Showing {filteredDesigners.length} of {designers.length} designers
+                        </p>
+
+                        <div className='font-medium'>
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            href="#"
+                                            className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px]"
+                                        />
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            href="#"
+                                            isActive
+                                            className="bg-[#1A0089] text-white! hover:bg-[#14006b] md:text-xs text-[11px]"
+                                        >
+                                            1
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            href="#"
+                                            className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
+                                        >
+                                            2
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <PaginationLink
+                                            href="#"
+                                            className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
+                                        >
+                                            3
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            href="#"
+                                            className="text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
                         </div>
 
                     </div>
@@ -478,6 +397,17 @@ const DesignerPage: React.FC = () => {
                 </div>
 
             </div>
+
+        </div>
+    );
+};
+
+const DesignerPage: React.FC = () => {
+    return (
+        <DashboardLayout>
+            <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Loading designers...</div>}>
+                <DesignersPageContent />
+            </Suspense>
         </DashboardLayout>
     );
 };

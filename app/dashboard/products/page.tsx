@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 
 import {
     FaSearch,
@@ -43,6 +44,7 @@ import {
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
 import { FaArrowDownLong } from 'react-icons/fa6';
+import { products } from '@/app/dashboard/products/data';
 
 const ProductPage: React.FC = () => {
 
@@ -79,50 +81,6 @@ const ProductPage: React.FC = () => {
         },
     ] as const;
 
-    const products = useMemo(() => [
-        {
-            id: 1,
-            name: 'Amara Braided Dress',
-            designer: 'Yvonne Onyata',
-            category: 'Dresses',
-            price: '24',
-            stock: 620,
-            // lastactive: 'Mar 14',
-            status: 'Active'
-
-        },
-        {
-            id: 2,
-            name: 'Zara Dress',
-            designer: 'Kike Johnson',
-            category: 'Dresses',
-            price: '18',
-            stock: 620,
-            // lastactive: 'Mar 14',
-            status: 'Pending'
-        },
-        {
-            id: 3,
-            name: 'Ankara Dress',
-            designer: 'Ana Designer',
-            category: 'Dresses',
-            price: '18',
-            stock: 620,
-            // lastactive: 'Mar 14',
-            status: 'Rejected'
-        },
-        {
-            id: 4,
-            name: 'Joy Dress',
-            designer: 'Joy Akigbe',
-            category: 'Dresses',
-            price: '18',
-            stock: 620,
-            // lastactive: 'Mar 14',
-            status: 'Active'
-        },
-    ], []);
-
     const tabs = [
         { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
         { label: 'Pending review', value: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
@@ -144,7 +102,7 @@ const ProductPage: React.FC = () => {
 
         return result;
 
-    }, [products]);
+    }, []);
 
 
     const filteredProducts = useMemo(() => {
@@ -153,7 +111,7 @@ const ProductPage: React.FC = () => {
 
         return products.filter(d => d.status === activeTab);
 
-    }, [activeTab, products]);
+    }, [activeTab]);
 
 
     const getStatusBadge = (status: string) => {
@@ -308,7 +266,7 @@ const ProductPage: React.FC = () => {
 
                                         </TableCell>
 
-                                        <TableCell className="font-medium md:text-sm text-[11px]">{'₦'}{product.price}{'K'}</TableCell>
+                                        <TableCell className="font-medium md:text-sm text-[11px]">{product.price}</TableCell>
 
                                         <TableCell className="font-medium md:text-sm text-[11px]">{product.stock}</TableCell>
 
@@ -331,14 +289,22 @@ const ProductPage: React.FC = () => {
                                                             <FaTimes className="mr-1" /> Reject
                                                         </Button>
 
+                                                        <Link href={`/dashboard/products/${product.id}`}>
+                                                            <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
+                                                                View
+                                                            </Button>
+                                                        </Link>
+
 
                                                     </>
 
                                                 ) : (
 
-                                                    <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
-                                                        View
-                                                    </Button>
+                                                    <Link href={`/dashboard/products/${product.id}`}>
+                                                        <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
+                                                            View
+                                                        </Button>
+                                                    </Link>
                                                 )}
 
                                             </div>
