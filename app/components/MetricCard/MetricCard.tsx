@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { motion, useReducedMotion } from 'framer-motion';
