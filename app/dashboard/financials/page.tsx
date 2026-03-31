@@ -196,7 +196,7 @@ const FinancialPage: React.FC = () => {
                                     <TabsTrigger
                                         key={tab.value}
                                         value={tab.value}
-                                        className="px-2 py-1 text-sm md:text-base text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium"
+                                        className="px-2 py-1 text-xs md:text-sm text-muted-foreground data-[state=active]:text-[#1A0089] data-[state=active]:font-semibold data-[state=active]:after:bg-[#1A0089] font-medium"
                                     >
                                         {tab.label}
                                         {tab.value === 'payouts' && (

@@ -7,6 +7,8 @@ import VerificationTable from '../components/VerificationTable/VerificationTable
 import ActivityList from '../components/ActivityList/ActivityList';
 import { FaUsers, FaShoppingCart, FaDollarSign, FaUser } from 'react-icons/fa';
 import { IoWarningOutline } from 'react-icons/io5';
+import Link from 'next/link';
+
 
 const DashboardPage: React.FC = () => {
 
@@ -24,6 +26,7 @@ const DashboardPage: React.FC = () => {
             indicator: { type: 'percentage' as const, value: 12 },
             icon: <FaUser />,
             color: 'bg-blue-200',
+            route: '/dashboard/designers',
         },
         {
             title: 'Active Clients',
@@ -31,6 +34,7 @@ const DashboardPage: React.FC = () => {
             indicator: { type: 'percentage' as const, value: 18 },
             icon: <FaUsers />,
             color: 'bg-green-200',
+            route: '/dashboard/clients',
         },
         {
             title: 'Total Orders',
@@ -38,6 +42,7 @@ const DashboardPage: React.FC = () => {
             indicator: { type: 'percentage' as const, value: -7 },
             icon: <FaShoppingCart />,
             color: 'bg-orange-200',
+            route: '/dashboard/orders',
         },
         {
             title: 'Platform Revenue',
@@ -45,6 +50,7 @@ const DashboardPage: React.FC = () => {
             indicator: { type: 'percentage' as const, value: 22 },
             icon: <FaDollarSign />,
             color: 'bg-purple-200',
+            route: '/dashboard/financials',
         },
     ] as const;
 
@@ -91,7 +97,14 @@ const DashboardPage: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {metrics.map((metric, index) => (
-                    <MetricCard key={index} {...metric} />
+                    <Link
+                        key={index}
+                        href={metric.route}
+                        aria-label={`Open ${metric.title}`}
+                        className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A0089] focus-visible:ring-offset-2"
+                    >
+                        <MetricCard {...metric} />
+                    </Link>
                 ))}
             </div>
 

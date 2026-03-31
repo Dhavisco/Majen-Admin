@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import {
     FaSearch,
@@ -45,9 +46,42 @@ import {
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
 
-const DesignerPage: React.FC = () => {
+type DesignerStatus = 'Active' | 'Pending' | 'Flagged' | 'Suspended' | 'Banned';
+type DesignerTab = 'all' | 'pending' | 'verified' | 'flagged' | 'suspended' | 'banned';
 
-    const [activeTab, setActiveTab] = useState('all');
+const statusByTab: Record<Exclude<DesignerTab, 'all'>, DesignerStatus> = {
+    pending: 'Pending',
+    verified: 'Active',
+    flagged: 'Flagged',
+    suspended: 'Suspended',
+    banned: 'Banned',
+};
+
+const queryToTab = (value: string | null): DesignerTab => {
+    switch ((value ?? '').toLowerCase()) {
+        case 'pending':
+            return 'pending';
+        case 'verified':
+        case 'active':
+            return 'verified';
+        case 'flagged':
+            return 'flagged';
+        case 'suspended':
+            return 'suspended';
+        case 'banned':
+            return 'banned';
+        default:
+            return 'all';
+    }
+};
+
+const DesignerPage: React.FC = () => {
+    const searchParams = useSearchParams();
+    const [activeTab, setActiveTab] = useState<DesignerTab>('all');
+
+    useEffect(() => {
+        setActiveTab(queryToTab(searchParams.get('tab')));
+    }, [searchParams]);
 
     const metrics = [
         {
@@ -162,35 +196,29 @@ const DesignerPage: React.FC = () => {
     ], []);
 
     const tabs = [
-        { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
-        { label: 'Pending', value: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
-        { label: 'Verified', value: 'Active', color: 'bg-green-100 text-green-700' },
-        { label: 'Flagged', value: 'Flagged', color: 'bg-orange-100 text-orange-700' },
-        { label: 'Suspended', value: 'Suspended', color: 'bg-orange-100 text-orange-700' },
-        { label: 'Banned', value: 'Banned', color: 'bg-red-100 text-red-700' },
+        { label: 'All', value: 'all' as const, color: 'bg-gray-200 text-gray-700' },
+        { label: 'Pending', value: 'pending' as const, color: 'bg-yellow-100 text-yellow-700' },
+        { label: 'Verified', value: 'verified' as const, color: 'bg-green-100 text-green-700' },
+        { label: 'Flagged', value: 'flagged' as const, color: 'bg-orange-100 text-orange-700' },
+        { label: 'Suspended', value: 'suspended' as const, color: 'bg-orange-100 text-orange-700' },
+        { label: 'Banned', value: 'banned' as const, color: 'bg-red-100 text-red-700' },
     ];
 
     const counts = useMemo(() => {
-
-        const result: Record<string, number> = {
-            all: designers.length
+        return {
+            all: designers.length,
+            pending: designers.filter((d) => d.status === 'Pending').length,
+            verified: designers.filter((d) => d.status === 'Active').length,
+            flagged: designers.filter((d) => d.status === 'Flagged').length,
+            suspended: designers.filter((d) => d.status === 'Suspended').length,
+            banned: designers.filter((d) => d.status === 'Banned').length,
         };
-
-        designers.forEach(d => {
-            result[d.status] = (result[d.status] || 0) + 1;
-        });
-
-        return result;
-
     }, [designers]);
 
 
     const filteredDesigners = useMemo(() => {
-
         if (activeTab === 'all') return designers;
-
-        return designers.filter(d => d.status === activeTab);
-
+        return designers.filter((d) => d.status === statusByTab[activeTab]);
     }, [activeTab, designers]);
 
 
@@ -234,7 +262,7 @@ const DesignerPage: React.FC = () => {
                     {/* Tabs */}
                     <Tabs
                         value={activeTab}
-                        onValueChange={setActiveTab}
+                        onValueChange={(value) => setActiveTab(value as DesignerTab)}
                         className="w-full rounded-none"
                     >
                         <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">

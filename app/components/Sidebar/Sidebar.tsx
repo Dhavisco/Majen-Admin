@@ -15,6 +15,7 @@ import {
     FaUser,
 } from 'react-icons/fa';
 import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go';
+import Link from 'next/link';
 
 const Sidebar: React.FC = () => {
     const { isCollapsed, toggleCollapse } = useSidebarStore();
@@ -123,7 +124,7 @@ const Sidebar: React.FC = () => {
                 </div>
 
                 {/* User Details */}
-                <div className="flex items-center cursor-pointer bg-blue-900 rounded-lg p-2">
+                <Link href="/dashboard/settings" className="flex items-center cursor-pointer bg-blue-900 rounded-lg p-2">
                     <div className="bg-white text-blue-900 text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center">
                         SA
                     </div>
@@ -133,7 +134,7 @@ const Sidebar: React.FC = () => {
                             <div className="text-xs text-gray-300">Full access</div>
                         </div>
                     )}
-                </div>
+                </Link>
             </div>
         </div>
     );
