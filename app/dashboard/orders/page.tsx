@@ -285,7 +285,7 @@ const OrderPage: React.FC = () => {
                                             <div>{order.product}</div>
                                         </TableCell>
 
-                                        <TableCell className="font-medium font-mono md:text-sm text-[11px]">
+                                        <TableCell className="font-medium md:text-sm text-[11px]">
                                             <div>{order.client}</div>
                                         </TableCell>
 
