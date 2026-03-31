@@ -95,7 +95,7 @@ const FinancialPage: React.FC = () => {
     const getTypePill = (type: TransactionType) => {
         if (type === 'Credit') {
             return (
-                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold bg-green-100 text-green-700">
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold bg-green-100 text-green-700">
                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     Credit
                 </span>
@@ -104,7 +104,7 @@ const FinancialPage: React.FC = () => {
 
         if (type === 'Fee') {
             return (
-                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold bg-red-100 text-red-600">
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold bg-red-100 text-red-600">
                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     Fee
                 </span>
@@ -112,7 +112,7 @@ const FinancialPage: React.FC = () => {
         }
 
         return (
-            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold bg-amber-100 text-amber-700">
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold bg-amber-100 text-amber-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                 Payout
             </span>
@@ -122,7 +122,7 @@ const FinancialPage: React.FC = () => {
     const getStatusPill = (status: TransactionStatus) => {
         if (status === 'Completed') {
             return (
-                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold bg-green-100 text-green-700">
+                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold bg-green-100 text-green-700">
                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     Completed
                 </span>
@@ -130,7 +130,7 @@ const FinancialPage: React.FC = () => {
         }
 
         return (
-            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold bg-amber-100 text-amber-700">
+            <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold bg-amber-100 text-amber-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-current" />
                 Pending
             </span>

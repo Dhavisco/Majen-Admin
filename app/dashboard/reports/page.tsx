@@ -112,7 +112,7 @@ const ReportPage: React.FC = () => {
                             <h3 className="text-sm md:text-lg font-bold tracking-tight">Open reports</h3>
                         </div>
 
-                        <Table>
+                        <Table className="text-xs md:text-sm">
                             <TableHeader>
                                 <TableRow className="bg-gray-50/50">
                                     <TableHead className="text-muted-foreground font-semibold">REPORTER</TableHead>
@@ -140,13 +140,13 @@ const ReportPage: React.FC = () => {
                                             <TableCell className="font-medium">{item.reporter}</TableCell>
                                             <TableCell className="font-medium">{item.against}</TableCell>
                                             <TableCell>
-                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${typeStyles}`}>
+                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${typeStyles}`}>
                                                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                     {item.type}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] font-semibold px-4">
+                                                <Button size="xs" className="bg-[#1A0089] hover:bg-[#14006b] font-semibold px-4">
                                                     Review
                                                 </Button>
                                             </TableCell>
@@ -162,7 +162,7 @@ const ReportPage: React.FC = () => {
                             <h3 className="text-sm md:text-lg font-bold tracking-tight">Flagged reviews</h3>
                         </div>
 
-                        <Table>
+                        <Table className="text-xs md:text-sm">
                             <TableHeader>
                                 <TableRow className="bg-gray-50/50">
                                     <TableHead className="text-muted-foreground font-semibold">REVIEW</TableHead>
@@ -181,7 +181,7 @@ const ReportPage: React.FC = () => {
                                         <TableCell className="font-medium">{item.designer}</TableCell>
                                         <TableCell>
                                             <Button
-                                                size="sm"
+                                                size="xs"
                                                 variant="outline"
                                                 className="border-red-300 text-red-500 hover:bg-red-50 hover:text-red-600 font-semibold px-4"
                                             >
