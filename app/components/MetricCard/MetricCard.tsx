@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { motion, useReducedMotion } from 'framer-motion';
 
 type IndicatorTone = 'neutral' | 'warning' | 'danger' | 'success';
 
@@ -23,6 +24,8 @@ const toneStyles: Record<IndicatorTone, string> = {
 };
 
 const MetricCard: React.FC<MetricCardProps> = ({ title, value, indicator, icon, color }) => {
+    const reduceMotion = useReducedMotion();
+
     const renderIndicator = () => {
         if (!indicator) return null;
 
@@ -61,7 +64,11 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, indicator, icon, 
     };
 
     return (
-        <div className="p-4 bg-white shadow rounded-lg flex justify-between items-start space-x-4">
+        <motion.div
+            className="p-4 bg-white shadow rounded-lg flex justify-between items-start space-x-4 transition-shadow duration-300 will-change-transform hover:shadow-[0_14px_34px_-14px_rgba(26,0,137,0.35)]"
+            whileHover={reduceMotion ? undefined : { y: -5, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 22, mass: 0.6 }}
+        >
             <div className="flex-1 gap-0.5 flex flex-col items-start">
                 <div className={`p-2 flex items-center justify-center rounded-full w-9 ${color} text-white text-base`}>
                     {icon}
@@ -71,10 +78,8 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, indicator, icon, 
                 <p className="text-sm text-gray-500">{title}</p>
             </div>
 
-            <div>
-                {renderIndicator()}
-            </div>
-        </div>
+            <div>{renderIndicator()}</div>
+        </motion.div>
     );
 };
 
