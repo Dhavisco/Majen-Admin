@@ -113,7 +113,7 @@ const Sidebar: React.FC = () => {
             <div className="p-4">
                 {/* Toggle Button */}
                 <div className="flex justify-center mb-4">
-                    <button className="focus:outline-none" onClick={toggleCollapse}>
+                    <button className="focus:outline-none cursor-pointer" onClick={toggleCollapse}>
                         {isCollapsed ? (
                             <GoSidebarCollapse className="text-white w-6 h-6" />
                         ) : (
@@ -123,7 +123,7 @@ const Sidebar: React.FC = () => {
                 </div>
 
                 {/* User Details */}
-                <div className="flex items-center bg-blue-900 rounded-lg p-2">
+                <div className="flex items-center cursor-pointer bg-blue-900 rounded-lg p-2">
                     <div className="bg-white text-blue-900 text-sm font-bold rounded-full w-8 h-8 flex items-center justify-center">
                         SA
                     </div>
