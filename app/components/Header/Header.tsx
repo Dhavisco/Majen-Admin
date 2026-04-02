@@ -101,6 +101,7 @@ const Header: React.FC = () => {
                     <FaSearch className="text-gray-500" />
                 </button>
 
+
                 <div className="relative hidden sm:block">
                     <input
                         type="text"
@@ -112,10 +113,14 @@ const Header: React.FC = () => {
 
                 <div className="flex items-center gap-2">
                     <IoNotificationsOutline className="text-gray-600 w-5 h-5" />
-                    <span className="text-xs bg-[#E4E0F8] flex justify-center items-center h-8 w-8 rounded-full text-[#1A0089] font-bold">
-                        SA
-                    </span>
-                    <span className="text-sm font-medium hidden md:block">Super Admin</span>
+
+                    <Link href="/dashboard/settings" className='flex items-center gap-1 hover:bg-[#e4e0f87c] p-1 hover:rounded-md cursor-pointer'>
+                        <span className="text-xs bg-[#E4E0F8] flex justify-center items-center h-8 w-8 rounded-full text-[#1A0089] font-bold">
+                            SA
+                        </span>
+                        <span className="text-sm font-medium hidden md:block">Super Admin</span>
+                    </Link>
+
                 </div>
             </div>
         </header>
