@@ -15,6 +15,14 @@ type DesignerProfileTabsProps = {
 }
 
 type TabId = 'overview' | 'products' | 'orders' | 'financials' | 'reviews'
+type AccountActionTone = 'primary' | 'danger' | 'warning' | 'success' | 'muted'
+
+type AccountAction = {
+    label: string
+    icon: IconType
+    tone: AccountActionTone
+    disabled?: boolean
+}
 
 const tabs: Array<{ id: TabId; label: string }> = [
     { id: 'overview', label: 'Overview' },
@@ -29,6 +37,14 @@ const iconByPlatform: Record<string, { Icon: IconType; className: string; iconCl
     TT: { Icon: FaTiktok, className: 'bg-black text-white' },
     X: { Icon: FaXTwitter, className: 'bg-black text-white' },
     FB: { Icon: FaFacebookF, className: 'bg-blue-600 text-white' },
+}
+
+const toneClassByAction: Record<AccountActionTone, string> = {
+    primary: 'bg-[#1A0089] text-white hover:bg-[#14006b] border-transparent',
+    danger: 'bg-red-600 text-white hover:bg-red-700 border-transparent',
+    warning: 'border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100',
+    success: 'border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+    muted: 'border border-gray-200 bg-gray-100 text-gray-400 hover:bg-gray-100',
 }
 
 const ProductStatusPill = ({ status }: { status: 'Active' | 'Pending review' | 'Rejected' }) => {
@@ -97,6 +113,41 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         ],
         []
     )
+
+    const accountActions = useMemo<AccountAction[]>(() => {
+        switch (designer.status) {
+            case 'Pending':
+                return [
+                    { label: 'Verify account', icon: FaCheckCircle, tone: 'primary' },
+                    { label: 'Reject application', icon: FaBan, tone: 'danger' },
+                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
+                    { label: 'Suspend (verify first)', icon: FaMinusCircle, tone: 'muted', disabled: true },
+                ]
+            case 'Banned':
+                return [
+                    { label: 'Reactivate account', icon: FaCheckCircle, tone: 'success' },
+                    { label: 'Suspend (already banned)', icon: FaMinusCircle, tone: 'muted', disabled: true },
+                    { label: 'Flag (already banned)', icon: FaFlag, tone: 'muted', disabled: true },
+                    { label: 'Verify (resolve ban first)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                ]
+            case 'Suspended':
+                return [
+                    { label: 'Reactivate account', icon: FaCheckCircle, tone: 'success' },
+                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
+                    { label: 'Ban account', icon: FaBan, tone: 'danger' },
+                    { label: 'Verify (resolve suspension first)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                ]
+            case 'Active':
+            case 'Flagged':
+            default:
+                return [
+                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
+                    { label: 'Suspend account', icon: FaMinusCircle, tone: 'warning' },
+                    { label: 'Ban account', icon: FaBan, tone: 'danger' },
+                    { label: 'Verify (already verified)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                ]
+        }
+    }, [designer.status])
 
     return (
         <section className="space-y-4">
@@ -233,18 +284,20 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 <p className="mt-1 text-xs text-red-600">Changes take effect immediately</p>
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
-                                <Button variant="outline" className="w-full justify-start border-green-300 text-green-700 hover:bg-green-50">
-                                    <FaCheckCircle className="mr-2" /> Remove all flags
-                                </Button>
-                                <Button variant="outline" className="w-full justify-start border-orange-300 text-orange-700 hover:bg-orange-50">
-                                    <FaMinusCircle className="mr-2" /> Suspend account
-                                </Button>
-                                <Button className="w-full justify-start bg-red-600 text-white hover:bg-red-700">
-                                    <FaBan className="mr-2" /> Ban account
-                                </Button>
-                                <Button variant="outline" disabled className="w-full justify-start">
-                                    <FaFlag className="mr-2" /> Already verified
-                                </Button>
+                                {accountActions.map((action) => {
+                                    const Icon = action.icon
+
+                                    return (
+                                        <Button
+                                            key={action.label}
+                                            type="button"
+                                            disabled={action.disabled}
+                                            className={`w-full justify-start ${toneClassByAction[action.tone]}`}
+                                        >
+                                            <Icon className="mr-2" /> {action.label}
+                                        </Button>
+                                    )
+                                })}
                             </div>
                         </div>
                     </aside>
