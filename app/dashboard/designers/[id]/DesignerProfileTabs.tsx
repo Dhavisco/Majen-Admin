@@ -3,6 +3,9 @@
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FaFlag, FaCheckCircle, FaBan, FaMinusCircle } from 'react-icons/fa'
+import { FaFacebookF, FaInstagram } from 'react-icons/fa'
+import { FaTiktok, FaXTwitter } from 'react-icons/fa6'
+import type { IconType } from 'react-icons'
 
 import { Button } from '@/components/ui/button'
 import type { Designer } from '@/app/dashboard/designers/data'
@@ -21,11 +24,11 @@ const tabs: Array<{ id: TabId; label: string }> = [
     { id: 'reviews', label: 'Reviews' },
 ]
 
-const iconByPlatform: Record<string, { label: string; className: string }> = {
-    IG: { label: 'IG', className: 'bg-gradient-to-br from-amber-400 via-pink-500 to-fuchsia-600 text-white' },
-    TT: { label: 'TK', className: 'bg-black text-white' },
-    X: { label: 'TW', className: 'bg-sky-500 text-white' },
-    FB: { label: 'FB', className: 'bg-blue-600 text-white' },
+const iconByPlatform: Record<string, { Icon: IconType; className: string; iconClassName?: string }> = {
+    IG: { Icon: FaInstagram, className: 'bg-gradient-to-br from-amber-400 via-pink-500 to-fuchsia-600 text-white' },
+    TT: { Icon: FaTiktok, className: 'bg-black text-white' },
+    X: { Icon: FaXTwitter, className: 'bg-black text-white' },
+    FB: { Icon: FaFacebookF, className: 'bg-blue-600 text-white' },
 }
 
 const ProductStatusPill = ({ status }: { status: 'Active' | 'Pending review' | 'Rejected' }) => {
@@ -152,11 +155,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 </div>
                                 <div className="space-y-3 md:col-span-2">
                                     {designer.socials.map((social) => {
-                                        const icon = iconByPlatform[social.platform] ?? { label: social.platform, className: 'bg-gray-200 text-gray-700' }
+                                        const icon = iconByPlatform[social.platform]
                                         return (
                                             <a key={social.platform + social.handle} href={social.url} className="flex items-center gap-3 text-sm text-[#1A0089] hover:underline break-all">
-                                                <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${icon.className}`}>
-                                                    {icon.label}
+                                                <span className={`inline-flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${icon?.className ?? 'bg-gray-200 text-gray-700'}`}>
+                                                    {icon ? <icon.Icon className={icon.iconClassName ?? 'h-4 w-4'} /> : social.platform}
                                                 </span>
                                                 {social.handle}
                                             </a>
@@ -188,7 +191,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                         <div className="overflow-hidden rounded-2xl border bg-white">
                             <div className="flex items-center justify-between border-b px-3 py-3 sm:px-4">
                                 <span className="font-semibold">Balance</span>
-                                <button type="button" className="text-xs sm:text-sm font-semibold text-[#1A0089] hover:underline">History →</button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('financials')}
+                                    className="text-xs sm:text-sm font-semibold text-[#1A0089] hover:underline"
+                                >
+                                    History →
+                                </button>
                             </div>
                             <div className="border-b p-3 sm:p-4">
                                 <p className="text-sm text-muted-foreground">Current balance</p>
