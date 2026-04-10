@@ -101,7 +101,7 @@ export default function Home() {
               </Link>
               <a
                 href="#features"
-                className="inline-flex items-center justify-center rounded-2xl border border-(--border) bg-white px-6 py-4 text-base font-semibold text-slate-700 transition-colors duration-300 hover:border-[rgba(26,0,137,0.16)] hover:text-(--brand)"
+                className="inline-flex items-center justify-center rounded-2xl border border-border bg-white px-6 py-4 text-base font-semibold text-slate-700 transition-colors duration-300 hover:border-[rgba(26,0,137,0.16)] hover:text-(--brand)"
               >
                 View Features
               </a>
@@ -147,7 +147,7 @@ export default function Home() {
                     whileHover={{ y: -10, scale: 1.01 }}
                     viewport={{ once: true, amount: 0.3 }}
                     transition={{ duration: 0.45, delay: index * 0.08 }}
-                    className="group soft-card rounded-[28px] border border-(--border) bg-white p-7 transition-all duration-300 hover:border-[rgba(26,0,137,0.16)] hover:shadow-[0_24px_60px_rgba(26,0,137,0.12)]"
+                    className="group soft-card rounded-[28px] border border-border bg-white p-7 transition-all duration-300 hover:border-[rgba(26,0,137,0.16)] hover:shadow-[0_24px_60px_rgba(26,0,137,0.12)]"
                   >
                     <motion.div
                       whileHover={{ scale: 1.08, rotate: -4 }}
