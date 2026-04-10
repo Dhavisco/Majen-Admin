@@ -18,6 +18,14 @@ const getInitials = (name: string) =>
         .slice(0, 2)
         .toUpperCase()
 
+const statusBadgeClass: Record<string, string> = {
+    Active: 'bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/20',
+    Pending: 'bg-amber-500/20 text-amber-200 hover:bg-amber-500/20',
+    Flagged: 'bg-orange-500/20 text-orange-200 hover:bg-orange-500/20',
+    Suspended: 'bg-yellow-500/20 text-yellow-200 hover:bg-yellow-500/20',
+    Banned: 'bg-red-500/20 text-red-200 hover:bg-red-500/20',
+}
+
 export default async function DesignerProfilePage({ params }: PageProps) {
     const { id } = await params
     const designer = designers.find((item) => String(item.id) === id)
@@ -38,10 +46,10 @@ export default async function DesignerProfilePage({ params }: PageProps) {
                             <div className="min-w-0">
                                 <h1 className="text-xl sm:text-2xl font-bold uppercase leading-tight wrap-break-word">{designer.name}</h1>
                                 <p className="text-white/80 text-xs sm:text-sm mt-1 wrap-break-word">
-                                    {designer.business} - {designer.type}
+                                    {designer.business} · {designer.type}
                                 </p>
                                 <div className="mt-3 flex items-center gap-2">
-                                    <Badge className="bg-emerald-500/20 text-emerald-200 hover:bg-emerald-500/20">{designer.status}</Badge>
+                                    <Badge className={statusBadgeClass[designer.status] ?? 'bg-white/20 text-white hover:bg-white/20'}>{designer.status}</Badge>
                                     {designer.flags.length > 0 && (
                                         <Badge className="bg-rose-500/20 text-rose-200 hover:bg-rose-500/20">
                                             {designer.flags.length} flagged
