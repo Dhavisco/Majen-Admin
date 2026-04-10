@@ -30,12 +30,12 @@ const iconByPlatform: Record<string, { label: string; className: string }> = {
 
 const ProductStatusPill = ({ status }: { status: 'Active' | 'Pending review' | 'Rejected' }) => {
     if (status === 'Active') {
-        return <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-sm font-semibold text-green-700">• Active</span>
+        return <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs sm:text-sm font-semibold text-green-700">• Active</span>
     }
     if (status === 'Pending review') {
-        return <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">• Pending review</span>
+        return <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs sm:text-sm font-semibold text-amber-700">• Pending review</span>
     }
-    return <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-700">• Rejected</span>
+    return <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs sm:text-sm font-semibold text-red-700">• Rejected</span>
 }
 
 const OrderStatusPill = ({ status }: { status: 'Delivered' | 'Processing' | 'Cancelled' | 'Awaiting' }) => {
@@ -98,7 +98,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     return (
         <section className="space-y-4">
             <div className="overflow-x-auto">
-                <div className="inline-flex w-max min-w-full gap-1 rounded-xl border bg-white p-1 sm:min-w-0" role="tablist" aria-label="Designer profile sections">
+                <div className="inline-flex justify-between w-max min-w-full gap-1 rounded-xl border bg-white p-1 sm:min-w-0" role="tablist" aria-label="Designer profile sections">
                     {tabs.map((tab) => {
                         const isActive = activeTab === tab.id
                         return (
@@ -110,7 +110,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 aria-controls={`tab-panel-${tab.id}`}
                                 id={`tab-${tab.id}`}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs sm:px-4 sm:text-sm font-semibold transition-colors ${isActive ? 'bg-[#F1EFFF] text-[#1A0089]' : 'text-[#97A0AF] hover:text-[#1A0089]'
+                                className={`whitespace-nowrap rounded-lg px-2 py-2 text-xs sm:px-4 sm:text-sm font-semibold transition-colors ${isActive ? 'bg-[#F1EFFF] text-[#1A0089]' : 'text-[#97A0AF] hover:text-[#1A0089]'
                                     }`}
                             >
                                 {tab.label}
@@ -252,11 +252,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                         <Link href="/dashboard/products" className="text-xs sm:text-sm font-semibold text-[#1A0089] hover:underline">View in Products →</Link>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                         <table className="w-full min-w-180 text-left">
                             <thead>
                                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-3">Product</th>
+                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Product</th>
                                     <th className="px-4 py-3">Price</th>
                                     <th className="px-4 py-3">Stock</th>
                                     <th className="px-4 py-3">Sales</th>
@@ -266,15 +266,15 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </thead>
                             <tbody>
                                 {productRows.map((row) => (
-                                    <tr key={row.id} className="border-b last:border-b-0">
-                                        <td className="px-4 py-4 font-medium">{row.product}</td>
+                                    <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
+                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 font-medium group-hover:bg-muted/40 transition-colors">{row.product}</td>
                                         <td className="px-4 py-4">{row.price}</td>
                                         <td className="px-4 py-4">{row.stock}</td>
                                         <td className="px-4 py-4">{row.sales}</td>
                                         <td className="px-4 py-4"><ProductStatusPill status={row.status} /></td>
                                         <td className="px-4 py-4">
                                             {row.status === 'Pending review' ? (
-                                                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                                <div className="flex flex-row sm:items-center gap-2">
                                                     <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b]">Approve</Button>
                                                     <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">Reject</Button>
                                                 </div>
@@ -297,11 +297,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                         <p className="text-xs sm:text-sm text-muted-foreground">All orders through this designer</p>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                         <table className="w-full min-w-190 text-left">
                             <thead>
                                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-3">Order ID</th>
+                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Order ID</th>
                                     <th className="px-4 py-3">Product</th>
                                     <th className="px-4 py-3">Client</th>
                                     <th className="px-4 py-3">Amount</th>
@@ -311,8 +311,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </thead>
                             <tbody>
                                 {orderRows.map((row) => (
-                                    <tr key={row.id} className="border-b last:border-b-0">
-                                        <td className="px-4 py-4"><span className="rounded-md border bg-gray-50 px-3 py-1 font-mono text-sm">{row.id}</span></td>
+                                    <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
+                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 group-hover:bg-muted/40 transition-colors"><span className="rounded-md border bg-gray-50 px-3 py-1 font-mono text-sm">{row.id}</span></td>
                                         <td className="px-4 py-4 font-medium">{row.product}</td>
                                         <td className="px-4 py-4">{row.client}</td>
                                         <td className="px-4 py-4">{row.amount}</td>
@@ -333,11 +333,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                         <p className="text-xs sm:text-sm text-muted-foreground">Balance: <span className="font-semibold text-[#1A0089]">{designer.balance}</span></p>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                         <table className="w-full min-w-170 text-left">
                             <thead>
                                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-3">Date</th>
+                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Date</th>
                                     <th className="px-4 py-3">Description</th>
                                     <th className="px-4 py-3">Type</th>
                                     <th className="px-4 py-3">Amount</th>
@@ -345,15 +345,15 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </thead>
                             <tbody>
                                 {financialRows.map((row) => (
-                                    <tr key={row.id} className="border-b last:border-b-0">
-                                        <td className="px-4 py-4 text-muted-foreground">{row.date}</td>
+                                    <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
+                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 text-muted-foreground group-hover:bg-muted/40 transition-colors">{row.date}</td>
                                         <td className="px-4 py-4 font-medium">{row.description}</td>
                                         <td className="px-4 py-4">
-                                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-semibold ${row.type === 'Credit' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${row.type === 'Credit' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                                                 • {row.type}
                                             </span>
                                         </td>
-                                        <td className={`px-4 py-4 text-base sm:text-xl font-bold ${row.type === 'Credit' ? 'text-green-600' : 'text-red-600'}`}>
+                                        <td className={`px-4 py-4 text-xs sm:text-sm font-bold ${row.type === 'Credit' ? 'text-green-600' : 'text-red-600'}`}>
                                             {row.amount}
                                         </td>
                                     </tr>
@@ -371,11 +371,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                         <p className="text-xs sm:text-sm text-muted-foreground">4.9 average rating</p>
                     </div>
 
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                         <table className="w-full min-w-190 text-left">
                             <thead>
                                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-3">Customer</th>
+                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Customer</th>
                                     <th className="px-4 py-3">Product</th>
                                     <th className="px-4 py-3">Rating</th>
                                     <th className="px-4 py-3">Review</th>
@@ -384,8 +384,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </thead>
                             <tbody>
                                 {reviews.map((review) => (
-                                    <tr key={review.id} className="border-b last:border-b-0">
-                                        <td className="px-4 py-4 font-medium">{review.customer}</td>
+                                    <tr key={review.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
+                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 font-medium group-hover:bg-muted/40 transition-colors">{review.customer}</td>
                                         <td className="px-4 py-4 text-muted-foreground">{review.product}</td>
                                         <td className="px-4 py-4 text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</td>
                                         <td className="px-4 py-4 italic text-slate-700">&quot;{review.text}&quot;</td>
