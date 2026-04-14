@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { FaCheckCircle, FaEyeSlash, FaTimesCircle } from 'react-icons/fa'
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout'
+import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { products } from '@/app/dashboard/products/data'
 import { designers } from '@/app/dashboard/designers/data'
 
@@ -61,12 +60,22 @@ export default async function ProductProfilePage({ params }: PageProps) {
                         </div>
 
                         <div className="flex items-center gap-2 self-start">
-                            <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer text-white">
-                                <FaCheckCircle className="mr-2" /> Accept
-                            </Button>
-                            <Button size="sm" className="border border-red-600 hover:bg-red-700 text-red-600  cursor-pointer bg-white hover:font-semibold hover:text-white">
-                                <FaTimesCircle className="mr-2" /> Reject
-                            </Button>
+                            <ModerationActionButton
+                                action="approve-product"
+                                subject={product.name}
+                                buttonLabel="Accept"
+                                buttonSize="sm"
+                                buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer text-white"
+                            />
+                            <ModerationActionButton
+                                action="reject-product"
+                                subject={product.name}
+                                buttonLabel="Reject"
+                                buttonVariant="outline"
+                                buttonSize="sm"
+                                buttonClassName="border border-red-600 hover:bg-red-700 text-red-600 cursor-pointer bg-white hover:font-semibold hover:text-white"
+                                requireReason
+                            />
                         </div>
                     </div>
 
@@ -166,15 +175,22 @@ export default async function ProductProfilePage({ params }: PageProps) {
                                 </div>
 
                                 <div className="p-4 space-y-2 border-t">
-                                    <Button className="w-full justify-center bg-[#1A0089] hover:bg-[#14006b] text-white">
-                                        <FaCheckCircle className="mr-2" /> Approve Product
-                                    </Button>
-                                    <Button className="w-full justify-center bg-red-600 hover:bg-red-700 text-white">
-                                        <FaTimesCircle className="mr-2" /> Reject Product
-                                    </Button>
-                                    <Button className="w-full justify-center bg-amber-500 hover:bg-amber-600 text-white">
-                                        <FaEyeSlash className="mr-2" /> Hide Product
-                                    </Button>
+                                    <ModerationActionButton
+                                        action="approve-product"
+                                        subject={product.name}
+                                        buttonClassName="w-full justify-center bg-[#1A0089] hover:bg-[#14006b] text-white"
+                                    />
+                                    <ModerationActionButton
+                                        action="reject-product"
+                                        subject={product.name}
+                                        buttonClassName="w-full justify-center bg-red-600 hover:bg-red-700 text-white"
+                                        requireReason
+                                    />
+                                    <ModerationActionButton
+                                        action="hide-product"
+                                        subject={product.name}
+                                        buttonClassName="w-full justify-center bg-amber-500 hover:bg-amber-600 text-white"
+                                    />
                                 </div>
                             </div>
 

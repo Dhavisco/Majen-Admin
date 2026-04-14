@@ -1,10 +1,9 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import type { IconType } from 'react-icons'
-import { FaBan, FaCheckCircle, FaFlag, FaMinusCircle } from 'react-icons/fa'
 
 // import { Badge } from '@/components/ui/badge'
+import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import { Button } from '@/components/ui/button'
 import type { Client } from '@/app/dashboard/clients/data'
 
@@ -17,7 +16,7 @@ type AccountActionTone = 'primary' | 'danger' | 'warning' | 'success' | 'muted'
 
 type AccountAction = {
     label: string
-    icon: IconType
+    action: ModerationActionType
     tone: AccountActionTone
     disabled?: boolean
 }
@@ -63,33 +62,33 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
         switch (client.status) {
             case 'Pending':
                 return [
-                    { label: 'Verify account', icon: FaCheckCircle, tone: 'primary' },
-                    { label: 'Reject application', icon: FaBan, tone: 'danger' },
-                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
-                    { label: 'Suspend (verify first)', icon: FaMinusCircle, tone: 'muted', disabled: true },
+                    { label: 'Verify account', action: 'verify-account', tone: 'primary' },
+                    { label: 'Reject application', action: 'reject-application', tone: 'danger' },
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Suspend (verify first)', action: 'suspend-account', tone: 'muted', disabled: true },
                 ]
             case 'Banned':
                 return [
-                    { label: 'Reactivate account', icon: FaCheckCircle, tone: 'success' },
-                    { label: 'Suspend (already banned)', icon: FaMinusCircle, tone: 'muted', disabled: true },
-                    { label: 'Flag (already banned)', icon: FaFlag, tone: 'muted', disabled: true },
-                    { label: 'Verify (resolve ban first)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                    { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
+                    { label: 'Suspend (already banned)', action: 'suspend-account', tone: 'muted', disabled: true },
+                    { label: 'Flag (already banned)', action: 'flag-account', tone: 'muted', disabled: true },
+                    { label: 'Verify (resolve ban first)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
             case 'Suspended':
                 return [
-                    { label: 'Reactivate account', icon: FaCheckCircle, tone: 'success' },
-                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
-                    { label: 'Ban account', icon: FaBan, tone: 'danger' },
-                    { label: 'Verify (resolve suspension first)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                    { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Ban account', action: 'ban-account', tone: 'danger' },
+                    { label: 'Verify (resolve suspension first)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
             case 'Active':
             case 'Flagged':
             default:
                 return [
-                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
-                    { label: 'Suspend account', icon: FaMinusCircle, tone: 'warning' },
-                    { label: 'Ban account', icon: FaBan, tone: 'danger' },
-                    { label: 'Verify (already verified)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Suspend account', action: 'suspend-account', tone: 'warning' },
+                    { label: 'Ban account', action: 'ban-account', tone: 'danger' },
+                    { label: 'Verify (already verified)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
         }
     }, [client.status])
@@ -193,17 +192,16 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
                                 {accountActions.map((action) => {
-                                    const Icon = action.icon
-
                                     return (
-                                        <Button
+                                        <ModerationActionButton
                                             key={action.label}
-                                            type="button"
+                                            action={action.action}
+                                            subject={client.name}
+                                            buttonLabel={action.label}
+                                            buttonSize="default"
                                             disabled={action.disabled}
-                                            className={`w-full justify-start ${toneClassByAction[action.tone]}`}
-                                        >
-                                            <Icon className="mr-2" /> {action.label}
-                                        </Button>
+                                            buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
+                                        />
                                     )
                                 })}
                             </div>

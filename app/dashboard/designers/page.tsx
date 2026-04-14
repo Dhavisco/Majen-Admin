@@ -3,14 +3,13 @@
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton';
 
 import {
     FaSearch,
     FaFilter,
     FaDownload,
     FaEye,
-    FaCheck,
-    FaTimes,
     FaUsers,
     FaCheckCircle,
     FaClock,
@@ -305,13 +304,22 @@ const DesignersPageContent: React.FC = () => {
                                             {designer.status === 'Pending' ? (
 
                                                 <>
-                                                    <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]">
-                                                        <FaCheck className="mr-1" /> Verify
-                                                    </Button>
+                                                    <ModerationActionButton
+                                                        action="verify-account"
+                                                        subject={`${designer.name} · ${designer.business}`}
+                                                        buttonLabel="Verify"
+                                                        buttonSize="sm"
+                                                        buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]"
+                                                    />
 
-                                                    <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
-                                                        <FaTimes className="mr-1" /> Reject
-                                                    </Button>
+                                                    <ModerationActionButton
+                                                        action="reject-application"
+                                                        subject={`${designer.name} · ${designer.business}`}
+                                                        buttonLabel="Reject"
+                                                        buttonVariant="outline"
+                                                        buttonSize="sm"
+                                                        buttonClassName="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]"
+                                                    />
 
                                                     <Button size="sm" variant="outline" asChild className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
                                                         <Link href={`/dashboard/designers/${designer.id}`}>View</Link>

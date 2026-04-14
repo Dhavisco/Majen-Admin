@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton';
 
 import {
     FaSearch,
@@ -9,8 +10,6 @@ import {
     FaCheckCircle,
     FaClock,
     FaBan,
-    FaCheck,
-    FaTimes,
     FaFilter
 } from 'react-icons/fa';
 
@@ -281,13 +280,23 @@ const ProductPage: React.FC = () => {
                                                 {product.status === 'Pending' ? (
 
                                                     <>
-                                                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]">
-                                                            <FaCheck className="mr-1" /> Approve
-                                                        </Button>
+                                                        <ModerationActionButton
+                                                            action="approve-product"
+                                                            subject={product.name}
+                                                            buttonLabel="Approve"
+                                                            buttonSize="sm"
+                                                            buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]"
+                                                        />
 
-                                                        <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
-                                                            <FaTimes className="mr-1" /> Reject
-                                                        </Button>
+                                                        <ModerationActionButton
+                                                            action="reject-product"
+                                                            subject={product.name}
+                                                            buttonLabel="Reject"
+                                                            buttonVariant="outline"
+                                                            buttonSize="sm"
+                                                            buttonClassName="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]"
+                                                            requireReason
+                                                        />
 
                                                         <Link href={`/dashboard/products/${product.id}`}>
                                                             <Button size="sm" variant="outline" className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>

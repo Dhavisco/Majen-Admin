@@ -2,12 +2,12 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { FaFlag, FaCheckCircle, FaBan, FaMinusCircle } from 'react-icons/fa'
 import { FaFacebookF, FaInstagram } from 'react-icons/fa'
 import { FaTiktok, FaXTwitter } from 'react-icons/fa6'
 import type { IconType } from 'react-icons'
 
 import { Button } from '@/components/ui/button'
+import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import type { Designer } from '@/app/dashboard/designers/data'
 
 type DesignerProfileTabsProps = {
@@ -19,7 +19,7 @@ type AccountActionTone = 'primary' | 'danger' | 'warning' | 'success' | 'muted'
 
 type AccountAction = {
     label: string
-    icon: IconType
+    action: ModerationActionType
     tone: AccountActionTone
     disabled?: boolean
 }
@@ -118,33 +118,33 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         switch (designer.status) {
             case 'Pending':
                 return [
-                    { label: 'Verify account', icon: FaCheckCircle, tone: 'primary' },
-                    { label: 'Reject application', icon: FaBan, tone: 'danger' },
-                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
-                    { label: 'Suspend (verify first)', icon: FaMinusCircle, tone: 'muted', disabled: true },
+                    { label: 'Verify account', action: 'verify-account', tone: 'primary' },
+                    { label: 'Reject application', action: 'reject-application', tone: 'danger' },
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Suspend (verify first)', action: 'suspend-account', tone: 'muted', disabled: true },
                 ]
             case 'Banned':
                 return [
-                    { label: 'Reactivate account', icon: FaCheckCircle, tone: 'success' },
-                    { label: 'Suspend (already banned)', icon: FaMinusCircle, tone: 'muted', disabled: true },
-                    { label: 'Flag (already banned)', icon: FaFlag, tone: 'muted', disabled: true },
-                    { label: 'Verify (resolve ban first)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                    { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
+                    { label: 'Suspend (already banned)', action: 'suspend-account', tone: 'muted', disabled: true },
+                    { label: 'Flag (already banned)', action: 'flag-account', tone: 'muted', disabled: true },
+                    { label: 'Verify (resolve ban first)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
             case 'Suspended':
                 return [
-                    { label: 'Reactivate account', icon: FaCheckCircle, tone: 'success' },
-                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
-                    { label: 'Ban account', icon: FaBan, tone: 'danger' },
-                    { label: 'Verify (resolve suspension first)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                    { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Ban account', action: 'ban-account', tone: 'danger' },
+                    { label: 'Verify (resolve suspension first)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
             case 'Active':
             case 'Flagged':
             default:
                 return [
-                    { label: 'Flag this account', icon: FaFlag, tone: 'warning' },
-                    { label: 'Suspend account', icon: FaMinusCircle, tone: 'warning' },
-                    { label: 'Ban account', icon: FaBan, tone: 'danger' },
-                    { label: 'Verify (already verified)', icon: FaCheckCircle, tone: 'muted', disabled: true },
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Suspend account', action: 'suspend-account', tone: 'warning' },
+                    { label: 'Ban account', action: 'ban-account', tone: 'danger' },
+                    { label: 'Verify (already verified)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
         }
     }, [designer.status])
@@ -285,17 +285,16 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
                                 {accountActions.map((action) => {
-                                    const Icon = action.icon
-
                                     return (
-                                        <Button
+                                        <ModerationActionButton
                                             key={action.label}
-                                            type="button"
+                                            action={action.action}
+                                            subject={`${designer.name} · ${designer.business}`}
+                                            buttonLabel={action.label}
+                                            buttonSize="default"
                                             disabled={action.disabled}
-                                            className={`w-full justify-start ${toneClassByAction[action.tone]}`}
-                                        >
-                                            <Icon className="mr-2" /> {action.label}
-                                        </Button>
+                                            buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
+                                        />
                                     )
                                 })}
                             </div>
@@ -337,8 +336,22 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                         <td className="px-4 py-4">
                                             {row.status === 'Pending review' ? (
                                                 <div className="flex flex-row sm:items-center gap-2">
-                                                    <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b]">Approve</Button>
-                                                    <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">Reject</Button>
+                                                    <ModerationActionButton
+                                                        action="approve-product"
+                                                        subject={row.product}
+                                                        buttonLabel="Approve"
+                                                        buttonSize="sm"
+                                                        buttonClassName="bg-[#1A0089] hover:bg-[#14006b]"
+                                                    />
+                                                    <ModerationActionButton
+                                                        action="reject-product"
+                                                        subject={row.product}
+                                                        buttonLabel="Reject"
+                                                        buttonVariant="outline"
+                                                        buttonSize="sm"
+                                                        buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
+                                                        requireReason
+                                                    />
                                                 </div>
                                             ) : (
                                                 <Button size="sm" variant="outline" className="border-[#B7B1F3] text-[#1A0089] hover:bg-[#F1EFFF]">View</Button>
@@ -452,7 +465,14 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                         <td className="px-4 py-4 text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</td>
                                         <td className="px-4 py-4 italic text-slate-700">&quot;{review.text}&quot;</td>
                                         <td className="px-4 py-4">
-                                            <Button size="sm" variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">Remove</Button>
+                                            <ModerationActionButton
+                                                action="remove-review"
+                                                subject={`review #${review.id}`}
+                                                buttonLabel="Remove"
+                                                buttonVariant="outline"
+                                                buttonSize="sm"
+                                                buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
+                                            />
                                         </td>
                                     </tr>
                                 ))}

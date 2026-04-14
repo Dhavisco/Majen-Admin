@@ -9,8 +9,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button"; // assuming you have Button installed
 import Link from 'next/link';
+import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton';
 
 interface Verification {
     designer: string;
@@ -62,27 +62,20 @@ export default function VerificationTable({ data }: VerificationTableProps) {
                                 </TableCell>
                                 <TableCell className="text-right">
                                     <div className="flex justify-end gap-2">
-                                        <Button
-                                            variant="default"
-                                            size="sm"
-                                            className="bg-blue-600 hover:bg-blue-700 text-white"
-                                            onClick={() => {
-                                                // TODO: implement verify logic (e.g. open modal or call API)
-                                                console.log("Verify", item.designer);
-                                            }}
-                                        >
-                                            Verify
-                                        </Button>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            onClick={() => {
-                                                // TODO: implement reject logic
-                                                console.log("Reject", item.designer);
-                                            }}
-                                        >
-                                            Reject
-                                        </Button>
+                                        <ModerationActionButton
+                                            action="verify-account"
+                                            subject={`${item.designer} · ${item.business}`}
+                                            buttonLabel="Verify"
+                                            buttonSize="sm"
+                                            buttonClassName="bg-blue-600 hover:bg-blue-700 text-white"
+                                        />
+                                        <ModerationActionButton
+                                            action="reject-application"
+                                            subject={`${item.designer} · ${item.business}`}
+                                            buttonLabel="Reject"
+                                            buttonSize="sm"
+                                            buttonVariant="destructive"
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>
