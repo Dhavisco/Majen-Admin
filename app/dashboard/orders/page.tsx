@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 
 import {
     FaSearch,
@@ -37,6 +38,7 @@ import {
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import { FaArrowDownLong } from 'react-icons/fa6';
+import { orders } from '@/app/dashboard/orders/data';
 
 const OrderPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState('all');
@@ -71,59 +73,6 @@ const OrderPage: React.FC = () => {
             labelClass: 'text-red-700',
         },
     ] as const;
-
-    const orders = useMemo(() => [
-        {
-            id: 1,
-            orderId: '4821',
-            product: 'Amara Braided Dress',
-            client: 'Dayo Akintola',
-            designer: 'Amara Couture',
-            amount: 620,
-            date: '2024-09-15',
-            status: 'Delivered'
-        },
-        {
-            id: 2,
-            orderId: '4821',
-            product: 'Amara Braided Dress',
-            client: 'Jamal Smith',
-            designer: 'Amara Couture',
-            amount: 620,
-            date: '2024-09-15',
-            status: 'Awaiting'
-        },
-        {
-            id: 3,
-            orderId: '4821',
-            product: 'Amara Braided Dress',
-            client: 'Aisha Bello',
-            designer: 'Bello Outfitters',
-            amount: 620,
-            date: '2024-09-15',
-            status: 'Processing'
-        },
-        {
-            id: 4,
-            orderId: '4821',
-            product: 'Amara Braided Dress',
-            client: 'Michael Johnson',
-            designer: 'Sam Collection',
-            amount: 620,
-            date: '2024-09-15',
-            status: 'Cancelled'
-        },
-        {
-            id: 5,
-            orderId: '4821',
-            product: 'Amara Braided Dress',
-            client: 'Dayo Akintola',
-            designer: 'Amara Couture',
-            amount: 620,
-            date: '2024-09-15',
-            status: 'Delivered'
-        },
-    ], []);
 
     const tabs = [
         { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
@@ -275,14 +224,17 @@ const OrderPage: React.FC = () => {
                                                     {order.id.split(' ').map((n) => n[0]).join('').toUpperCase()}
                                                 </div> */}
 
-                                                <div className="md:text-sm text-[11px] px-1.5 py-0.5 bg-[#F4F4F5] text-[#52525B] rounded-sm border border-[#E4E4E7]">
-                                                    <div className="">{'#'}{order.orderId}</div>
-                                                </div>
+                                                <Link
+                                                    href={`/dashboard/orders/${order.id}`}
+                                                    className="md:text-sm text-[11px] px-1.5 py-0.5 bg-[#F4F4F5] text-[#52525B] rounded-sm border border-[#E4E4E7] hover:border-[#1A0089]/30"
+                                                >
+                                                    <div>{'#'}{order.orderId}</div>
+                                                </Link>
                                             </div>
                                         </TableCell>
 
                                         <TableCell className="font-medium md:text-sm text-[11px]">
-                                            <div>{order.product}</div>
+                                            <Link href={`/dashboard/orders/${order.id}`} className="hover:underline">{order.product}</Link>
                                         </TableCell>
 
                                         <TableCell className="font-medium md:text-sm text-[11px]">

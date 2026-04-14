@@ -26,6 +26,7 @@ export type ModerationActionType =
     | 'approve-product'
     | 'reject-product'
     | 'hide-product'
+    | 'cancel-order'
     | 'remove-review'
 
 type ConfirmTone = 'primary' | 'danger' | 'warning' | 'success'
@@ -138,6 +139,15 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         iconBoxClassName: 'bg-amber-50',
         iconClassName: 'text-amber-700',
     },
+    'cancel-order': {
+        title: 'Cancel order',
+        description: 'Cancels this order and notifies the client. Any refund process will begin immediately based on payment rules.',
+        confirmLabel: 'Cancel Order',
+        tone: 'danger',
+        icon: FaTimes,
+        iconBoxClassName: 'bg-red-50',
+        iconClassName: 'text-red-600',
+    },
     'remove-review': {
         title: 'Remove review',
         description: 'Permanently removes this review. This cannot be undone.',
@@ -159,6 +169,7 @@ const triggerIconByAction: Record<ModerationActionType, IconType> = {
     'approve-product': FaCheckCircle,
     'reject-product': FaTimes,
     'hide-product': FaEyeSlash,
+    'cancel-order': FaTimes,
     'remove-review': FaTrash,
 }
 
