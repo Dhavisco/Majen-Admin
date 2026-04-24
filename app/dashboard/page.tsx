@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import DashboardLayout from '../components/DashboardLayout/DashboardLayout';
 import MetricCard from '../components/MetricCard/MetricCard';
@@ -9,39 +11,58 @@ import LiveDate from '../components/LiveDate';
 import { FaUsers, FaShoppingCart, FaDollarSign, FaUser } from 'react-icons/fa';
 import { IoWarningOutline } from 'react-icons/io5';
 import Link from 'next/link';
+import { useDashboardSummary } from '@/hooks/useDashboardSummary';
 
 
 const DashboardPage: React.FC = () => {
+    const { data: dashboardSummary } = useDashboardSummary();
+
+    const pendingVerifications = dashboardSummary?.pendingVerifications ?? 0;
+    const pendingProducts = dashboardSummary?.pendingProducts ?? 0;
+    const totalClients = dashboardSummary?.clients.total ?? 0;
+    const clientsGrowth = dashboardSummary?.clients.growth ?? 0;
+    const totalDesigners = dashboardSummary?.designers.total ?? 0;
+    const designersGrowth = dashboardSummary?.designers.growth ?? 0;
+    const totalOrders = dashboardSummary?.orders.total ?? 0;
+    const ordersGrowth = dashboardSummary?.orders.growth ?? 0;
+    const revenueCurrent = dashboardSummary?.revenue.current ?? 0;
+    const revenueGrowth = dashboardSummary?.revenue.growth ?? 0;
+
+    const formattedRevenue = new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        maximumFractionDigits: 0,
+    }).format(revenueCurrent);
 
     const metrics = [
         {
             title: 'Total Designers',
-            value: 1000,
-            indicator: { type: 'percentage' as const, value: 12 },
+            value: totalDesigners,
+            indicator: { type: 'percentage' as const, value: designersGrowth },
             icon: <FaUser />,
             color: 'bg-blue-200',
             route: '/dashboard/designers',
         },
         {
             title: 'Active Clients',
-            value: 8420,
-            indicator: { type: 'percentage' as const, value: 18 },
+            value: totalClients,
+            indicator: { type: 'percentage' as const, value: clientsGrowth },
             icon: <FaUsers />,
             color: 'bg-green-200',
             route: '/dashboard/clients',
         },
         {
             title: 'Total Orders',
-            value: 3241,
-            indicator: { type: 'percentage' as const, value: -7 },
+            value: totalOrders,
+            indicator: { type: 'percentage' as const, value: ordersGrowth },
             icon: <FaShoppingCart />,
             color: 'bg-orange-200',
             route: '/dashboard/orders',
         },
         {
             title: 'Platform Revenue',
-            value: '₦48.2M',
-            indicator: { type: 'percentage' as const, value: 22 },
+            value: formattedRevenue,
+            indicator: { type: 'percentage' as const, value: revenueGrowth },
             icon: <FaDollarSign />,
             color: 'bg-purple-200',
             route: '/dashboard/financials',
@@ -77,7 +98,7 @@ const DashboardPage: React.FC = () => {
                             <IoWarningOutline className='text-[#B45309] h-auto w-6' />
                         </div>
                         <div className='flex flex-col gap-0.5'>
-                            <div className='font-semibold text-[#92400E] text-sm lg:text-base'>4 pending designer verifications · 12 products awaiting review · 1 flagged account</div>
+                            <div className='font-semibold text-[#92400E] text-sm lg:text-base'>{pendingVerifications} pending designer verifications · {pendingProducts} products awaiting review</div>
                             <div className='text-xs lg:text-sm text-[#A16207]'>These require action before end of day to avoid affecting seller operations</div>
                         </div>
                     </div>
