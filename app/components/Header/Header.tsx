@@ -27,8 +27,6 @@ const Header: React.FC = () => {
     const pathname = usePathname();
     const user = useAuthStore((state) => state.user);
 
-    console.log(user)
-
     const profileContext = useMemo(() => {
         const designerMatch = pathname.match(/^\/dashboard\/designers\/(\d+)$/);
         if (designerMatch) {
