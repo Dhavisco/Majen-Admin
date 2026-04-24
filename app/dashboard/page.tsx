@@ -103,9 +103,19 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className='flex flex-row items-center justify-end gap-3 text-xs md:text-sm'>
-                        <button className="bg-[#D97706] hover:bg-[#B45309] border border-[#B45309] cursor-pointer text-white px-3 py-1.5 lg:h-9 rounded-[10px]">Review designers</button>
-                        <button className="bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E] border border-[#FDE68A] cursor-pointer px-3 py-1.5 lg:h-9 rounded-[10px]">Review products</button>
+                    <div className='flex flex-row items-center justify-end gap-3 text-xs md:text-sm font-medium'>
+                        <Link
+                            href="/dashboard/designers"
+                            className="bg-[#D97706] hover:bg-[#B45309] border border-[#B45309] cursor-pointer text-white! px-3 py-1.5 lg:h-9 rounded-[10px] inline-flex items-center"
+                        >
+                            Review designers
+                        </Link>
+                        <Link
+                            href="/dashboard/products"
+                            className="bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E]! border border-[#FDE68A] cursor-pointer px-3 py-1.5 lg:h-9 rounded-[10px] inline-flex items-center"
+                        >
+                            Review products
+                        </Link>
                     </div>
                 </div>
             </div>
