@@ -5,19 +5,13 @@ import RevenueChart from '../components/RevenueChart/RevenueChart';
 import ProgressBar from '../components/ProgressBar/ProgressBar';
 import VerificationTable from '../components/VerificationTable/VerificationTable';
 import ActivityList from '../components/ActivityList/ActivityList';
+import LiveDate from '../components/LiveDate';
 import { FaUsers, FaShoppingCart, FaDollarSign, FaUser } from 'react-icons/fa';
 import { IoWarningOutline } from 'react-icons/io5';
 import Link from 'next/link';
 
 
 const DashboardPage: React.FC = () => {
-
-    const currentDate = new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
 
     const metrics = [
         {
@@ -73,7 +67,7 @@ const DashboardPage: React.FC = () => {
             <div className='mb-4'>
                 <div>
                     <h1 className="text-xl font-bold">Good morning, Admin 👋</h1>
-                    <p className="text-sm text-gray-500">Here&apos;s what needs your attention today — {currentDate}</p>
+                    <p className="text-sm text-gray-500">Here&apos;s what needs your attention today — <LiveDate /></p>
                 </div>
 
                 {/* Attention details */}
