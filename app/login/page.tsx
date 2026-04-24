@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Formik, Form, Field, ErrorMessage, type FormikHelpers } from "formik";
 import * as Yup from "yup";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     FiArrowRight,
     FiEye,
@@ -13,8 +14,12 @@ import {
     FiMail,
     FiShield,
 } from "react-icons/fi";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 import { MajenLogo } from "../components/majen-logo";
+import { loginAdmin } from "@/lib/auth";
+import { useAuthStore } from "@/stores/authStore";
 
 type LoginValues = {
     email: string;
@@ -41,16 +46,44 @@ const loginSchema = Yup.object({
 
 export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
+    const router = useRouter();
+    const { setAuth, user, hydrated } = useAuthStore();
+
+    useEffect(() => {
+        if (hydrated && user) {
+            router.replace("/dashboard");
+        }
+    }, [hydrated, user, router]);
+
+    const loginMutation = useMutation({
+        mutationFn: loginAdmin,
+    });
+
+    const getErrorMessage = (error: unknown) => {
+        if (error instanceof AxiosError) {
+            return (
+                (error.response?.data as { message?: string } | undefined)?.message ??
+                "Login failed. Please confirm your credentials and try again."
+            );
+        }
+
+        return "An unexpected error occurred. Please try again.";
+    };
 
     const handleSubmit = async (
         values: LoginValues,
         helpers: FormikHelpers<LoginValues>
     ) => {
         try {
-            // Replace with your real auth API call.
-            // Example: await axios.post("/api/auth/login", values);
-            await new Promise((resolve) => setTimeout(resolve, 900));
-            console.log("Login payload:", values);
+            const loginResult = await loginMutation.mutateAsync({
+                ...values,
+                appType: "ADMIN",
+            });
+
+            setAuth(loginResult.user, loginResult.accessToken, loginResult.refreshToken);
+            router.replace("/dashboard");
+        } catch (error) {
+            helpers.setStatus(getErrorMessage(error));
         } finally {
             helpers.setSubmitting(false);
         }
@@ -79,8 +112,14 @@ export default function LoginPage() {
                         validationSchema={loginSchema}
                         onSubmit={handleSubmit}
                     >
-                        {({ isSubmitting, errors, touched }) => (
+                        {({ isSubmitting, errors, touched, status }) => (
                             <Form className="mt-8 space-y-5" noValidate>
+                                {status ? (
+                                    <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                        {status}
+                                    </p>
+                                ) : null}
+
                                 <label className="block">
                                     <span className="mb-2 block text-sm font-semibold text-slate-700">
                                         Email
@@ -164,10 +203,10 @@ export default function LoginPage() {
 
                                 <button
                                     type="submit"
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || loginMutation.isPending}
                                     className="flex w-full items-center justify-center gap-2 rounded-2xl bg-(--brand) px-6 py-4 text-base font-semibold text-white! shadow-[0_14px_36px_rgba(26,0,137,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(26,0,137,0.34)] disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                    {isSubmitting ? "Signing In..." : "Login"}
+                                    {isSubmitting || loginMutation.isPending ? "Signing In..." : "Login"}
                                     <FiArrowRight className="text-white" />
                                 </button>
                             </Form>

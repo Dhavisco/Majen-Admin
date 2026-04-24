@@ -1,13 +1,36 @@
 // components/DashboardLayout/DashboardLayout.tsx
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSidebarStore } from '@/stores/sidebarStore';
+import { useAuthStore } from '@/stores/authStore';
 import Sidebar from '../Sidebar/Sidebar';
 import Header from '../Header/Header';
 import MobileNav from '../MobileNav/MobileNav';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { isCollapsed } = useSidebarStore();
+    const { hydrated, user } = useAuthStore();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (hydrated && !user) {
+            router.replace('/login');
+        }
+    }, [hydrated, user, router]);
+
+    if (!hydrated) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-gray-50 text-sm text-gray-500">
+                Loading session...
+            </div>
+        );
+    }
+
+    if (!user) {
+        return null;
+    }
 
     return (
         <div className="flex min-h-screen bg-gray-50">

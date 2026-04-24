@@ -9,6 +9,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { designers } from '@/app/dashboard/designers/data';
 import { clients } from '@/app/dashboard/clients/data';
 import { products } from '@/app/dashboard/products/data';
+import { useAuthStore } from '@/stores/authStore';
 
 const pageTitleMap: Array<{ route: string; title: string }> = [
     { route: '/dashboard/designers', title: 'Designers' },
@@ -24,6 +25,9 @@ const pageTitleMap: Array<{ route: string; title: string }> = [
 
 const Header: React.FC = () => {
     const pathname = usePathname();
+    const user = useAuthStore((state) => state.user);
+
+    console.log(user)
 
     const profileContext = useMemo(() => {
         const designerMatch = pathname.match(/^\/dashboard\/designers\/(\d+)$/);
@@ -68,6 +72,35 @@ const Header: React.FC = () => {
         );
         return matched?.title ?? 'Dashboard';
     }, [pathname]);
+
+    const userDisplayName = useMemo(() => {
+        const firstName = user?.firstName?.trim() ?? '';
+        const lastName = user?.lastName?.trim() ?? '';
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        if (fullName) {
+            return fullName;
+        }
+
+        return user?.role?.name ?? 'Admin User';
+    }, [user]);
+
+    const roleInitials = useMemo(() => {
+        const roleName = user?.role?.name?.trim();
+
+        if (!roleName) {
+            return 'AU';
+        }
+
+        const initials = roleName
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part[0]?.toUpperCase() ?? '')
+            .join('');
+
+        return initials || 'AU';
+    }, [user]);
 
     return (
         <header className="bg-white shadow px-3 py-2 md:p-4 flex justify-between items-center gap-2">
@@ -116,9 +149,9 @@ const Header: React.FC = () => {
 
                     <Link href="/dashboard/settings" className='flex items-center gap-1 hover:bg-[#e4e0f87c] p-1 hover:rounded-md cursor-pointer'>
                         <span className="text-xs bg-[#E4E0F8] flex justify-center items-center h-8 w-8 rounded-full text-[#1A0089] font-bold">
-                            SA
+                            {roleInitials}
                         </span>
-                        <span className="text-sm font-medium hidden md:block">Super Admin</span>
+                        <span className="text-sm font-medium hidden md:block">{userDisplayName}</span>
                     </Link>
 
                 </div>
