@@ -52,10 +52,18 @@ export default function VerificationTable({ data }: VerificationTableProps) {
                         data.map((item, index) => (
                             <TableRow key={index} className="hover:bg-muted/50 transition-colors">
                                 <TableCell className="font-medium truncate max-w-45">
-                                    {item.designer}
+
+                                    <div className='flex flex-col gap-1'>
+                                        <div className='font-medium'>{item.designer}</div>
+                                        <div className='text-gray-600 text-xs'>email</div>
+                                    </div>
                                 </TableCell>
                                 <TableCell className="truncate max-w-50">
-                                    {item.business}
+                                    <div className='flex flex-col gap-1'>
+                                        <div className='font-medium'>{item.business}</div>
+                                        <div className='text-gray-600 text-xs'>businessType</div>
+                                    </div>
+
                                 </TableCell>
                                 <TableCell className="hidden sm:table-cell text-muted-foreground">
                                     {item.submitted}

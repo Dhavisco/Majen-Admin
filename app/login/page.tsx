@@ -18,7 +18,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
 import { MajenLogo } from "../components/majen-logo";
-import { loginAdmin } from "@/lib/auth";
+import { loginAdmin } from "@/lib/api/auth";
 import { useAuthStore } from "@/stores/authStore";
 
 type LoginValues = {
