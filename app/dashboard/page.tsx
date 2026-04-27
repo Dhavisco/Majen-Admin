@@ -14,7 +14,7 @@ import { useDashboard } from '@/hooks/dashboard/useDashboard';
 
 
 const DashboardPage: React.FC = () => {
-    const { metrics, verifications, activities, pendingCounts } = useDashboard();
+    const { metrics, verifications, activities, pendingCounts, isLoading } = useDashboard();
 
 
 
@@ -27,45 +27,60 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 {/* Attention details */}
-                <div className='p-4 mt-4 flex flex-col gap-2 md:flex-row justify-between rounded-[10px] bg-[#fde68a23] border-[#FDE68A] border'>
-                    <div className='flex flex-row items-center gap-3'>
-                        <div className='bg-[#FEF3C7] h-10 py-1 px-1.5 flex justify-center items-center rounded-[10px]'>
-                            <IoWarningOutline className='text-[#B45309] h-auto w-6' />
+                {(pendingCounts.pendingVerifications > 0 || pendingCounts.pendingProducts > 0) && (
+                    <div className='p-4 mt-4 flex flex-col gap-2 md:flex-row justify-between rounded-[10px] bg-[#fde68a23] border-[#FDE68A] border'>
+                        <div className='flex flex-row items-center gap-3'>
+                            <div className='bg-[#FEF3C7] h-10 py-1 px-1.5 flex justify-center items-center rounded-[10px]'>
+                                <IoWarningOutline className='text-[#B45309] h-auto w-6' />
+                            </div>
+                            <div className='flex flex-col gap-0.5'>
+                                <div className='font-semibold text-[#92400E] text-sm lg:text-base'>{pendingCounts.pendingVerifications} pending designer verifications · {pendingCounts.pendingProducts} products awaiting review</div>
+                                <div className='text-xs lg:text-sm text-[#A16207]'>These require action before end of day to avoid affecting seller operations</div>
+                            </div>
                         </div>
-                        <div className='flex flex-col gap-0.5'>
-                            <div className='font-semibold text-[#92400E] text-sm lg:text-base'>{pendingCounts.pendingVerifications} pending designer verifications · {pendingCounts.pendingProducts} products awaiting review</div>
-                            <div className='text-xs lg:text-sm text-[#A16207]'>These require action before end of day to avoid affecting seller operations</div>
-                        </div>
-                    </div>
 
-                    <div className='flex flex-row items-center justify-end gap-3 text-xs md:text-sm font-medium'>
-                        <Link
-                            href="/dashboard/designers"
-                            className="bg-[#D97706] hover:bg-[#B45309] border border-[#B45309] cursor-pointer text-white! px-3 py-1.5 lg:h-9 rounded-[10px] inline-flex items-center"
-                        >
-                            Review designers
-                        </Link>
-                        <Link
-                            href="/dashboard/products"
-                            className="bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E]! border border-[#FDE68A] cursor-pointer px-3 py-1.5 lg:h-9 rounded-[10px] inline-flex items-center"
-                        >
-                            Review products
-                        </Link>
+                        <div className='flex flex-row items-center justify-end gap-3 text-xs md:text-sm font-medium'>
+                            <Link
+                                href="/dashboard/designers"
+                                className="bg-[#D97706] hover:bg-[#B45309] border border-[#B45309] cursor-pointer text-white! px-3 py-1.5 lg:h-9 rounded-[10px] inline-flex items-center"
+                            >
+                                Review designers
+                            </Link>
+                            <Link
+                                href="/dashboard/products"
+                                className="bg-[#FEF3C7] hover:bg-[#FDE68A] text-[#92400E]! border border-[#FDE68A] cursor-pointer px-3 py-1.5 lg:h-9 rounded-[10px] inline-flex items-center"
+                            >
+                                Review products
+                            </Link>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                {metrics.map((metric, index) => (
-                    <Link
-                        key={index}
-                        href={metric.route}
-                        aria-label={`Open ${metric.title}`}
-                        className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A0089] focus-visible:ring-offset-2"
-                    >
-                        <MetricCard {...metric} />
-                    </Link>
-                ))}
+                {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <div key={`dash-skel-${i}`} className="p-4 bg-white shadow rounded-lg animate-pulse">
+                            <div className="flex items-start justify-between">
+                                <div className="p-2 rounded-full w-9 h-9 bg-gray-200" />
+                                <div className="w-12 h-4 bg-gray-200 rounded ml-2" />
+                            </div>
+                            <div className="mt-4 h-6 w-3/4 bg-gray-200 rounded" />
+                            <div className="mt-2 h-3 w-1/2 bg-gray-200 rounded" />
+                        </div>
+                    ))
+                ) : (
+                    metrics.map((metric, index) => (
+                        <Link
+                            key={index}
+                            href={metric.route}
+                            aria-label={`Open ${metric.title}`}
+                            className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1A0089] focus-visible:ring-offset-2"
+                        >
+                            <MetricCard {...metric} />
+                        </Link>
+                    ))
+                )}
             </div>
 
             {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">

@@ -4,16 +4,17 @@ import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton';
+import { useDesigners } from '@/hooks/designers/useDesigners';
 
 import {
     FaSearch,
     FaFilter,
     FaDownload,
     FaEye,
-    FaUsers,
-    FaCheckCircle,
-    FaClock,
-    FaBan
+    // FaUsers,
+    // FaCheckCircle,
+    // FaClock,
+    // FaBan
 } from 'react-icons/fa';
 
 import { Button } from '@/components/ui/button';
@@ -45,17 +46,8 @@ import {
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
-import { designers, type DesignerStatus } from '@/app/dashboard/designers/data';
 
 type DesignerTab = 'all' | 'pending' | 'verified' | 'flagged' | 'suspended' | 'banned';
-
-const statusByTab: Record<Exclude<DesignerTab, 'all'>, DesignerStatus> = {
-    pending: 'Pending',
-    verified: 'Active',
-    flagged: 'Flagged',
-    suspended: 'Suspended',
-    banned: 'Banned',
-};
 
 const queryToTab = (value: string | null): DesignerTab => {
     switch ((value ?? '').toLowerCase()) {
@@ -78,41 +70,41 @@ const queryToTab = (value: string | null): DesignerTab => {
 const DesignersPageContent: React.FC = () => {
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<DesignerTab>('all');
+    const [searchInput, setSearchInput] = useState('');
 
     useEffect(() => {
         setActiveTab(queryToTab(searchParams.get('tab')));
     }, [searchParams]);
 
-    const metrics = [
-        {
-            title: 'Total designers',
-            value: '1,000',
-            indicator: { type: 'percentage' as const, value: 12 },
-            icon: <FaUsers className="w-5 h-5" />,
-            color: 'bg-blue-100 text-blue-600',
-        },
-        {
-            title: 'Verified',
-            value: '500',
-            indicator: { type: 'percentage' as const, value: 8 },
-            icon: <FaCheckCircle className="w-5 h-5" />,
-            color: 'bg-green-100 text-green-600',
-        },
-        {
-            title: 'Pending review',
-            value: '4',
-            indicator: { type: 'text' as const, text: 'Needs action', tone: 'warning' },
-            icon: <FaClock className="w-5 h-5" />,
-            color: 'bg-yellow-100 text-yellow-600',
-        },
-        {
-            title: 'Suspended / Banned',
-            value: '3',
-            indicator: { type: 'text' as const, text: '2 flagged', tone: 'danger' },
-            icon: <FaBan className="w-5 h-5" />,
-            color: 'bg-red-100 text-red-600',
-        },
-    ] as const;
+    // Map UI tab to backend status for query
+    const backendStatus = useMemo(() => {
+        switch (activeTab) {
+            case 'verified':
+                return 'VERIFIED';
+            case 'pending':
+                return 'PENDING';
+            case 'flagged':
+                return 'FLAGGED';
+            case 'suspended':
+                return 'SUSPENDED';
+            case 'banned':
+                return 'BANNED';
+            default:
+                return undefined;
+        }
+    }, [activeTab]);
+
+    const { metrics, designers, pagination, currentPage, setCurrentPage, isLoading } = useDesigners({
+        page: 1,
+        limit: 10,
+        status: backendStatus,
+        search: searchInput || undefined,
+    });
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [backendStatus, searchInput, setCurrentPage]);
 
     const tabs = [
         { label: 'All', value: 'all' as const, color: 'bg-gray-200 text-gray-700' },
@@ -123,22 +115,17 @@ const DesignersPageContent: React.FC = () => {
         { label: 'Banned', value: 'banned' as const, color: 'bg-red-100 text-red-700' },
     ];
 
+    // Build counts - for filtered views, we show the current result count
     const counts = useMemo(() => {
         return {
-            all: designers.length,
-            pending: designers.filter((d) => d.status === 'Pending').length,
-            verified: designers.filter((d) => d.status === 'Active').length,
-            flagged: designers.filter((d) => d.status === 'Flagged').length,
-            suspended: designers.filter((d) => d.status === 'Suspended').length,
-            banned: designers.filter((d) => d.status === 'Banned').length,
+            all: metrics[0]?.value ?? 0,
+            pending: metrics[2]?.value ?? 0,
+            verified: metrics[1]?.value ?? 0,
+            flagged: 0,
+            suspended: 0,
+            banned: 0,
         };
-    }, []);
-
-
-    const filteredDesigners = useMemo(() => {
-        if (activeTab === 'all') return designers;
-        return designers.filter((d) => d.status === statusByTab[activeTab]);
-    }, [activeTab]);
+    }, [metrics]);
 
 
     const getStatusBadge = (status: string) => {
@@ -170,9 +157,22 @@ const DesignersPageContent: React.FC = () => {
 
             {/* Metric Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {metrics.map((metric, i) => (
-                    <MetricCard key={i} {...metric} />
-                ))}
+                {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="p-4 bg-white shadow rounded-lg animate-pulse">
+                            <div className="flex items-start justify-between">
+                                <div className="p-2 rounded-full w-9 h-9 bg-gray-200" />
+                                <div className="w-12 h-4 bg-gray-200 rounded ml-2" />
+                            </div>
+                            <div className="mt-4 h-6 w-3/4 bg-gray-200 rounded" />
+                            <div className="mt-2 h-3 w-1/2 bg-gray-200 rounded" />
+                        </div>
+                    ))
+                ) : (
+                    metrics.map((metric, i) => (
+                        <MetricCard key={i} {...metric} />
+                    ))
+                )}
             </div>
 
             <div className='bg-white rounded-xl border shadow-sm md:py-2 md:px-4 py-1 px-2'>
@@ -213,6 +213,8 @@ const DesignersPageContent: React.FC = () => {
                         <Input
                             placeholder="Search by name, email or CAC number..."
                             className="pl-10 bg-white text-xs md:text-sm"
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
                         />
                     </div>
 
@@ -254,96 +256,75 @@ const DesignersPageContent: React.FC = () => {
                         </TableHeader>
 
                         <TableBody>
-
-                            {filteredDesigners.map((designer) => (
-
-                                <TableRow key={designer.id} className="group hover:bg-muted/50 transition-colors">
-
-                                    <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
-                                        <div className="flex items-center gap-1 md:gap-3">
-
-                                            <div className="md:w-9 md:h-9 w-5 h-5 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[8px] rounded-full flex items-center justify-center font-medium">
-                                                {designer.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {isLoading
+                                ? Array.from({ length: Math.min(pagination.perPage ?? 6, 6) }).map((_, idx) => (
+                                    <TableRow key={`skeleton-${idx}`} className="animate-pulse">
+                                        <TableCell className="py-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-full bg-gray-200" />
+                                                <div className="w-40 h-4 bg-gray-200 rounded" />
                                             </div>
-
-                                            <div className='md:text-sm text-[11px]'>
-                                                <div className="font-semibold">{designer.name}</div>
-                                                <div className="text-muted-foreground">{designer.email}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="w-32 h-4 bg-gray-200 rounded" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="w-24 h-4 bg-gray-200 rounded" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="w-8 h-4 bg-gray-200 rounded" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="w-20 h-4 bg-gray-200 rounded" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="w-16 h-4 bg-gray-200 rounded" />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="w-24 h-6 bg-gray-200 rounded" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                                : designers.map((designer) => (
+                                    <TableRow key={designer.id} className="group hover:bg-muted/50 transition-colors">
+                                        <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                            <div className="flex items-center gap-1 md:gap-3">
+                                                <div className="md:w-9 md:h-9 w-5 h-5 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[8px] rounded-full flex items-center justify-center font-medium">
+                                                    {designer.name.split(' ').map((n) => n[0]).join('').toUpperCase()}
+                                                </div>
+                                                <div className="md:text-sm text-[11px]">
+                                                    <div className="font-semibold">{designer.name}</div>
+                                                    <div className="text-muted-foreground">{designer.email}</div>
+                                                </div>
                                             </div>
-
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell className="font-semibold md:text-sm text-[11px]">
-                                        <div className=''>
-                                            <div>{designer.business}</div>
-                                            <div className='md:text-xs text-[10px] text-muted-foreground font-medium'>{designer.type}</div>
-                                        </div>
-
-                                    </TableCell>
-
-                                    <TableCell className=" md:text-sm text-[11px]">
-                                        <div className=' bg-[#F4F4F5] px-2 font-extralight text-muted-foreground font-mono py-0.5 border border-[#E4E4E7] p-1 rounded-sm'>
-                                            {designer.cac}
-                                        </div>
-
-                                    </TableCell>
-
-                                    <TableCell className="font-bold md:text-sm text-[11px]">{designer.products}</TableCell>
-
-                                    <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
-
-                                    <TableCell className="md:text-sm font-semibold text-[11px]">
-                                        {getStatusBadge(designer.status)}
-                                    </TableCell>
-
-                                    <TableCell className=" bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
-
-                                        <div className="flex gap-2 whitespace-nowrap">
-
-                                            {designer.status === 'Pending' ? (
-
-                                                <>
-                                                    <ModerationActionButton
-                                                        action="verify-account"
-                                                        subject={`${designer.name} · ${designer.business}`}
-                                                        buttonLabel="Verify"
-                                                        buttonSize="sm"
-                                                        buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]"
-                                                    />
-
-                                                    <ModerationActionButton
-                                                        action="reject-application"
-                                                        subject={`${designer.name} · ${designer.business}`}
-                                                        buttonLabel="Reject"
-                                                        buttonVariant="outline"
-                                                        buttonSize="sm"
-                                                        buttonClassName="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]"
-                                                    />
-
-                                                    <Button size="sm" variant="outline" asChild className='text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]'>
-                                                        <Link href={`/dashboard/designers/${designer.id}`}>View</Link>
-                                                    </Button>
-                                                </>
-
-                                            ) : (
-
-                                                <Button size="sm" variant="outline" asChild className='cursor-pointer'>
-                                                    <Link href={`/dashboard/designers/${designer.id}`}>
-                                                        <FaEye className="mr-2" /> View profile
-                                                    </Link>
-                                                </Button>
-
-                                            )}
-
-                                        </div>
-
-                                    </TableCell>
-
-                                </TableRow>
-
-                            ))}
-
+                                        </TableCell>
+                                        <TableCell className="font-semibold md:text-sm text-[11px]">
+                                            <div>
+                                                <div>{designer.business}</div>
+                                                <div className="md:text-xs text-[10px] text-muted-foreground font-medium">{designer.type}</div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className=" md:text-sm text-[11px]">
+                                            <div className=" bg-[#F4F4F5] px-2 font-extralight text-muted-foreground font-mono py-0.5 border border-[#E4E4E7] p-1 rounded-sm">{designer.cac}</div>
+                                        </TableCell>
+                                        <TableCell className="font-bold md:text-sm text-[11px]">{designer.products}</TableCell>
+                                        <TableCell className="font-medium text-muted-foreground md:text-sm text-[11px]">{designer.joined}</TableCell>
+                                        <TableCell className="md:text-sm font-semibold text-[11px]">{getStatusBadge(designer.status)}</TableCell>
+                                        <TableCell className=" bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
+                                            <div className="flex gap-2 whitespace-nowrap">
+                                                {designer.status === 'Pending' ? (
+                                                    <>
+                                                        <ModerationActionButton action="verify-account" subject={`${designer.name} · ${designer.business}`} buttonLabel="Verify" buttonSize="sm" buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]" />
+                                                        <ModerationActionButton action="reject-application" subject={`${designer.name} · ${designer.business}`} buttonLabel="Reject" buttonVariant="outline" buttonSize="sm" buttonClassName="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]" />
+                                                        <Button size="sm" variant="outline" asChild className="text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]"><Link href={`/dashboard/designers/${designer.id}`}>View</Link></Button>
+                                                    </>
+                                                ) : (
+                                                    <Button size="sm" variant="outline" asChild className="cursor-pointer"><Link href={`/dashboard/designers/${designer.id}`}><FaEye className="mr-2" /> View profile</Link></Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
                         </TableBody>
 
                     </Table>
@@ -353,7 +334,7 @@ const DesignersPageContent: React.FC = () => {
                     <div className="flex items-center justify-between border-t w-full py-4">
 
                         <p className="md:text-sm text-xs text-muted-foreground font-medium">
-                            Showing {filteredDesigners.length} of {designers.length} designers
+                            Showing {designers.length} of {pagination.totalCount} designers
                         </p>
 
                         <div className='font-medium'>
@@ -362,38 +343,45 @@ const DesignersPageContent: React.FC = () => {
                                     <PaginationItem>
                                         <PaginationPrevious
                                             href="#"
-                                            className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px]"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (isLoading) return;
+                                                if (pagination.canPrevious) {
+                                                    setCurrentPage(currentPage - 1);
+                                                }
+                                            }}
+                                            className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px] ${!pagination.canPrevious || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                            aria-disabled={!pagination.canPrevious || isLoading}
                                         />
                                     </PaginationItem>
-                                    <PaginationItem>
-                                        <PaginationLink
-                                            href="#"
-                                            isActive
-                                            className="bg-[#1A0089] text-white! hover:bg-[#14006b] md:text-xs text-[11px]"
-                                        >
-                                            1
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                    <PaginationItem>
-                                        <PaginationLink
-                                            href="#"
-                                            className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                        >
-                                            2
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                    <PaginationItem>
-                                        <PaginationLink
-                                            href="#"
-                                            className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                        >
-                                            3
-                                        </PaginationLink>
-                                    </PaginationItem>
+                                    {Array.from({ length: pagination.pageCount }, (_, i) => i + 1).map((pageNum) => (
+                                        <PaginationItem key={pageNum}>
+                                            <PaginationLink
+                                                href="#"
+                                                isActive={pageNum === currentPage}
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (isLoading) return;
+                                                    setCurrentPage(pageNum);
+                                                }}
+                                                className={`${pageNum === currentPage ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]' : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'} md:text-xs text-[11px] ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                            >
+                                                {pageNum}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
                                     <PaginationItem>
                                         <PaginationNext
                                             href="#"
-                                            className="text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (isLoading) return;
+                                                if (pagination.canNext) {
+                                                    setCurrentPage(currentPage + 1);
+                                                }
+                                            }}
+                                            className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px] ${!pagination.canNext || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                            aria-disabled={!pagination.canNext || isLoading}
                                         />
                                     </PaginationItem>
                                 </PaginationContent>
