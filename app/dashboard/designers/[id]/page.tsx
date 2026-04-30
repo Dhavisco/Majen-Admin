@@ -1,13 +1,15 @@
+'use client'
+
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
+import { useParams } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout'
 import { Badge } from '@/components/ui/badge'
-import { designers } from '@/app/dashboard/designers/data'
 import DesignerProfileTabs from '@/app/dashboard/designers/[id]/DesignerProfileTabs'
-
-type PageProps = {
-    params: Promise<{ id: string }>
-}
+import { getDesignerProfile, type DesignerProfile } from '@/lib/api/designers'
+import type { Designer, DesignerStatus } from '@/app/dashboard/designers/data'
 
 const getInitials = (name: string) =>
     name
@@ -26,13 +28,112 @@ const statusBadgeClass: Record<string, string> = {
     Banned: 'bg-red-500/20 text-red-200 hover:bg-red-500/20',
 }
 
-export default async function DesignerProfilePage({ params }: PageProps) {
-    const { id } = await params
-    const designer = designers.find((item) => String(item.id) === id)
+function mapStatusToUI(status: string): DesignerStatus {
+    const normalized = status.toUpperCase()
+    switch (normalized) {
+        case 'ACTIVE':
+            return 'Active'
+        case 'PENDING':
+            return 'Pending'
+        case 'FLAGGED':
+            return 'Flagged'
+        case 'SUSPENDED':
+            return 'Suspended'
+        case 'BANNED':
+            return 'Banned'
+        default:
+            return 'Active'
+    }
+}
 
-    if (!designer) {
+function formatDate(dateString: string): string {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+    }).format(date)
+}
+
+function mapBusinessType(type: string): 'Ready to wear' | 'Custom' {
+    return type.toUpperCase() === 'CUSTOM' ? 'Custom' : 'Ready to wear'
+}
+
+function formatCurrency(value: number): string {
+    if (value === 0) return 'N0'
+    return `N${(value / 1000).toFixed(1)}K`
+}
+
+function mapProfileToDesigner(profile: DesignerProfile): Designer {
+    const { designer, averageRating, productCount, orderCount, balance } = profile
+
+    return {
+        id: designer.id,
+        name: `${designer.user.firstName} ${designer.user.lastName}`,
+        email: designer.user.email,
+        business: designer.businessName,
+        type: mapBusinessType(designer.businessType),
+        cac: designer.verification.rcNumber,
+        products: productCount,
+        joined: formatDate(designer.user.createdAt),
+        status: mapStatusToUI(designer.status),
+        orders: orderCount,
+        revenue: formatCurrency(balance.totalBalance),
+        rating: averageRating.toFixed(1),
+        registeredName: designer.businessName,
+        socials: Object.entries(designer.socialLinks)
+            .filter(([, value]) => value && value !== 'null')
+            .map(([platform, handle]) => {
+                const platformMap: Record<string, string> = {
+                    instagram: 'IG',
+                    facebook: 'FB',
+                    tiktok: 'TT',
+                    twitter: 'X',
+                }
+                return {
+                    platform: platformMap[platform] || platform,
+                    handle: handle as string,
+                    url: handle as string,
+                }
+            }),
+        flags: [],
+        notes: designer.user.notesReceived.map((note) => ({
+            text: note.content,
+            meta: `${note.createdBy.firstName} ${note.createdBy.lastName} - ${formatDate(note.createdAt)}`,
+        })),
+        balance: formatCurrency(balance.totalBalance),
+        recentMovements: [],
+    }
+}
+
+function DesignerProfileContent() {
+    const params = useParams()
+    const id = parseInt(params.id as string, 10)
+
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['designer', 'profile', id],
+        queryFn: () => getDesignerProfile(id),
+    })
+
+    if (isError) {
         notFound()
     }
+
+    if (isLoading) {
+        return (
+            <DashboardLayout>
+                <div className="space-y-4 md:space-y-6 md:p-0">
+                    <div className="rounded-2xl border bg-[#1A0089] p-4 md:p-6 animate-pulse h-48" />
+                    <div className="space-y-4 animate-pulse">
+                        <div className="h-96 bg-gray-200 rounded-2xl" />
+                    </div>
+                </div>
+            </DashboardLayout>
+        )
+    }
+
+    if (!data) return null
+
+    const designer = mapProfileToDesigner(data)
 
     return (
         <DashboardLayout>
@@ -83,5 +184,13 @@ export default async function DesignerProfilePage({ params }: PageProps) {
                 <DesignerProfileTabs designer={designer} />
             </div>
         </DashboardLayout>
+    )
+}
+
+export default function DesignerProfilePage() {
+    return (
+        <Suspense fallback={<div className="p-4 text-muted-foreground">Loading designer profile...</div>}>
+            <DesignerProfileContent />
+        </Suspense>
     )
 }

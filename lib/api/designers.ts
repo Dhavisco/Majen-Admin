@@ -90,3 +90,61 @@ export async function getDesignersList(
 
   return data.data;
 }
+
+export interface DesignerProfile {
+  designer: {
+    id: number;
+    status: "ACTIVE" | "PENDING" | "SUSPENDED" | "BANNED" | "FLAGGED";
+    businessName: string;
+    displayName: string;
+    businessType: "CUSTOM" | "READY_TO_WEAR";
+    createdAt: string;
+    socialLinks: {
+      instagram?: string;
+      facebook?: string;
+      tiktok?: string | null;
+      twitter?: string;
+    };
+    user: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      createdAt: string;
+      image?: string | null;
+      notesReceived: Array<{
+        content: string;
+        createdBy: {
+          firstName: string;
+          lastName: string;
+        };
+        createdAt: string;
+      }>;
+    };
+    verification: {
+      rcNumber: string;
+      status: string;
+    };
+  };
+  averageRating: number;
+  totalReviews: number;
+  productCount: number;
+  orderCount: number;
+  balance: {
+    totalBalance: number;
+    lastWithdrawal: number;
+    lastSale: string | null;
+  };
+}
+
+interface DesignerProfileResponse {
+  success: boolean;
+  message: string;
+  data: DesignerProfile;
+}
+
+export async function getDesignerProfile(id: number): Promise<DesignerProfile> {
+  const { data } = await axiosInstance.get<DesignerProfileResponse>(
+    `/admin/businesses/${id}`
+  );
+  return data.data;
+}

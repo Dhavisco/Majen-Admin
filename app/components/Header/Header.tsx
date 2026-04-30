@@ -6,10 +6,9 @@ import { IoNotificationsOutline } from 'react-icons/io5';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { FaArrowLeft } from 'react-icons/fa';
-import { designers } from '@/app/dashboard/designers/data';
-import { clients } from '@/app/dashboard/clients/data';
-import { products } from '@/app/dashboard/products/data';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
+import { getDesignerProfile } from '@/lib/api/designers';
 
 const pageTitleMap: Array<{ route: string; title: string }> = [
     { route: '/dashboard/designers', title: 'Designers' },
@@ -27,42 +26,32 @@ const Header: React.FC = () => {
     const pathname = usePathname();
     const user = useAuthStore((state) => state.user);
 
+    // Extract designer ID from URL if on designer profile page
+    const designerId = useMemo(() => {
+        const match = pathname.match(/^\/dashboard\/designers\/(\d+)$/);
+        return match ? parseInt(match[1], 10) : null;
+    }, [pathname]);
+
+    // Fetch designer profile data
+    const { data: designerProfile } = useQuery({
+        queryKey: ['designer', 'profile', designerId],
+        queryFn: () => (designerId ? getDesignerProfile(designerId) : null),
+        enabled: !!designerId,
+    });
+
     const profileContext = useMemo(() => {
-        const designerMatch = pathname.match(/^\/dashboard\/designers\/(\d+)$/);
-        if (designerMatch) {
-            const designer = designers.find((item) => String(item.id) === designerMatch[1]);
-            if (!designer) return null;
+        if (designerId && designerProfile) {
+            const { designer } = designerProfile;
             return {
                 label: 'Designers',
                 href: '/dashboard/designers',
-                name: designer.name,
+                name: `${designer.user.firstName} ${designer.user.lastName}`,
             };
         }
 
-        const clientMatch = pathname.match(/^\/dashboard\/clients\/(\d+)$/);
-        if (clientMatch) {
-            const client = clients.find((item) => String(item.id) === clientMatch[1]);
-            if (!client) return null;
-            return {
-                label: 'Clients',
-                href: '/dashboard/clients',
-                name: client.name,
-            };
-        }
-
-        const productMatch = pathname.match(/^\/dashboard\/products\/(\d+)$/);
-        if (productMatch) {
-            const product = products.find((item) => String(item.id) === productMatch[1]);
-            if (!product) return null;
-            return {
-                label: 'Products',
-                href: '/dashboard/products',
-                name: product.name,
-            };
-        }
-
+        // TODO: Add support for clients and products
         return null;
-    }, [pathname]);
+    }, [designerId, designerProfile]);
 
     const pageTitle = useMemo(() => {
         const matched = pageTitleMap.find(
