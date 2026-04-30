@@ -200,3 +200,106 @@ export async function getDesignerProducts(
 
   return data.data;
 }
+
+export interface DesignerOrder {
+  id: number;
+  identifier: string;
+  items: Array<{
+    product: {
+      title: string;
+    };
+  }>;
+  client: {
+    firstName: string;
+    lastName: string;
+  };
+  price: string;
+  createdAt: string;
+  status: "CONFIRMED" | "CANCELLED";
+}
+
+export interface GetDesignerOrdersParams {
+  page?: number;
+  limit?: number;
+}
+
+interface DesignerOrdersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    meta: {
+      totalCount: number;
+      page: number;
+      perPage: number;
+      pageCount: number;
+    };
+    records: DesignerOrder[];
+  };
+}
+
+export async function getDesignerOrders(
+  designerId: number,
+  params: GetDesignerOrdersParams = {}
+): Promise<DesignerOrdersResponse["data"]> {
+  const { page = 1, limit = 10 } = params;
+
+  const { data } = await axiosInstance.get<DesignerOrdersResponse>(
+    `/admin/businesses/${designerId}/orders`,
+    {
+      params: {
+        pagination: true,
+        page,
+        limit,
+      },
+    }
+  );
+
+  return data.data;
+}
+
+export interface DesignerTransaction {
+  id: number;
+  type: "SETTLEMENT" | "WITHDRAWAL" | "REFUND" | "DEBIT";
+  direction: "CREDIT" | "DEBIT";
+  amount: string;
+}
+
+export interface GetDesignerTransactionsParams {
+  page?: number;
+  limit?: number;
+}
+
+interface DesignerTransactionsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    meta: {
+      totalCount: number;
+      page: number;
+      perPage: number;
+      pageCount: number;
+    };
+    balance: number;
+    records: DesignerTransaction[];
+  };
+}
+
+export async function getDesignerTransactions(
+  designerId: number,
+  params: GetDesignerTransactionsParams = {}
+): Promise<DesignerTransactionsResponse["data"]> {
+  const { page = 1, limit = 10 } = params;
+
+  const { data } = await axiosInstance.get<DesignerTransactionsResponse>(
+    `/admin/businesses/${designerId}/transactions`,
+    {
+      params: {
+        pagination: true,
+        page,
+        limit,
+      },
+    }
+  );
+
+  return data.data;
+}

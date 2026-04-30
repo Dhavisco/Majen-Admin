@@ -9,22 +9,20 @@ import {
   type DesignerRecord,
 } from "@/lib/api/designers";
 
-function formatDate(value: string) {
+// Export formatDate and mapStatusToUI
+export function formatDate(value: string): string {
   const date = new Date(value);
-
   if (Number.isNaN(date.getTime())) {
     return "";
   }
-
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
   }).format(date);
 }
 
-function mapStatusToUI(status: string): "Active" | "Pending" | "Flagged" | "Suspended" | "Banned" {
+export function mapStatusToUI(status: string): "Active" | "Pending" | "Flagged" | "Suspended" | "Banned" {
   const normalizedStatus = status.toUpperCase();
-
   switch (normalizedStatus) {
     case "ACTIVE":
       return "Active";

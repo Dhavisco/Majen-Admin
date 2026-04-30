@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/pagination'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import type { Designer } from '@/app/dashboard/designers/data'
-import { getDesignerProducts } from '@/lib/api/designers'
+import { getDesignerProducts, getDesignerOrders, getDesignerTransactions } from '@/lib/api/designers'
+import { formatDate } from '@/hooks/designers/useDesigners'
 
 type DesignerProfileTabsProps = {
     designer: Designer
@@ -90,6 +91,32 @@ function mapProductStatus(status: 'ACTIVE' | 'PENDING' | 'REJECTED'): 'Active' |
     return 'Rejected'
 }
 
+function mapOrderStatus(status: string): 'Delivered' | 'Processing' | 'Cancelled' | 'Awaiting' {
+    const normalizedStatus = status.toUpperCase()
+    switch (normalizedStatus) {
+        case 'CONFIRMED':
+            return 'Processing'
+        case 'CANCELLED':
+            return 'Cancelled'
+        default:
+            return 'Awaiting'
+    }
+}
+
+function mapTransactionType(type: string): string {
+    const typeMap: Record<string, string> = {
+        SETTLEMENT: 'Settlement',
+        WITHDRAWAL: 'Withdrawal',
+        REFUND: 'Refund',
+        DEBIT: 'Debit',
+    }
+    return typeMap[type.toUpperCase()] || type
+}
+
+function mapTransactionDirection(direction: string): 'Credit' | 'Debit' {
+    return direction.toUpperCase() === 'CREDIT' ? 'Credit' : 'Debit'
+}
+
 function buildProductCountsString(groupCounts: Record<string, number> | undefined): string {
     if (!groupCounts || Object.keys(groupCounts).length === 0) {
         return ''
@@ -109,11 +136,23 @@ function buildProductCountsString(groupCounts: Record<string, number> | undefine
         .join(' · ')
 }
 
+const OrdersSkeleton = () => (
+    <div className="animate-pulse space-y-4">
+        {[...Array(4)].map((_, index) => (
+            <div key={index} className="h-10 bg-gray-200 rounded-md"></div>
+        ))}
+    </div>
+)
+
 export default function DesignerProfileTabs({ designer }: DesignerProfileTabsProps) {
     const [activeTab, setActiveTab] = useState<TabId>('overview')
     const [productStatus, setProductStatus] = useState<'ACTIVE' | 'PENDING' | 'REJECTED' | undefined>(undefined)
     const [productPage, setProductPage] = useState(1)
     const productLimit = 10
+    const [orderPage, setOrderPage] = useState(1)
+    const orderLimit = 10
+    const [transactionPage, setTransactionPage] = useState(1)
+    const transactionLimit = 10
 
     const productStatusTabs = useMemo(
         () => [
@@ -167,30 +206,48 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         [productsData?.records]
     )
 
-    const orderRows = useMemo(
-        () => [
-            { id: '#4821', product: 'Amara Braided Dress', client: 'Treasure James', amount: 'N100,000', date: 'Mar 15', status: 'Delivered' as const },
-            { id: '#4820', product: 'Zara Dress', client: 'Aisha Bello', amount: 'N100,000', date: 'Mar 14', status: 'Processing' as const },
-            { id: '#4819', product: 'Evening Gown', client: 'Mary Smith', amount: 'N150,000', date: 'Mar 13', status: 'Cancelled' as const },
-            { id: '#4818', product: 'Linen Set', client: 'Brenda Thompson', amount: 'N85,000', date: 'Mar 12', status: 'Awaiting' as const },
-        ],
-        []
-    )
+    const { data: ordersData, isLoading: isOrdersLoading } = useQuery({
+        queryKey: ['designer', 'orders', designer.id, orderPage],
+        queryFn: () => getDesignerOrders(designer.id, { page: orderPage, limit: orderLimit }),
+    })
+
+    const orderMeta = ordersData?.meta
+    const orderPageCount = orderMeta?.pageCount ?? 1
+    const canPreviousOrders = orderPage > 1
+    const canNextOrders = orderPage < orderPageCount
+
+    const orderRows = useMemo(() => {
+        if (!ordersData) return [];
+        return ordersData.records.map((order) => ({
+            id: order.identifier,
+            product: order.items[0]?.product.title || 'N/A',
+            client: `${order.client.firstName} ${order.client.lastName}`,
+            amount: formatPrice(order.price),
+            date: formatDate(order.createdAt),
+            status: mapOrderStatus(order.status),
+        }))
+    }, [ordersData])
+
+    const { data: transactionsData, isLoading: isTransactionsLoading } = useQuery({
+        queryKey: ['designer', 'transactions', designer.id, transactionPage],
+        queryFn: () => getDesignerTransactions(designer.id, { page: transactionPage, limit: transactionLimit }),
+    })
+
+    const transactionMeta = transactionsData?.meta
+    const transactionPageCount = transactionMeta?.pageCount ?? 1
+    const canPreviousTransactions = transactionPage > 1
+    const canNextTransactions = transactionPage < transactionPageCount
 
     const financialRows = useMemo(() => {
-        const movements = designer.recentMovements.map((movement, index) => ({
-            id: `${movement.label}-${index}`,
-            date: index === 0 ? 'Mar 15' : 'Mar 10',
-            description: movement.label,
-            type: movement.kind === 'credit' ? 'Credit' : 'Debit',
-            amount: movement.amount,
+        if (!transactionsData) return [];
+        return transactionsData.records.map((transaction) => ({
+            id: `transaction-${transaction.id}`,
+            date: '', // Will be populated from order/transaction details if available
+            description: mapTransactionType(transaction.type),
+            type: mapTransactionDirection(transaction.direction),
+            amount: `${transaction.direction === 'CREDIT' ? '+' : '-'}N${parseInt(transaction.amount, 10).toLocaleString()}`,
         }))
-
-        return [
-            ...movements,
-            { id: 'platform-fee', date: 'Mar 14', description: 'Platform fee (10%)', type: 'Debit', amount: '-N15,000' },
-        ]
-    }, [designer.recentMovements])
+    }, [transactionsData])
 
     const reviews = useMemo(
         () => [
@@ -560,36 +617,110 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
             {activeTab === 'orders' && (
                 <div id="tab-panel-orders" role="tabpanel" aria-labelledby="tab-orders" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
-                        <h3 className="font-semibold">Orders ({designer.orders})</h3>
+                        <h3 className="font-semibold">Orders ({ordersData?.meta.totalCount || 0})</h3>
                         <p className="text-xs sm:text-sm text-muted-foreground">All orders through this designer</p>
                     </div>
 
-                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
-                        <table className="w-full min-w-190 text-left">
-                            <thead>
-                                <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Order ID</th>
-                                    <th className="px-4 py-3">Product</th>
-                                    <th className="px-4 py-3">Client</th>
-                                    <th className="px-4 py-3">Amount</th>
-                                    <th className="px-4 py-3">Date</th>
-                                    <th className="px-4 py-3">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orderRows.map((row) => (
-                                    <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
-                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 group-hover:bg-muted/40 transition-colors"><span className="rounded-md border bg-gray-50 px-3 py-1 font-mono text-sm">{row.id}</span></td>
-                                        <td className="px-4 py-4 font-medium">{row.product}</td>
-                                        <td className="px-4 py-4">{row.client}</td>
-                                        <td className="px-4 py-4">{row.amount}</td>
-                                        <td className="px-4 py-4 text-muted-foreground">{row.date}</td>
-                                        <td className="px-4 py-4"><OrderStatusPill status={row.status} /></td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {isOrdersLoading ? (
+                        <OrdersSkeleton />
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
+                                <table className="w-full min-w-190 text-left">
+                                    <thead>
+                                        <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                                            <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Order ID</th>
+                                            <th className="px-4 py-3">Product</th>
+                                            <th className="px-4 py-3">Client</th>
+                                            <th className="px-4 py-3">Amount</th>
+                                            <th className="px-4 py-3">Date</th>
+                                            <th className="px-4 py-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {orderRows.map((row) => (
+                                            <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
+                                                <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 group-hover:bg-muted/40 transition-colors">
+                                                    <span className="rounded-md border bg-gray-50 px-3 py-1 font-mono text-sm">{row.id}</span>
+                                                </td>
+                                                <td className="px-4 py-4 font-medium">{row.product}</td>
+                                                <td className="px-4 py-4">{row.client}</td>
+                                                <td className="px-4 py-4">{row.amount}</td>
+                                                <td className="px-4 py-4 text-muted-foreground">{row.date}</td>
+                                                <td className="px-4 py-4">
+                                                    <OrderStatusPill status={row.status as 'Delivered' | 'Processing' | 'Cancelled' | 'Awaiting'} />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {orderRows.length === 0 && (
+                                            <tr>
+                                                <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                                                    No orders found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                                    Showing {orderRows.length} of {orderMeta?.totalCount ?? 0} orders
+                                </p>
+
+                                <Pagination className="mx-0 w-auto justify-start sm:justify-end">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    if (canPreviousOrders) {
+                                                        setOrderPage((prev) => prev - 1)
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] text-xs border-[0.5px] ${!canPreviousOrders ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!canPreviousOrders}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: orderPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={pageNum === orderPage}
+                                                    onClick={(e) => {
+                                                        e.preventDefault()
+                                                        setOrderPage(pageNum)
+                                                    }}
+                                                    className={`${pageNum === orderPage
+                                                        ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]'
+                                                        : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'
+                                                        } text-xs cursor-pointer`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    if (canNextOrders) {
+                                                        setOrderPage((prev) => prev + 1)
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] text-xs ${!canNextOrders ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!canNextOrders}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 
@@ -597,37 +728,109 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                 <div id="tab-panel-financials" role="tabpanel" aria-labelledby="tab-financials" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
                         <h3 className="font-semibold">Financial history</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground">Balance: <span className="font-semibold text-[#1A0089]">{designer.balance}</span></p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            Balance: <span className="font-semibold text-[#1A0089]">N{transactionsData?.balance ? parseInt(String(transactionsData.balance), 10).toLocaleString() : designer.balance.replace(/[^\d]/g, '')}</span>
+                        </p>
                     </div>
 
-                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
-                        <table className="w-full min-w-170 text-left">
-                            <thead>
-                                <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Date</th>
-                                    <th className="px-4 py-3">Description</th>
-                                    <th className="px-4 py-3">Type</th>
-                                    <th className="px-4 py-3">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {financialRows.map((row) => (
-                                    <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
-                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 text-muted-foreground group-hover:bg-muted/40 transition-colors">{row.date}</td>
-                                        <td className="px-4 py-4 font-medium">{row.description}</td>
-                                        <td className="px-4 py-4">
-                                            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${row.type === 'Credit' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                                                • {row.type}
-                                            </span>
-                                        </td>
-                                        <td className={`px-4 py-4 text-xs sm:text-sm font-bold ${row.type === 'Credit' ? 'text-green-600' : 'text-red-600'}`}>
-                                            {row.amount}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {isTransactionsLoading ? (
+                        <OrdersSkeleton />
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
+                                <table className="w-full min-w-170 text-left">
+                                    <thead>
+                                        <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                                            <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Date</th>
+                                            <th className="px-4 py-3">Description</th>
+                                            <th className="px-4 py-3">Type</th>
+                                            <th className="px-4 py-3">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {financialRows.map((row) => (
+                                            <tr key={row.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
+                                                <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 text-muted-foreground group-hover:bg-muted/40 transition-colors">{row.date}</td>
+                                                <td className="px-4 py-4 font-medium">{row.description}</td>
+                                                <td className="px-4 py-4">
+                                                    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs sm:text-sm font-semibold ${row.type === 'Credit' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                                                        • {row.type}
+                                                    </span>
+                                                </td>
+                                                <td className={`px-4 py-4 text-xs sm:text-sm font-bold ${row.type === 'Credit' ? 'text-green-600' : 'text-red-600'}`}>
+                                                    {row.amount}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {financialRows.length === 0 && (
+                                            <tr>
+                                                <td colSpan={4} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                                                    No transactions found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                                    Showing {financialRows.length} of {transactionMeta?.totalCount ?? 0} transactions
+                                </p>
+
+                                <Pagination className="mx-0 w-auto justify-start sm:justify-end">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    if (canPreviousTransactions) {
+                                                        setTransactionPage((prev) => prev - 1)
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] text-xs border-[0.5px] ${!canPreviousTransactions ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!canPreviousTransactions}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: transactionPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={pageNum === transactionPage}
+                                                    onClick={(e) => {
+                                                        e.preventDefault()
+                                                        setTransactionPage(pageNum)
+                                                    }}
+                                                    className={`${pageNum === transactionPage
+                                                        ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]'
+                                                        : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'
+                                                        } text-xs cursor-pointer`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    if (canNextTransactions) {
+                                                        setTransactionPage((prev) => prev + 1)
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] text-xs ${!canNextTransactions ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!canNextTransactions}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
 
