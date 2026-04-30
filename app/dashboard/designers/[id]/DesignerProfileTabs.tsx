@@ -5,10 +5,12 @@ import Link from 'next/link'
 import { FaFacebookF, FaInstagram } from 'react-icons/fa'
 import { FaTiktok, FaXTwitter } from 'react-icons/fa6'
 import type { IconType } from 'react-icons'
+import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import type { Designer } from '@/app/dashboard/designers/data'
+import { getDesignerProducts } from '@/lib/api/designers'
 
 type DesignerProfileTabsProps = {
     designer: Designer
@@ -68,16 +70,54 @@ const OrderStatusPill = ({ status }: { status: 'Delivered' | 'Processing' | 'Can
     return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs sm:text-sm font-semibold ${styles[status]}`}>• {status}</span>
 }
 
+function formatPrice(price: string): string {
+    const num = parseInt(price, 10)
+    if (isNaN(num)) return 'N0'
+    return `N${num.toLocaleString()}`
+}
+
+function mapProductStatus(status: 'ACTIVE' | 'PENDING'): 'Active' | 'Pending review' {
+    return status === 'ACTIVE' ? 'Active' : 'Pending review'
+}
+
+function buildProductCountsString(groupCounts: Record<string, number> | undefined): string {
+    if (!groupCounts || Object.keys(groupCounts).length === 0) {
+        return ''
+    }
+
+    const statusLabels: Record<string, string> = {
+        ACTIVE: 'active',
+        PENDING: 'pending',
+        REJECTED: 'rejected',
+    }
+
+    return Object.entries(groupCounts)
+        .map(([status, count]) => {
+            const label = statusLabels[status] || status.toLowerCase()
+            return `${count} ${label}`
+        })
+        .join(' · ')
+}
+
 export default function DesignerProfileTabs({ designer }: DesignerProfileTabsProps) {
     const [activeTab, setActiveTab] = useState<TabId>('overview')
 
+    // Fetch designer products
+    const { data: productsData } = useQuery({
+        queryKey: ['designer', 'products', designer.id],
+        queryFn: () => getDesignerProducts(designer.id),
+    })
+
     const productRows = useMemo(
-        () => [
-            { id: 1, product: 'Amara Braided Dress', price: 'N100,000', stock: 10, sales: 42, status: 'Active' as const },
-            { id: 2, product: 'Zara Dress', price: 'N100,000', stock: 10, sales: 12, status: 'Pending review' as const },
-            { id: 3, product: 'Linen Co-ord Set', price: 'N85,000', stock: 10, sales: 8, status: 'Active' as const },
-        ],
-        []
+        () => (productsData?.records ?? []).map((product) => ({
+            id: product.id,
+            product: product.title,
+            price: formatPrice(product.price),
+            stock: product.quantity,
+            sales: product.sold,
+            status: mapProductStatus(product.status),
+        })),
+        [productsData?.records]
     )
 
     const orderRows = useMemo(
@@ -308,7 +348,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                     <div className="flex flex-col justify-between gap-2 border-b px-3 py-3 sm:px-4 sm:py-4 sm:flex-row sm:items-center">
                         <div>
                             <h3 className="text-base font-semibold">Products ({designer.products})</h3>
-                            <p className="text-xs sm:text-sm text-muted-foreground">22 active · 1 pending · 2 rejected</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">{buildProductCountsString(productsData?.groupProductCountsByStatus)}</p>
                         </div>
                         <Link href="/dashboard/products" className="text-xs sm:text-sm font-semibold text-[#1A0089] hover:underline">View in Products →</Link>
                     </div>

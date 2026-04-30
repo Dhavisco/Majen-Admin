@@ -148,3 +148,53 @@ export async function getDesignerProfile(id: number): Promise<DesignerProfile> {
   );
   return data.data;
 }
+
+export interface DesignerProduct {
+  id: number;
+  title: string;
+  description: string;
+  price: string;
+  quantity: number;
+  status: "ACTIVE" | "PENDING";
+  sold: number;
+}
+
+export interface GetDesignerProductsParams {
+  page?: number;
+  limit?: number;
+}
+
+interface DesignerProductsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    meta: {
+      totalCount: number;
+      page: number;
+      perPage: number;
+      pageCount: number;
+    };
+    groupProductCountsByStatus: Record<string, number>;
+    records: DesignerProduct[];
+  };
+}
+
+export async function getDesignerProducts(
+  designerId: number,
+  params: GetDesignerProductsParams = {}
+): Promise<DesignerProductsResponse["data"]> {
+  const { page = 1, limit = 10 } = params;
+
+  const { data } = await axiosInstance.get<DesignerProductsResponse>(
+    `/admin/businesses/${designerId}/products`,
+    {
+      params: {
+        pagination: true,
+        page,
+        limit,
+      },
+    }
+  );
+
+  return data.data;
+}
