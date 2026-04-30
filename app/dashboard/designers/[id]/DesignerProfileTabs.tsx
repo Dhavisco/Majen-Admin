@@ -8,6 +8,14 @@ import type { IconType } from 'react-icons'
 import { useQuery } from '@tanstack/react-query'
 
 import { Button } from '@/components/ui/button'
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import type { Designer } from '@/app/dashboard/designers/data'
 import { getDesignerProducts } from '@/lib/api/designers'
@@ -76,8 +84,10 @@ function formatPrice(price: string): string {
     return `N${num.toLocaleString()}`
 }
 
-function mapProductStatus(status: 'ACTIVE' | 'PENDING'): 'Active' | 'Pending review' {
-    return status === 'ACTIVE' ? 'Active' : 'Pending review'
+function mapProductStatus(status: 'ACTIVE' | 'PENDING' | 'REJECTED'): 'Active' | 'Pending review' | 'Rejected' {
+    if (status === 'ACTIVE') return 'Active'
+    if (status === 'PENDING') return 'Pending review'
+    return 'Rejected'
 }
 
 function buildProductCountsString(groupCounts: Record<string, number> | undefined): string {
@@ -101,12 +111,49 @@ function buildProductCountsString(groupCounts: Record<string, number> | undefine
 
 export default function DesignerProfileTabs({ designer }: DesignerProfileTabsProps) {
     const [activeTab, setActiveTab] = useState<TabId>('overview')
+    const [productStatus, setProductStatus] = useState<'ACTIVE' | 'PENDING' | 'REJECTED' | undefined>(undefined)
+    const [productPage, setProductPage] = useState(1)
+    const productLimit = 10
+
+    const productStatusTabs = useMemo(
+        () => [
+            { label: 'All', value: undefined },
+            { label: 'Active', value: 'ACTIVE' as const },
+            { label: 'Pending', value: 'PENDING' as const },
+            { label: 'Rejected', value: 'REJECTED' as const },
+        ],
+        []
+    )
+
+    // Keep status counts stable across tab switches using an unfiltered query.
+    const { data: productsCountsData } = useQuery({
+        queryKey: ['designer', 'products-counts', designer.id],
+        queryFn: () => getDesignerProducts(designer.id, { page: 1, limit: 1 }),
+    })
 
     // Fetch designer products
     const { data: productsData } = useQuery({
-        queryKey: ['designer', 'products', designer.id],
-        queryFn: () => getDesignerProducts(designer.id),
+        queryKey: ['designer', 'products', designer.id, productStatus, productPage],
+        queryFn: () => getDesignerProducts(designer.id, { page: productPage, limit: productLimit, status: productStatus }),
     })
+
+    const productMeta = productsData?.meta
+    const productPageCount = productMeta?.pageCount ?? 1
+    const canPreviousProducts = productPage > 1
+    const canNextProducts = productPage < productPageCount
+
+    const statusCounts = useMemo(() => {
+        const groupCounts = productsCountsData?.groupProductCountsByStatus ?? {}
+        const active = groupCounts.ACTIVE ?? 0
+        const pending = groupCounts.PENDING ?? 0
+        const rejected = groupCounts.REJECTED ?? 0
+        return {
+            all: active + pending + rejected,
+            active,
+            pending,
+            rejected,
+        }
+    }, [productsCountsData?.groupProductCountsByStatus])
 
     const productRows = useMemo(
         () => (productsData?.records ?? []).map((product) => ({
@@ -347,10 +394,51 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                 <div id="tab-panel-products" role="tabpanel" aria-labelledby="tab-products" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="flex flex-col justify-between gap-2 border-b px-3 py-3 sm:px-4 sm:py-4 sm:flex-row sm:items-center">
                         <div>
-                            <h3 className="text-base font-semibold">Products ({designer.products})</h3>
+                            <h3 className="text-base font-semibold">Products ({statusCounts.all || designer.products})</h3>
                             <p className="text-xs sm:text-sm text-muted-foreground">{buildProductCountsString(productsData?.groupProductCountsByStatus)}</p>
                         </div>
                         <Link href="/dashboard/products" className="text-xs sm:text-sm font-semibold text-[#1A0089] hover:underline">View in Products →</Link>
+                    </div>
+
+                    <div className="border-b px-3 sm:px-4">
+                        <div className="flex items-center gap-2 overflow-x-auto">
+                            {productStatusTabs.map((status) => {
+                                const isActive = productStatus === status.value
+                                const count =
+                                    status.value === undefined
+                                        ? statusCounts.all
+                                        : status.value === 'ACTIVE'
+                                            ? statusCounts.active
+                                            : status.value === 'PENDING'
+                                                ? statusCounts.pending
+                                                : statusCounts.rejected
+                                const countColor =
+                                    status.value === 'ACTIVE'
+                                        ? 'text-green-600 bg-green-50 rounded-full px-2 py-0.5'
+                                        : status.value === 'PENDING'
+                                            ? 'text-amber-600 bg-amber-50 rounded-full px-2 py-0.5'
+                                            : status.value === 'REJECTED'
+                                                ? 'text-red-600 bg-red-50 rounded-full px-2 py-0.5'
+                                                : 'text-slate-600 bg-slate-50 rounded-full px-2 py-0.5'
+
+                                return (
+                                    <button
+                                        key={status.label}
+                                        onClick={() => {
+                                            setProductStatus(status.value)
+                                            setProductPage(1)
+                                        }}
+                                        className={`whitespace-nowrap border-b-2 px-3 py-3 text-sm font-semibold transition-colors ${isActive
+                                            ? 'border-[#1A0089] text-[#1A0089]'
+                                            : 'border-transparent text-[#97A0AF] hover:text-[#1A0089]'
+                                            }`}
+                                    >
+                                        <span>{status.label}</span>
+                                        <span className={`ml-1 text-xs font-bold ${countColor}`}>{count}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
                     </div>
 
                     <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
@@ -399,8 +487,72 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                         </td>
                                     </tr>
                                 ))}
+                                {productRows.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                                            No products found for this status.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
+                    </div>
+
+                    <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                            Showing {productRows.length} of {productMeta?.totalCount ?? 0} products
+                        </p>
+
+                        <Pagination className="mx-0 w-auto justify-start sm:justify-end">
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            if (canPreviousProducts) {
+                                                setProductPage((prev) => prev - 1)
+                                            }
+                                        }}
+                                        className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] text-xs border-[0.5px] ${!canPreviousProducts ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                        aria-disabled={!canPreviousProducts}
+                                    />
+                                </PaginationItem>
+
+                                {Array.from({ length: productPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                    <PaginationItem key={pageNum}>
+                                        <PaginationLink
+                                            href="#"
+                                            isActive={pageNum === productPage}
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                setProductPage(pageNum)
+                                            }}
+                                            className={`${pageNum === productPage
+                                                ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]'
+                                                : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'
+                                                } text-xs cursor-pointer`}
+                                        >
+                                            {pageNum}
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                ))}
+
+                                <PaginationItem>
+                                    <PaginationNext
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            if (canNextProducts) {
+                                                setProductPage((prev) => prev + 1)
+                                            }
+                                        }}
+                                        className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] text-xs ${!canNextProducts ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                        aria-disabled={!canNextProducts}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
                     </div>
                 </div>
             )}

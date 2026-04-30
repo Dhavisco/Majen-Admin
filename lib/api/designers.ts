@@ -155,13 +155,14 @@ export interface DesignerProduct {
   description: string;
   price: string;
   quantity: number;
-  status: "ACTIVE" | "PENDING";
+  status: "ACTIVE" | "PENDING" | "REJECTED";
   sold: number;
 }
 
 export interface GetDesignerProductsParams {
   page?: number;
   limit?: number;
+  status?: "ACTIVE" | "PENDING" | "REJECTED";
 }
 
 interface DesignerProductsResponse {
@@ -183,7 +184,7 @@ export async function getDesignerProducts(
   designerId: number,
   params: GetDesignerProductsParams = {}
 ): Promise<DesignerProductsResponse["data"]> {
-  const { page = 1, limit = 10 } = params;
+  const { page = 1, limit = 10, status } = params;
 
   const { data } = await axiosInstance.get<DesignerProductsResponse>(
     `/admin/businesses/${designerId}/products`,
@@ -192,6 +193,7 @@ export async function getDesignerProducts(
         pagination: true,
         page,
         limit,
+        ...(status && { status }),
       },
     }
   );
