@@ -1,7 +1,11 @@
-'use client';
+"use client";
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { logoutCurrentUser } from '@/lib/api/auth';
+import { useAuthStore } from '@/stores/authStore';
 
 type ToggleProps = {
     checked: boolean;
@@ -72,9 +76,9 @@ const SettingsPage: React.FC = () => {
                     <div className="bg-white rounded-2xl border overflow-hidden">
                         <div className="px-3 py-2 border-b flex items-center justify-between">
                             <h3 className="text-base md:text-lg font-bold tracking-tight">Admin profile</h3>
-                            <button className="text-[#1A0089] hover:text-[#14006b] text-sm md:text-base font-medium">
-                                Edit -
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button className="text-[#1A0089] hover:text-[#14006b] text-sm md:text-base font-medium">Edit</button>
+                            </div>
                         </div>
 
                         <div className="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
@@ -190,8 +194,64 @@ const SettingsPage: React.FC = () => {
                         </div>
                     </div>
                 </div>
+                {/* Logout section - separate, bottom-placed action following industry standards */}
+                <div className="mt-6">
+                    <div className="bg-white rounded-2xl border p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                        <div>
+                            <p className="font-medium">Sign out of this admin account</p>
+                            <p className="text-xs text-muted-foreground">Signing out will invalidate the current session token and require re-authentication.</p>
+                        </div>
+                        <div className="flex justify-end">
+                            <LogoutAction />
+                        </div>
+                    </div>
+                </div>
             </div>
         </DashboardLayout>
+    );
+};
+
+// Logout action component placed near the profile edit button.
+const LogoutAction: React.FC = () => {
+    const router = useRouter();
+    const [confirming, setConfirming] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const auth = useAuthStore();
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            // attempt server logout; even if it fails we'll clear local auth
+            await logoutCurrentUser();
+        } catch (err) {
+            // best-effort: still clear local auth on error
+            console.error('Logout API error', err);
+        } finally {
+            auth.logout();
+            // navigate to login
+            router.push('/login');
+        }
+    };
+
+    return (
+        <div className="relative">
+            {confirming ? (
+                <div className="flex items-center gap-2 cursor-pointer">
+                    <Button variant="ghost" onClick={() => setConfirming(false)} className="text-sm">Cancel</Button>
+                    <Button
+                        onClick={handleLogout}
+                        className="text-sm bg-red-600 hover:bg-red-700 text-white"
+                        disabled={isLoggingOut}
+                    >
+                        {isLoggingOut ? 'Signing out...' : 'Sign out'}
+                    </Button>
+                </div>
+            ) : (
+                <Button variant="outline" onClick={() => setConfirming(true)} className="text-sm text-red-600 border-red-200 hover:bg-red-50 cursor-pointer">
+                    Sign out
+                </Button>
+            )}
+        </div>
     );
 };
 

@@ -36,3 +36,17 @@ export async function loginAdmin(payload: LoginPayload): Promise<LoginResult> {
 export async function logoutAdmin(): Promise<void> {
   await axiosInstance.post("/admin/auth/logout");
 }
+
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
+  data: Record<string, unknown>;
+}
+
+/**
+ * Logout current authenticated user (invalidates current token server-side)
+ */
+export async function logoutCurrentUser(): Promise<LogoutResponse> {
+  const { data } = await axiosInstance.post<LogoutResponse>("/user/me/logout");
+  return data;
+}
