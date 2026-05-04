@@ -81,8 +81,8 @@ const OrderStatusPill = ({ status }: { status: 'Delivered' | 'Processing' | 'Can
 
 function formatPrice(price: string): string {
     const num = parseInt(price, 10)
-    if (isNaN(num)) return 'N0'
-    return `N${num.toLocaleString()}`
+    if (isNaN(num)) return '₦0'
+    return `₦${num.toLocaleString()}`
 }
 
 function mapProductStatus(status: 'ACTIVE' | 'PENDING' | 'REJECTED'): 'Active' | 'Pending review' | 'Rejected' {
@@ -245,7 +245,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
             date: '', // Will be populated from order/transaction details if available
             description: mapTransactionType(transaction.type),
             type: mapTransactionDirection(transaction.direction),
-            amount: `${transaction.direction === 'CREDIT' ? '+' : '-'}N${parseInt(transaction.amount, 10).toLocaleString()}`,
+            amount: `${transaction.direction === 'CREDIT' ? '+' : '-'}₦${parseInt(transaction.amount, 10).toLocaleString()}`,
         }))
     }, [transactionsData])
 
@@ -729,7 +729,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
                         <h3 className="font-semibold">Financial history</h3>
                         <p className="text-xs sm:text-sm text-muted-foreground">
-                            Balance: <span className="font-semibold text-[#1A0089]">N{transactionsData?.balance ? parseInt(String(transactionsData.balance), 10).toLocaleString() : designer.balance.replace(/[^\d]/g, '')}</span>
+                            Balance: <span className="font-semibold text-[#1A0089]">₦{transactionsData?.balance ? parseInt(String(transactionsData.balance), 10).toLocaleString() : designer.balance.replace(/[^\d]/g, '')}</span>
                         </p>
                     </div>
 

@@ -59,9 +59,23 @@ function mapBusinessType(type: string): 'Ready to wear' | 'Custom' {
 }
 
 function formatCurrency(value: number): string {
-    if (value === 0) return 'N0'
-    return `N${(value / 1000).toFixed(1)}K`
+    if (value === 0) return '₦0'
+    return `₦${(value / 1000).toFixed(1)}K`
 }
+
+// Price Formatter (₦ + commas)
+const formatPrice = (price: string | number): string => {
+    const num = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(num)) return '₦0';
+
+    return new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        minimumFractionDigits: 0,
+    }).format(num).replace('NGN', '₦');
+};
+
+
 
 function mapProfileToDesigner(profile: DesignerProfile): Designer {
     const { designer, averageRating, productCount, orderCount, balance } = profile
@@ -100,7 +114,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
             text: note.content,
             meta: `${note.createdBy.firstName} ${note.createdBy.lastName} - ${formatDate(note.createdAt)}`,
         })),
-        balance: formatCurrency(balance.totalBalance),
+        balance: formatPrice(balance.totalBalance),
         recentMovements: [],
     }
 }
