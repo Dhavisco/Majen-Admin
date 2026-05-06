@@ -15,6 +15,52 @@ export interface ProductRecord {
   };
 }
 
+export interface ProductPhoto {
+  url: string;
+}
+
+export interface ProductSizeItem {
+  sizeType: string;
+}
+
+export interface ProductDetailBusiness {
+  businessName: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    image: string | null;
+  };
+  verification: {
+    status: string;
+  };
+}
+
+export interface ProductDetail {
+  title: string;
+  description: string;
+  price: string;
+  quantity: number;
+  status: "ACTIVE" | "PENDING" | "REJECTED";
+  visibilty?: "VISIBLE" | "HIDDEN";
+  visibility?: "VISIBLE" | "HIDDEN";
+  createdAt: string;
+  updatedAt: string;
+  fabricUsed: string;
+  business: ProductDetailBusiness;
+  sizeSource: string;
+  sizes: ProductSizeItem[];
+  recommendedSizes: ProductSizeItem[];
+  photos: ProductPhoto[];
+}
+
+export interface ProductDetailResponse {
+  success: boolean;
+  message: string;
+  data: {
+    product: ProductDetail;
+  };
+}
+
 export interface ProductsDashboardStats {
   activeProducts: number;
   pendingProducts: number;
@@ -58,4 +104,31 @@ export async function getProductsDashboard(params: GetProductsDashboardParams = 
     { params: queryParams }
   );
   return data; // Return the full response, not just data.data
+}
+
+export async function getProductById(id: number) {
+  const { data } = await axiosInstance.get<ProductDetailResponse>(`/admin/products/${id}`);
+  return data.data;
+}
+
+export async function acceptProduct(id: number) {
+  const { data } = await axiosInstance.post(`/admin/products/${id}/accept`);
+  return data;
+}
+
+export async function rejectProduct(id: number) {
+  const { data } = await axiosInstance.post(`/admin/products/${id}/reject`);
+  return data;
+}
+
+export async function updateProductVisibility(id: number, status: "VISIBLE" | "HIDDEN") {
+  const { data } = await axiosInstance.patch(
+    `/admin/products/${id}/visibility`,
+    undefined,
+    {
+      params: { status },
+    }
+  );
+
+  return data;
 }

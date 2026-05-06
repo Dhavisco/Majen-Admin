@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
     FaBan,
     FaCheckCircle,
+    FaEye,
     FaEyeSlash,
     FaFlag,
     FaLockOpen,
@@ -26,6 +27,7 @@ export type ModerationActionType =
     | 'approve-product'
     | 'reject-product'
     | 'hide-product'
+    | 'show-product'
     | 'cancel-order'
     | 'remove-review'
 
@@ -50,6 +52,7 @@ type ModerationActionButtonProps = {
     buttonVariant?: React.ComponentProps<typeof Button>['variant']
     buttonSize?: React.ComponentProps<typeof Button>['size']
     disabled?: boolean
+    onConfirm?: () => Promise<void> | void
     warningText?: string
     reasonText?: string
     requireReason?: boolean
@@ -139,6 +142,15 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         iconBoxClassName: 'bg-amber-50',
         iconClassName: 'text-amber-700',
     },
+    'show-product': {
+        title: 'Show product',
+        description: 'Makes this product visible to clients again while preserving listing history.',
+        confirmLabel: 'Show Product',
+        tone: 'success',
+        icon: FaEye,
+        iconBoxClassName: 'bg-emerald-50',
+        iconClassName: 'text-emerald-700',
+    },
     'cancel-order': {
         title: 'Cancel order',
         description: 'Cancels this order and notifies the client. Any refund process will begin immediately based on payment rules.',
@@ -169,6 +181,7 @@ const triggerIconByAction: Record<ModerationActionType, IconType> = {
     'approve-product': FaCheckCircle,
     'reject-product': FaTimes,
     'hide-product': FaEyeSlash,
+    'show-product': FaEye,
     'cancel-order': FaTimes,
     'remove-review': FaTrash,
 }
@@ -188,11 +201,13 @@ export default function ModerationActionButton({
     buttonVariant,
     buttonSize = 'default',
     disabled,
+    onConfirm,
     warningText,
     reasonText,
     requireReason,
 }: ModerationActionButtonProps) {
     const [open, setOpen] = useState(false)
+    const [isSubmitting, setIsSubmitting] = useState(false)
 
     const config = useMemo(() => actionConfigByType[action], [action])
     const TriggerIcon = triggerIconByAction[action]
@@ -200,6 +215,25 @@ export default function ModerationActionButton({
     const finalWarning = warningText ?? config.warningText
     const needsReason = Boolean(requireReason && !reasonText)
     const confirmLabel = needsReason ? 'Select Reason' : config.confirmLabel
+
+    const handleConfirm = async () => {
+        if (needsReason || isSubmitting) {
+            return
+        }
+
+        if (!onConfirm) {
+            setOpen(false)
+            return
+        }
+
+        try {
+            setIsSubmitting(true)
+            await onConfirm()
+            setOpen(false)
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     useEffect(() => {
         if (!open) {
@@ -273,11 +307,11 @@ export default function ModerationActionButton({
                             </Button>
                             <Button
                                 type="button"
-                                disabled={needsReason}
-                                className={cn(confirmToneClass[config.tone], 'text-sm sm:text-base', needsReason && 'cursor-not-allowed bg-red-200 text-red-600 hover:bg-red-200')}
-                                onClick={() => setOpen(false)}
+                                disabled={needsReason || isSubmitting}
+                                className={cn(confirmToneClass[config.tone], 'text-sm sm:text-base', (needsReason || isSubmitting) && 'cursor-not-allowed bg-red-200 text-red-600 hover:bg-red-200')}
+                                onClick={handleConfirm}
                             >
-                                {confirmLabel}
+                                {isSubmitting ? 'Processing...' : confirmLabel}
                             </Button>
                         </div>
                     </div>

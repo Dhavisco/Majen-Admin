@@ -9,6 +9,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { getDesignerProfile } from '@/lib/api/designers';
+import { getProductById } from '@/lib/api/products';
 
 const pageTitleMap: Array<{ route: string; title: string }> = [
     { route: '/dashboard/designers', title: 'Designers' },
@@ -32,11 +33,22 @@ const Header: React.FC = () => {
         return match ? parseInt(match[1], 10) : null;
     }, [pathname]);
 
+    const productId = useMemo(() => {
+        const match = pathname.match(/^\/dashboard\/products\/(\d+)$/);
+        return match ? parseInt(match[1], 10) : null;
+    }, [pathname]);
+
     // Fetch designer profile data
     const { data: designerProfile } = useQuery({
         queryKey: ['designer', 'profile', designerId],
         queryFn: () => (designerId ? getDesignerProfile(designerId) : null),
         enabled: !!designerId,
+    });
+
+    const { data: productDetail } = useQuery({
+        queryKey: ['product', 'detail', productId],
+        queryFn: () => (productId ? getProductById(productId) : null),
+        enabled: !!productId,
     });
 
     const profileContext = useMemo(() => {
@@ -49,9 +61,16 @@ const Header: React.FC = () => {
             };
         }
 
-        // TODO: Add support for clients and products
+        if (productId && productDetail) {
+            return {
+                label: 'Products',
+                href: '/dashboard/products',
+                name: productDetail.product.title,
+            };
+        }
+
         return null;
-    }, [designerId, designerProfile]);
+    }, [designerId, designerProfile, productId, productDetail]);
 
     const pageTitle = useMemo(() => {
         const matched = pageTitleMap.find(
