@@ -130,7 +130,7 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         confirmLabel: 'Reject Product',
         tone: 'danger',
         icon: FaTimes,
-        iconBoxClassName: 'bg-red-50',
+        iconBoxClassName: 'bg-[#FECACA]',
         iconClassName: 'text-red-600',
     },
     'hide-product': {
@@ -188,7 +188,7 @@ const triggerIconByAction: Record<ModerationActionType, IconType> = {
 
 const confirmToneClass: Record<ConfirmTone, string> = {
     primary: 'bg-[#1A0089] hover:bg-[#14006b] text-white',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
+    danger: 'bg-[#FECACA] hover:bg-[#FECACA] text-[#DC2626]',
     warning: 'bg-amber-600 hover:bg-amber-700 text-white',
     success: 'bg-emerald-600 hover:bg-emerald-700 text-white',
 }
@@ -214,7 +214,8 @@ export default function ModerationActionButton({
 
     const finalWarning = warningText ?? config.warningText
     const needsReason = Boolean(requireReason && !reasonText)
-    const confirmLabel = needsReason ? 'Select Reason' : config.confirmLabel
+    const finalConfirmLabel = action === 'reject-product' ? 'Select Reasons' : config.confirmLabel
+    const confirmLabel = needsReason ? 'Select Reason' : finalConfirmLabel
 
     const handleConfirm = async () => {
         if (needsReason || isSubmitting) {
@@ -260,7 +261,7 @@ export default function ModerationActionButton({
                 variant={buttonVariant}
                 size={buttonSize}
                 disabled={disabled}
-                className={buttonClassName}
+                className={cn('cursor-pointer', buttonClassName)}
                 onClick={() => setOpen(true)}
             >
                 <TriggerIcon className="mr-2" />
@@ -300,7 +301,7 @@ export default function ModerationActionButton({
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="border-[#B7B1F3] text-[#1A0089] hover:bg-[#F1EFFF] text-sm sm:text-base"
+                                className="border-[#C4BCEF] border-2 text-[#1A0089] hover:bg-[#F1EFFF] text-sm sm:text-base font-semibold cursor-pointer"
                                 onClick={() => setOpen(false)}
                             >
                                 Cancel
@@ -308,7 +309,7 @@ export default function ModerationActionButton({
                             <Button
                                 type="button"
                                 disabled={needsReason || isSubmitting}
-                                className={cn(confirmToneClass[config.tone], 'text-sm sm:text-base', (needsReason || isSubmitting) && 'cursor-not-allowed bg-red-200 text-red-600 hover:bg-red-200')}
+                                className={cn(confirmToneClass[config.tone], 'text-sm sm:text-base font-semibold cursor-pointer', (needsReason || isSubmitting) && 'cursor-not-allowed bg-red-200 text-red-600 hover:bg-red-200')}
                                 onClick={handleConfirm}
                             >
                                 {isSubmitting ? 'Processing...' : confirmLabel}

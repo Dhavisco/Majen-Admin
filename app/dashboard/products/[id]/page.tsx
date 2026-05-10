@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { AxiosError } from 'axios'
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout'
 import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton'
@@ -11,9 +12,11 @@ import { Badge } from '@/components/ui/badge'
 import {
     acceptProduct,
     getProductById,
+    getRejectionReasons,
     rejectProduct,
     updateProductVisibility,
     type ProductDetail,
+    type RejectionReason,
 } from '@/lib/api/products'
 import { designers } from '@/app/dashboard/designers/data'
 
@@ -248,11 +251,18 @@ export default function ProductProfilePage() {
     const id = Number.parseInt(rawId ?? '', 10)
     const queryClient = useQueryClient()
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+    const [showRejectModal, setShowRejectModal] = useState(false)
+    const [selectedRejectionReason, setSelectedRejectionReason] = useState<RejectionReason | null>(null)
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['product', 'detail', id],
         queryFn: () => getProductById(id),
         enabled: Number.isFinite(id),
+    })
+
+    const { data: rejectionReasonsData } = useQuery({
+        queryKey: ['rejection-reasons'],
+        queryFn: () => getRejectionReasons(),
     })
 
     const acceptMutation = useMutation({
@@ -261,13 +271,31 @@ export default function ProductProfilePage() {
             await queryClient.invalidateQueries({ queryKey: ['product', 'detail', id] })
             await queryClient.refetchQueries({ queryKey: ['product', 'detail', id], exact: true, type: 'active' })
         },
+        onError: (error: unknown) => {
+            const axiosError = error as AxiosError<{ message?: string }>
+            console.error('Accept Product Error:', {
+                status: axiosError?.response?.status,
+                data: axiosError?.response?.data,
+                message: axiosError?.message,
+            })
+        },
     })
 
     const rejectMutation = useMutation({
-        mutationFn: () => rejectProduct(id),
+        mutationFn: (rejectionReasonId: number) => rejectProduct(id, rejectionReasonId),
         onSuccess: async () => {
+            setShowRejectModal(false)
+            setSelectedRejectionReason(null)
             await queryClient.invalidateQueries({ queryKey: ['product', 'detail', id] })
             await queryClient.refetchQueries({ queryKey: ['product', 'detail', id], exact: true, type: 'active' })
+        },
+        onError: (error: unknown) => {
+            const axiosError = error as AxiosError<{ message?: string }>
+            console.error('Reject Product Error:', {
+                status: axiosError?.response?.status,
+                data: axiosError?.response?.data,
+                message: axiosError?.message,
+            })
         },
     })
 
@@ -276,6 +304,14 @@ export default function ProductProfilePage() {
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['product', 'detail', id] })
             await queryClient.refetchQueries({ queryKey: ['product', 'detail', id], exact: true, type: 'active' })
+        },
+        onError: (error: unknown) => {
+            const axiosError = error as AxiosError<{ message?: string }>
+            console.error('Update Visibility Error:', {
+                status: axiosError?.response?.status,
+                data: axiosError?.response?.data,
+                message: axiosError?.message,
+            })
         },
     })
 
@@ -309,8 +345,14 @@ export default function ProductProfilePage() {
         await acceptMutation.mutateAsync()
     }
 
-    const handleReject = async () => {
-        await rejectMutation.mutateAsync()
+    const handleReject = () => {
+        setShowRejectModal(true)
+        setSelectedRejectionReason(null)
+    }
+
+    const handleConfirmReject = async () => {
+        if (!selectedRejectionReason) return
+        await rejectMutation.mutateAsync(selectedRejectionReason.id)
     }
 
     const handleToggleVisibility = async () => {
@@ -344,8 +386,8 @@ export default function ProductProfilePage() {
                                     action="reject-product"
                                     subject={product.title}
                                     buttonLabel="Reject"
-                                    buttonVariant="outline"
                                     buttonSize="sm"
+                                    buttonVariant="outline"
                                     buttonClassName="border border-red-600 hover:bg-red-700 text-red-600 cursor-pointer bg-white hover:font-semibold hover:text-white"
                                     onConfirm={handleReject}
                                     disabled={rejectMutation.isPending}
@@ -557,6 +599,102 @@ export default function ProductProfilePage() {
                         </aside>
                     </div>
                 </section>
+
+                {/* Rejection Reason Modal */}
+                {showRejectModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+                            {/* Header */}
+                            <button
+                                onClick={() => {
+                                    setShowRejectModal(false)
+                                    setSelectedRejectionReason(null)
+                                }}
+                                disabled={rejectMutation.isPending}
+                                className="flex items-start gap-4 mb-4">
+                                <div className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-red-50">
+                                    <span className="text-2xl">✕</span>
+                                </div>
+                                <div className="flex-1">
+                                    <h2 className="text-xl font-bold text-red-600">Reject product</h2>
+                                    <p className="text-sm text-black font-medium mt-1 rounded-lg bg-[#F4F4F5] border border-gray-300 py-1 px-3">
+                                        {product.title}
+                                    </p>
+                                </div>
+                            </button>
+
+                            {/* Reasons List */}
+                            <div className="space-y-2 my-6 max-h-64 overflow-y-auto">
+                                {rejectionReasonsData?.reasons?.length ? (
+                                    rejectionReasonsData.reasons.map((reason) => (
+                                        <button
+                                            key={reason.id}
+                                            type="button"
+                                            onClick={() => setSelectedRejectionReason(reason)}
+                                            className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all ${selectedRejectionReason?.id === reason.id
+                                                ? 'border-[#1A0089] bg-[#1A0089]/5'
+                                                : 'border-gray-200 hover:border-gray-300'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRejectionReason?.id === reason.id
+                                                        ? 'border-[#1A0089] bg-[#1A0089]'
+                                                        : 'border-gray-300'
+                                                        }`}
+                                                >
+                                                    {selectedRejectionReason?.id === reason.id && (
+                                                        <span className="text-white text-xs">✓</span>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="font-medium text-gray-900 capitalize">{reason.label}</p>
+                                                    <p className="text-xs text-gray-600 mt-1">{reason.description}</p>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <p>Loading rejection reasons...</p>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Selected Reason Info */}
+                            {selectedRejectionReason && (
+                                <div className="mb-6 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                    <p className="text-sm text-amber-900">
+                                        <strong>Reason:</strong> {selectedRejectionReason.label}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Actions */}
+                            <div className="flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowRejectModal(false)
+                                        setSelectedRejectionReason(null)
+                                    }}
+                                    disabled={rejectMutation.isPending}
+                                    className="flex-1 px-4 py-2 rounded-lg border-2 border-[#C4BCEF] cursor-pointer font-medium text-gray-900 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmReject}
+                                    disabled={!selectedRejectionReason || rejectMutation.isPending}
+                                    className="flex-1 px-4 py-2 rounded-lg bg-red-600 font-medium text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {rejectMutation.isPending ? 'Rejecting...' : 'Reject Product'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     )

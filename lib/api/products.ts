@@ -90,6 +90,23 @@ export interface GetProductsDashboardParams {
   filterParam?: string;
 }
 
+export interface RejectionReason {
+  id: number;
+  code: string;
+  label: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RejectionReasonsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    reasons: RejectionReason[];
+  };
+}
+
 export async function getProductsDashboard(params: GetProductsDashboardParams = {}) {
   const { page = 1, limit = 10, status, filterParam } = params;
   const queryParams: Record<string, unknown> = {
@@ -116,8 +133,10 @@ export async function acceptProduct(id: number) {
   return data;
 }
 
-export async function rejectProduct(id: number) {
-  const { data } = await axiosInstance.post(`/admin/products/${id}/reject`);
+export async function rejectProduct(id: number, rejectionReasonId: number) {
+  const { data } = await axiosInstance.post(`/admin/products/${id}/reject`, {
+    rejectionReasonId,
+  });
   return data;
 }
 
@@ -131,4 +150,9 @@ export async function updateProductVisibility(id: number, status: "VISIBLE" | "H
   );
 
   return data;
+}
+
+export async function getRejectionReasons() {
+  const { data } = await axiosInstance.get<RejectionReasonsResponse>("/rejection-reasons");
+  return data.data;
 }
