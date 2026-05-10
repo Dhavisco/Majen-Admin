@@ -35,6 +35,11 @@ export interface ProductDetailBusiness {
   };
 }
 
+export interface ProductCategory {
+  id: number;
+  name: string;
+}
+
 export interface ProductDetail {
   title: string;
   description: string;
@@ -46,6 +51,7 @@ export interface ProductDetail {
   createdAt: string;
   updatedAt: string;
   fabricUsed: string;
+  category: ProductCategory;
   business: ProductDetailBusiness;
   sizeSource: string;
   sizes: ProductSizeItem[];

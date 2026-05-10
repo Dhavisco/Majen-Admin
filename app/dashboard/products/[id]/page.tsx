@@ -58,6 +58,7 @@ type ProductViewModel = {
     createdAt: string
     updatedAt: string
     fabricUsed: string
+    categoryName: string
     businessName: string
     designerName: string
     designerImage: string | null
@@ -131,6 +132,7 @@ const mapProductToViewModel = (product: ProductDetail): ProductViewModel => {
         createdAt: product.createdAt,
         updatedAt: product.updatedAt,
         fabricUsed: product.fabricUsed,
+        categoryName: product.category.name,
         businessName: product.business.businessName,
         designerName,
         designerImage: product.business.user.image,
@@ -459,7 +461,7 @@ export default function ProductProfilePage() {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 border-y py-4">
                                         <div>
                                             <p className="text-xs uppercase text-muted-foreground">Category</p>
-                                            <p className="font-semibold mt-1">Product listing</p>
+                                            <p className="font-semibold mt-1">{product.categoryName}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs uppercase text-muted-foreground">Processing time</p>
