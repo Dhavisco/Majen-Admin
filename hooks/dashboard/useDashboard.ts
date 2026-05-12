@@ -105,6 +105,8 @@ export function useDashboard() {
   const verifications = (pendingVerificationsQuery.data ?? []).map((item) => ({
     designer: item.displayName,
     business: item.businessName,
+    email: item.user.email,
+    businessType: item.businessType,
     submitted: formatDate(item.createdAt),
   }));
 

@@ -89,6 +89,9 @@ export interface PendingVerificationRecord {
   ratings: number;
   createdAt: string;
   updatedAt: string;
+  user:{
+    email: string;
+  };
   verification: {
     rcNumber: string;
     status: string;
@@ -105,6 +108,6 @@ interface PendingVerificationResponse {
 }
 
 export async function getPendingVerifications(): Promise<PendingVerificationRecord[]> {
-  const { data } = await axiosInstance.get<PendingVerificationResponse>("/admin/business/pending");
+  const { data } = await axiosInstance.get<PendingVerificationResponse>("/admin/businesses/pending");
   return data.data.records;
 }
