@@ -1,7 +1,9 @@
-'use client';
+"use client";
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { getOrdersDashboard } from '@/lib/api/orders';
 
 import {
     FaSearch,
@@ -38,35 +40,41 @@ import {
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import { FaArrowDownLong } from 'react-icons/fa6';
-import { orders } from '@/app/dashboard/orders/data';
 
 const OrderPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState('all');
 
+    const { data: dashboardData } = useQuery({
+        queryKey: ['orders', 'dashboard'],
+        queryFn: () => getOrdersDashboard(),
+    });
+
+    const records = useMemo(() => dashboardData?.records ?? [], [dashboardData]);
+
     const orderStats = [
         {
-            value: '1,842',
+            value: String(dashboardData?.dashboardStats?.deliveredOrders ?? 0),
             label: 'DELIVERED',
             cardClass: 'bg-emerald-50 border-emerald-200',
             valueClass: 'text-emerald-600',
             labelClass: 'text-emerald-700',
         },
         {
-            value: '412',
+            value: String(dashboardData?.dashboardStats?.processingOrders ?? 0),
             label: 'PROCESSING',
             cardClass: 'bg-blue-50 border-blue-200',
             valueClass: 'text-blue-600',
             labelClass: 'text-blue-700',
         },
         {
-            value: '680',
+            value: String(dashboardData?.dashboardStats?.awaitingOrders ?? 0),
             label: 'AWAITING',
             cardClass: 'bg-amber-50 border-amber-200',
             valueClass: 'text-amber-600',
             labelClass: 'text-amber-700',
         },
         {
-            value: '307',
+            value: String(dashboardData?.dashboardStats?.cancelledOrders ?? 0),
             label: 'CANCELLED',
             cardClass: 'bg-red-50 border-red-200',
             valueClass: 'text-red-600',
@@ -77,41 +85,59 @@ const OrderPage: React.FC = () => {
     const tabs = [
         { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
         { label: 'Awaiting', value: 'Awaiting', color: 'bg-yellow-100 text-yellow-700' },
+        { label: 'Confirmed', value: 'Confirmed', color: 'bg-emerald-100 text-emerald-700' },
         { label: 'Delivered', value: 'Delivered', color: 'bg-green-100 text-green-700' },
         { label: 'Cancelled', value: 'Cancelled', color: 'bg-red-100 text-red-700' },
     ];
 
     const counts = useMemo(() => {
-        const result: Record<string, number> = {
-            all: orders.length
-        };
-
-        orders.forEach((d) => {
-            result[d.status] = (result[d.status] || 0) + 1;
+        const result: Record<string, number> = { all: records.length };
+        records.forEach((record) => {
+            const key = record.status === 'PENDING' ? 'Awaiting' : record.status === 'CONFIRMED' ? 'Confirmed' : record.status === 'DELIVERED' ? 'Delivered' : record.status;
+            result[key] = (result[key] || 0) + 1;
         });
-
         return result;
-    }, [orders]);
+    }, [records]);
 
     const filteredOrders = useMemo(() => {
-        if (activeTab === 'all') return orders;
-        return orders.filter((d) => d.status === activeTab);
-    }, [activeTab, orders]);
+        if (activeTab === 'all') return records;
+        return records.filter((d) => {
+            if (activeTab === 'Awaiting') return d.status === 'PENDING';
+            if (activeTab === 'Confirmed') return d.status === 'CONFIRMED';
+            if (activeTab === 'Delivered') return d.status === 'DELIVERED';
+            if (activeTab === 'Cancelled') return d.status === 'CANCELLED';
+            return d.status === activeTab.toUpperCase();
+        });
+    }, [activeTab, records]);
 
     const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'Delivered':
+        const s = status?.toUpperCase?.() ?? '';
+        switch (s) {
+            case 'DELIVERED':
                 return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Delivered</Badge>;
-            case 'Processing':
+            case 'CONFIRMED':
+                return <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">Confirmed</Badge>;
+            case 'PROCESSING':
                 return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Processing</Badge>;
-            case 'Awaiting':
-                return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Awaiting</Badge>;
-            case 'Cancelled':
+            case 'PENDING':
+                return <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">Pending</Badge>;
+            case 'CANCELLED':
                 return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Cancelled</Badge>;
             default:
                 return <Badge variant="secondary">{status}</Badge>;
         }
     };
+
+    const formatAmount = (value?: string | number) => {
+        const num = typeof value === 'string' ? Number.parseFloat(value) : value ?? 0;
+        if (Number.isNaN(Number(num))) return '₦0';
+        return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 })
+            .format(Number(num))
+            .replace('NGN', '₦');
+    };
+
+    const formatName = (record: { firstName?: string; lastName?: string } | undefined) =>
+        [record?.firstName, record?.lastName].filter(Boolean).join(' ').trim() || '—';
 
     return (
         <DashboardLayout>
@@ -201,69 +227,55 @@ const OrderPage: React.FC = () => {
                         <Table className="text-xs md:text-base">
                             <TableHeader>
                                 <TableRow className="text-xs md:text-sm">
-                                    <TableHead className="sticky left-0 text-muted-foreground font-semibold bg-white z-10 after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
+                                    <TableHead className="text-muted-foreground font-semibold">DATE</TableHead>
+                                    <TableHead className="text-muted-foreground font-semibold">
                                         ORDER ID
                                     </TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">PRODUCT</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">CLIENT</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">DESIGNER</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">AMOUNT</TableHead>
-                                    <TableHead className="text-muted-foreground font-semibold">DATE</TableHead>
-                                    <TableHead className="text-muted-foreground font-semibold">
-                                        STATUS
-                                    </TableHead>
+                                    <TableHead className="text-muted-foreground font-semibold">STATUS</TableHead>
+                                    <TableHead className="text-muted-foreground font-semibold text-right">ACTIONS</TableHead>
                                 </TableRow>
                             </TableHeader>
 
                             <TableBody>
                                 {filteredOrders.map((order) => (
                                     <TableRow key={order.id} className="group hover:bg-muted/50 transition-colors">
-                                        <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
-                                            <div className="flex items-center gap-1 md:gap-3">
-                                                {/* <div className="md:w-9 md:h-9 w-5 h-5 bg-linear-to-br from-[#1A0089] to-indigo-600 text-white md:text-sm text-[8px] rounded-full flex items-center justify-center font-medium">
-                                                    {order.id.split(' ').map((n) => n[0]).join('').toUpperCase()}
-                                                </div> */}
+                                        <TableCell className="md:text-sm font-semibold text-[11px]">{new Date(order.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' })}</TableCell>
 
+                                        <TableCell className="group-hover:bg-muted/50 transition-colors">
+                                            <div className="flex items-center gap-1 md:gap-3">
                                                 <Link
                                                     href={`/dashboard/orders/${order.id}`}
                                                     className="md:text-sm text-[11px] px-1.5 py-0.5 bg-[#F4F4F5] text-[#52525B] rounded-sm border border-[#E4E4E7] hover:border-[#1A0089]/30"
                                                 >
-                                                    <div>{'#'}{order.orderId}</div>
+                                                    <div>{order.identifier}</div>
                                                 </Link>
                                             </div>
                                         </TableCell>
 
                                         <TableCell className="font-medium md:text-sm text-[11px]">
-                                            <Link href={`/dashboard/orders/${order.id}`} className="hover:underline">{order.product}</Link>
+                                            <Link href={`/dashboard/orders/${order.id}`} className="hover:underline">{order.items?.[0]?.product?.title ?? '—'}</Link>
                                         </TableCell>
 
                                         <TableCell className="font-medium md:text-sm text-[11px]">
-                                            <div>{order.client}</div>
+                                            <div>{formatName(order.client)}</div>
                                         </TableCell>
 
-                                        <TableCell className="font-medium md:text-sm text-[11px]">{order.designer}</TableCell>
-                                        <TableCell className="font-medium md:text-sm text-[11px]">{'₦'}{order.amount}{'K'}</TableCell>
-                                        <TableCell className="md:text-sm font-semibold text-[11px]">{order.date}</TableCell>
+                                        <TableCell className="font-medium md:text-sm text-[11px]">
+                                            <div>{formatName(order.creator?.user)}</div>
+                                        </TableCell>
 
-                                        <TableCell className="bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
-                                            <div className="flex gap-2 whitespace-nowrap">
-                                                {getStatusBadge(order.status)}
-                                                {/* {product.status === 'Awaiting' ? (
-                                                    <>
-                                                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]">
-                                                            <FaCheck className="mr-1" /> Approve
-                                                        </Button>
+                                        <TableCell className="font-medium md:text-sm text-[11px]">{formatAmount(order.price)}</TableCell>
 
-                                                        <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]">
-                                                            <FaTimes className="mr-1" /> Reject
-                                                        </Button>
-                                                    </>
-                                                ) : (
-                                                    <Button size="sm" variant="outline" className="text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]">
-                                                        View
-                                                    </Button>
-                                                )} */}
-                                            </div>
+                                        <TableCell className="group-hover:bg-muted/50 transition-colors">
+                                            <div className="flex gap-2 whitespace-nowrap">{getStatusBadge(order.status)}</div>
+                                        </TableCell>
+
+                                        <TableCell className="text-right">
+                                            <Link href={`/dashboard/orders/${order.id}`} className="px-3 py-1 text-xs bg-white border border-[#C4BCEF] rounded-md text-[#1A0089]! font-medium hover:bg-[#1A0089]/5">View</Link>
                                         </TableCell>
                                     </TableRow>
                                 ))}
@@ -272,7 +284,7 @@ const OrderPage: React.FC = () => {
 
                         <div className="flex items-center justify-between border-t w-full py-4">
                             <p className="md:text-sm text-xs text-muted-foreground font-medium">
-                                Showing {filteredOrders.length} of {orders.length} orders
+                                Showing {filteredOrders.length} of {records.length} orders
                             </p>
 
                             <div className="font-medium">
