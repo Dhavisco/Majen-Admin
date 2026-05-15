@@ -16,9 +16,16 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination'
-import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import ModerationActionButton, { type ModerationActionType } from '../../../components/ModerationAction/ModerationActionButton'
 import type { Designer } from '@/app/dashboard/designers/data'
-import { getDesignerProducts, getDesignerOrders, getDesignerTransactions } from '@/lib/api/designers'
+import {
+    getDesignerProducts,
+    getDesignerOrders,
+    getDesignerTransactions,
+    rejectDesignerVerification,
+    verifyDesigner,
+} from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
 type DesignerProfileTabsProps = {
@@ -145,6 +152,7 @@ const OrdersSkeleton = () => (
 )
 
 export default function DesignerProfileTabs({ designer }: DesignerProfileTabsProps) {
+    const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState<TabId>('overview')
     const [productStatus, setProductStatus] = useState<'ACTIVE' | 'PENDING' | 'REJECTED' | undefined>(undefined)
     const [productPage, setProductPage] = useState(1)
@@ -231,6 +239,22 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const { data: transactionsData, isLoading: isTransactionsLoading } = useQuery({
         queryKey: ['designer', 'transactions', designer.id, transactionPage],
         queryFn: () => getDesignerTransactions(designer.id, { page: transactionPage, limit: transactionLimit }),
+    })
+
+    const verifyMutation = useMutation({
+        mutationFn: () => verifyDesigner(designer.id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
+    const rejectMutation = useMutation({
+        mutationFn: (reason: string) => rejectDesignerVerification(designer.id, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
     })
 
     const transactionMeta = transactionsData?.meta
@@ -429,6 +453,9 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
                                 {accountActions.map((action) => {
+                                    const isVerifyAction = action.action === 'verify-account' && !action.disabled
+                                    const isRejectAction = action.action === 'reject-application' && !action.disabled
+
                                     return (
                                         <ModerationActionButton
                                             key={action.label}
@@ -438,6 +465,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             buttonSize="default"
                                             disabled={action.disabled}
                                             buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
+                                            onConfirm={
+                                                isVerifyAction
+                                                    ? () => verifyMutation.mutateAsync()
+                                                    : isRejectAction
+                                                        ? (reason: string | undefined) => rejectMutation.mutateAsync(reason ?? '')
+                                                        : undefined
+                                            }
                                         />
                                     )
                                 })}

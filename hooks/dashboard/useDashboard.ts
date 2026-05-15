@@ -103,6 +103,7 @@ export function useDashboard() {
     : [];
 
   const verifications = (pendingVerificationsQuery.data ?? []).map((item) => ({
+    id: item.id,
     designer: item.displayName,
     business: item.businessName,
     email: item.user.email,

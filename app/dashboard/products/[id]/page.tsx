@@ -7,8 +7,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout'
-import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton'
+import ModerationActionButton from '../../../components/ModerationAction/ModerationActionButton'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
     acceptProduct,
     getProductById,
@@ -384,16 +385,16 @@ export default function ProductProfilePage() {
                                     onConfirm={handleAccept}
                                     disabled={acceptMutation.isPending}
                                 />
-                                <ModerationActionButton
-                                    action="reject-product"
-                                    subject={product.title}
-                                    buttonLabel="Reject"
-                                    buttonSize="sm"
-                                    buttonVariant="outline"
-                                    buttonClassName="border border-red-600 hover:bg-red-700 text-red-600 cursor-pointer bg-white hover:font-semibold hover:text-white"
-                                    onConfirm={handleReject}
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={handleReject}
                                     disabled={rejectMutation.isPending}
-                                />
+                                    className="border border-red-600 hover:bg-red-700 text-red-600 cursor-pointer bg-white hover:font-semibold hover:text-white"
+                                >
+                                    Reject
+                                </Button>
                             </div>
                         ) : null}
                     </div>
@@ -539,13 +540,14 @@ export default function ProductProfilePage() {
                                                     onConfirm={handleAccept}
                                                     disabled={acceptMutation.isPending}
                                                 />
-                                                <ModerationActionButton
-                                                    action="reject-product"
-                                                    subject={product.title}
-                                                    buttonClassName="w-full justify-center bg-red-600 hover:bg-red-700 text-white"
-                                                    onConfirm={handleReject}
+                                                <Button
+                                                    type="button"
+                                                    onClick={handleReject}
                                                     disabled={rejectMutation.isPending}
-                                                />
+                                                    className="w-full justify-center bg-red-600 hover:bg-red-700 text-white"
+                                                >
+                                                    Reject
+                                                </Button>
                                             </>
                                         ) : null}
 

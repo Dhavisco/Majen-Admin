@@ -2,9 +2,11 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton';
+import ModerationActionButton from '../../components/ModerationAction/ModerationActionButton';
 import { useDesigners } from '@/hooks/designers/useDesigners';
+import { rejectDesignerVerification, verifyDesigner } from '@/lib/api/designers';
 
 import {
     FaSearch,
@@ -68,6 +70,7 @@ const queryToTab = (value: string | null): DesignerTab => {
 };
 
 const DesignersPageContent: React.FC = () => {
+    const queryClient = useQueryClient();
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<DesignerTab>('all');
     const [searchInput, setSearchInput] = useState('');
@@ -99,6 +102,20 @@ const DesignersPageContent: React.FC = () => {
         limit: 10,
         status: backendStatus,
         search: searchInput || undefined,
+    });
+
+    const verifyMutation = useMutation({
+        mutationFn: (id: number) => verifyDesigner(id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] });
+        },
+    });
+
+    const rejectMutation = useMutation({
+        mutationFn: ({ id, reason }: { id: number; reason: string }) => rejectDesignerVerification(id, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] });
+        },
     });
 
     // Reset pagination when filters change
@@ -314,8 +331,25 @@ const DesignersPageContent: React.FC = () => {
                                             <div className="flex gap-2 whitespace-nowrap">
                                                 {designer.status === 'Pending' ? (
                                                     <>
-                                                        <ModerationActionButton action="verify-account" subject={`${designer.name} · ${designer.business}`} buttonLabel="Verify" buttonSize="sm" buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]" />
-                                                        <ModerationActionButton action="reject-application" subject={`${designer.name} · ${designer.business}`} buttonLabel="Reject" buttonVariant="outline" buttonSize="sm" buttonClassName="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]" />
+                                                        <ModerationActionButton
+                                                            action="verify-account"
+                                                            subject={`${designer.name} · ${designer.business}`}
+                                                            buttonLabel="Verify"
+                                                            buttonSize="sm"
+                                                            buttonClassName="bg-[#1A0089] hover:bg-[#14006b] cursor-pointer font-medium md:text-xs text-[11px]"
+                                                            onConfirm={() => verifyMutation.mutateAsync(designer.id)}
+                                                            disabled={verifyMutation.isPending || rejectMutation.isPending}
+                                                        />
+                                                        <ModerationActionButton
+                                                            action="reject-application"
+                                                            subject={`${designer.name} · ${designer.business}`}
+                                                            buttonLabel="Reject"
+                                                            buttonVariant="outline"
+                                                            buttonSize="sm"
+                                                            buttonClassName="border-red-500 text-red-600 hover:bg-red-100 cursor-pointer font-medium md:text-xs text-[11px]"
+                                                            onConfirm={(reason) => rejectMutation.mutateAsync({ id: designer.id, reason: reason ?? '' })}
+                                                            disabled={verifyMutation.isPending || rejectMutation.isPending}
+                                                        />
                                                         <Button size="sm" variant="outline" asChild className="text-[#1A0089] hover:text-white hover:bg-[#14006b] border-[#1900894b] cursor-pointer font-medium md:text-xs text-[11px]"><Link href={`/dashboard/designers/${designer.id}`}>View</Link></Button>
                                                     </>
                                                 ) : (

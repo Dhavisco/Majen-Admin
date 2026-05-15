@@ -52,7 +52,7 @@ type ModerationActionButtonProps = {
     buttonVariant?: React.ComponentProps<typeof Button>['variant']
     buttonSize?: React.ComponentProps<typeof Button>['size']
     disabled?: boolean
-    onConfirm?: () => Promise<void> | void
+    onConfirm?: (reason?: string) => Promise<void> | void
     warningText?: string
     reasonText?: string
     requireReason?: boolean
@@ -188,7 +188,7 @@ const triggerIconByAction: Record<ModerationActionType, IconType> = {
 
 const confirmToneClass: Record<ConfirmTone, string> = {
     primary: 'bg-[#1A0089] hover:bg-[#14006b] text-white',
-    danger: 'bg-[#FECACA] hover:bg-[#FECACA] text-[#DC2626]',
+    danger: 'bg-red-600 hover:bg-red-700 text-white',
     warning: 'bg-amber-600 hover:bg-amber-700 text-white',
     success: 'bg-emerald-600 hover:bg-emerald-700 text-white',
 }
@@ -208,14 +208,16 @@ export default function ModerationActionButton({
 }: ModerationActionButtonProps) {
     const [open, setOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [rejectionReason, setRejectionReason] = useState('')
 
     const config = useMemo(() => actionConfigByType[action], [action])
     const TriggerIcon = triggerIconByAction[action]
 
     const finalWarning = warningText ?? config.warningText
-    const needsReason = Boolean(requireReason && !reasonText)
+    const showReasonInput = action === 'reject-application' || requireReason
+    const needsReason = showReasonInput && rejectionReason.trim().length === 0
     const finalConfirmLabel = action === 'reject-product' ? 'Select Reasons' : config.confirmLabel
-    const confirmLabel = needsReason ? 'Select Reason' : finalConfirmLabel
+    const confirmLabel = needsReason ? 'Enter reason' : finalConfirmLabel
 
     const handleConfirm = async () => {
         if (needsReason || isSubmitting) {
@@ -229,7 +231,7 @@ export default function ModerationActionButton({
 
         try {
             setIsSubmitting(true)
-            await onConfirm()
+            await onConfirm(showReasonInput ? rejectionReason.trim() : undefined)
             setOpen(false)
         } finally {
             setIsSubmitting(false)
@@ -238,8 +240,11 @@ export default function ModerationActionButton({
 
     useEffect(() => {
         if (!open) {
+            setRejectionReason(reasonText ?? '')
             return
         }
+
+        setRejectionReason(reasonText ?? '')
 
         const handleEscape = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -252,7 +257,7 @@ export default function ModerationActionButton({
         return () => {
             window.removeEventListener('keydown', handleEscape)
         }
-    }, [open])
+    }, [open, reasonText])
 
     return (
         <>
@@ -270,50 +275,117 @@ export default function ModerationActionButton({
 
             {open && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 sm:p-4"
                     onClick={() => setOpen(false)}
                     role="presentation"
                 >
                     <div
                         role="dialog"
                         aria-modal="true"
-                        aria-label={config.title}
-                        className="w-full max-w-md max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-white p-4 sm:p-6 shadow-xl"
+                        aria-labelledby={`moderation-title-${action}`}
+                        aria-describedby={`moderation-description-${action}`}
+                        className="w-full max-w-lg  rounded-3xl bg-white shadow-2xl"
                         onClick={(event) => event.stopPropagation()}
                     >
-                        <div className={cn('inline-flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-xl', config.iconBoxClassName)}>
-                            <config.icon className={cn('h-5 w-5 sm:h-6 sm:w-6', config.iconClassName)} />
-                        </div>
+                        <div className="" />
 
-                        <h3 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">{config.title}</h3>
-                        <p className="mt-2 inline-flex max-w-full rounded-lg border bg-gray-50 px-3 py-1 text-sm text-slate-800 wrap-break-word whitespace-normal">{subject}</p>
-
-                        {finalWarning && (
-                            <div className="mt-4 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-                                ⚠ {finalWarning}
-                            </div>
-                        )}
-
-                        <p className="mt-4 max-w-full whitespace-normal wrap-break-word text-sm sm:text-base leading-6 sm:leading-7 text-slate-600">{config.description}</p>
-                        {reasonText && <p className="mt-3 text-sm sm:text-base text-slate-700 wrap-break-word">Reason: {reasonText}</p>}
-
-                        <div className="mt-6 grid grid-cols-2 gap-2 sm:gap-3">
-                            <Button
+                        <div className="relative px-4 py-5 sm:px-6 sm:py-6">
+                            <button
                                 type="button"
-                                variant="outline"
-                                className="border-[#C4BCEF] border-2 text-[#1A0089] hover:bg-[#F1EFFF] text-sm sm:text-base font-semibold cursor-pointer"
                                 onClick={() => setOpen(false)}
+                                aria-label="Close dialog"
+                                className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                             >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="button"
-                                disabled={needsReason || isSubmitting}
-                                className={cn(confirmToneClass[config.tone], 'text-sm sm:text-base font-semibold cursor-pointer', (needsReason || isSubmitting) && 'cursor-not-allowed bg-red-200 text-red-600 hover:bg-red-200')}
-                                onClick={handleConfirm}
-                            >
-                                {isSubmitting ? 'Processing...' : confirmLabel}
-                            </Button>
+                                <FaTimes className="h-4 w-4" />
+                            </button>
+
+                            <div className="flex">
+                                <div className={cn('inline-flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm', config.iconBoxClassName)}>
+                                    <config.icon className={cn('h-6 w-6', config.iconClassName)} />
+                                </div>
+                            </div>
+
+                            <div className="mt-4 space-y-2 text-center">
+                                <h3 id={`moderation-title-${action}`} className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+                                    {config.title}
+                                </h3>
+                                <p id={`moderation-description-${action}`} className="mx-auto max-w-full text-sm text-slate-600 sm:text-base wrap-break-word whitespace-normal leading-6">
+                                    {config.description}
+                                </p>
+                            </div>
+
+                            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Subject</p>
+                                <p className="mt-1 max-w-full wrap-break-word text-sm font-medium text-slate-900 sm:text-base whitespace-normal leading-6">{subject}</p>
+                            </div>
+
+                            {finalWarning && (
+                                <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                    <div className="flex items-start gap-2">
+                                        <span className="mt-0.5 text-amber-700">⚠</span>
+                                        <p className="wrap-break-word whitespace-normal leading-6">{finalWarning}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {showReasonInput && (
+                                <div className="mt-5 rounded-2xl bg-white p-4 shadow-xs">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <label htmlFor={`moderation-reason-${action}`} className="text-sm font-semibold text-slate-900">
+                                                Rejection reason
+                                            </label>
+                                            {/* <p className="mt-1 text-xs text-slate-500">
+                                                Tell the admin team why this request is being rejected. Keep it clear and specific.
+                                            </p> */}
+                                        </div>
+                                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                            Required
+                                        </span>
+                                    </div>
+
+                                    <textarea
+                                        id={`moderation-reason-${action}`}
+                                        value={rejectionReason}
+                                        onChange={(event) => setRejectionReason(event.target.value)}
+                                        rows={5}
+                                        placeholder="Example: Rc number does not match business name."
+                                        className="mt-3 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-slate-400 focus:border-[#1A0089] focus:bg-white focus:ring-4 focus:ring-[#1A0089]/10"
+                                    />
+
+                                    <div className="mt-2 flex flex-col gap-1 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                                        <span>{needsReason ? 'Please enter a reason before continuing.' : 'This note will be saved with the rejection action.'}</span>
+                                        <span>{rejectionReason.trim().length} characters</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {reasonText && !showReasonInput && (
+                                <p className="mt-3 text-sm text-slate-700 wrap-break-word">Reason: {reasonText}</p>
+                            )}
+
+                            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="h-11 border-[#C4BCEF] border-2 text-[#1A0089] hover:bg-[#F1EFFF] text-sm font-semibold cursor-pointer"
+                                    onClick={() => setOpen(false)}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="button"
+                                    disabled={needsReason || isSubmitting}
+                                    className={cn(
+                                        confirmToneClass[config.tone],
+                                        'h-11 text-sm font-semibold cursor-pointer',
+                                        (needsReason || isSubmitting) && 'cursor-not-allowed bg-slate-200 text-slate-500 hover:bg-slate-200'
+                                    )}
+                                    onClick={handleConfirm}
+                                >
+                                    {isSubmitting ? 'Processing...' : confirmLabel}
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>

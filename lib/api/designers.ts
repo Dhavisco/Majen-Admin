@@ -149,6 +149,21 @@ export async function getDesignerProfile(id: number): Promise<DesignerProfile> {
   return data.data;
 }
 
+interface DesignerVerificationActionResponse {
+  success: boolean;
+  message: string;
+}
+
+export async function verifyDesigner(id: number): Promise<void> {
+  await axiosInstance.post<DesignerVerificationActionResponse>(`/admin/businesses/verify/${id}`);
+}
+
+export async function rejectDesignerVerification(id: number, reason: string): Promise<void> {
+  await axiosInstance.post<DesignerVerificationActionResponse>(`/admin/businesses/reject-verification/${id}`, {
+    reason,
+  });
+}
+
 export interface DesignerProduct {
   id: number;
   title: string;
