@@ -117,6 +117,10 @@ const OrderPage: React.FC = () => {
                 return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Delivered</Badge>;
             case 'CONFIRMED':
                 return <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50">Confirmed</Badge>;
+            case 'IN_PROGRESS':
+                return <Badge className="bg-violet-100 text-violet-700 hover:bg-violet-100">In Progress</Badge>;
+            case 'SHIPPED':
+                return <Badge className="bg-sky-100 text-sky-700 hover:bg-sky-100">Shipped</Badge>;
             case 'PROCESSING':
                 return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Processing</Badge>;
             case 'PENDING':

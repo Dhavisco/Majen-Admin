@@ -18,20 +18,25 @@ type OrderDetailActionsProps = {
 const statusOptions = ['Confirmed', 'In Progress', 'Shipped', 'Delivered'] as const
 type StatusOption = (typeof statusOptions)[number]
 
-const statusToBackend: Record<StatusOption, 'CONFIRMED' | 'SHIPPED' | 'DELIVERED'> = {
+const statusToBackend: Record<StatusOption, 'CONFIRMED' | 'IN_PROGRESS' | 'SHIPPED' | 'DELIVERED'> = {
     'Confirmed': 'CONFIRMED',
-    'In Progress': 'CONFIRMED',
+    'In Progress': 'IN_PROGRESS',
     'Shipped': 'SHIPPED',
     'Delivered': 'DELIVERED',
 }
 
-const mapStatus = (status: string): StatusOption => {
-    const normalized = status.toUpperCase()
+const mapStatus = (status: string): StatusOption | null => {
+    // Normalize both backend enum forms (IN_PROGRESS) and label forms (In Progress)
+    const normalized = (status ?? '').toString().toUpperCase().replace(/\s+/g, '_')
+
     if (normalized === 'CONFIRMED') return 'Confirmed'
-    if (normalized === 'PENDING' || normalized === 'AWAITING') return 'In Progress'
+    if (normalized === 'IN_PROGRESS') return 'In Progress'
     if (normalized === 'SHIPPED') return 'Shipped'
     if (normalized === 'DELIVERED') return 'Delivered'
-    return 'Confirmed'
+
+    // For PENDING/AWAITING and other non-actionable states, return null so
+    // no action is pre-selected and Update Status isn't implicitly tied to them.
+    return null
 }
 
 type ConfirmModalProps = {
@@ -41,11 +46,12 @@ type ConfirmModalProps = {
     confirmLabel: string
     isDangerous?: boolean
     isLoading?: boolean
+    errorMessage?: string | null
     onConfirm: () => void
     onCancel: () => void
 }
 
-function ConfirmModal({ isOpen, title, description, confirmLabel, isDangerous, isLoading, onConfirm, onCancel }: ConfirmModalProps) {
+function ConfirmModal({ isOpen, title, description, confirmLabel, isDangerous, isLoading, errorMessage, onConfirm, onCancel }: ConfirmModalProps) {
     if (!isOpen) return null
 
     return (
@@ -66,6 +72,12 @@ function ConfirmModal({ isOpen, title, description, confirmLabel, isDangerous, i
                 <h2 className="text-center text-lg font-semibold text-gray-900">{title}</h2>
                 <p className="mt-3 text-center text-sm text-gray-500">{description}</p>
 
+                {errorMessage && (
+                    <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+                        {errorMessage}
+                    </div>
+                )}
+
                 <div className="mt-6 flex gap-3">
                     <button
                         type="button"
@@ -79,9 +91,8 @@ function ConfirmModal({ isOpen, title, description, confirmLabel, isDangerous, i
                         type="button"
                         onClick={onConfirm}
                         disabled={isLoading}
-                        className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${
-                            isDangerous ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
-                        }`}
+                        className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-white transition-colors disabled:opacity-50 ${isDangerous ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                            }`}
                     >
                         {isLoading ? 'Loading...' : confirmLabel}
                     </button>
@@ -93,24 +104,30 @@ function ConfirmModal({ isOpen, title, description, confirmLabel, isDangerous, i
 
 export default function OrderDetailActions({ orderId, orderLabel, currentStatus }: OrderDetailActionsProps) {
     const queryClient = useQueryClient()
-    const [selectedStatus, setSelectedStatus] = useState<StatusOption>(mapStatus(currentStatus))
+    const [selectedStatus, setSelectedStatus] = useState<StatusOption | null>(mapStatus(currentStatus))
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
     const [showStatusConfirm, setShowStatusConfirm] = useState(false)
     const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+    const [statusErrorMessage, setStatusErrorMessage] = useState<string | null>(null)
+    const [cancelErrorMessage, setCancelErrorMessage] = useState<string | null>(null)
     const containerRef = useRef<HTMLDivElement | null>(null)
 
     const isCancelled = currentStatus.toUpperCase() === 'CANCELLED'
+    const isDelivered = currentStatus.toUpperCase() === 'DELIVERED'
 
     const statusMutation = useMutation({
-        mutationFn: (status: 'CONFIRMED' | 'SHIPPED' | 'DELIVERED') => updateOrderStatus(orderId, status),
+        mutationFn: (status: 'CONFIRMED' | 'IN_PROGRESS' | 'SHIPPED' | 'DELIVERED') => updateOrderStatus(orderId, status),
         onSuccess: async () => {
             setShowStatusConfirm(false)
             setStatusDropdownOpen(false)
+            setStatusErrorMessage(null)
             await queryClient.invalidateQueries({ queryKey: ['order', 'detail', orderId] })
             await queryClient.refetchQueries({ queryKey: ['order', 'detail', orderId], exact: true, type: 'active' })
         },
         onError: (error: unknown) => {
             const axiosError = error as AxiosError<{ message?: string }>
+            const message = axiosError?.response?.data?.message ?? axiosError?.message ?? 'Unable to update order status.'
+            setStatusErrorMessage(message)
             console.error('Update Status Error:', {
                 status: axiosError?.response?.status,
                 data: axiosError?.response?.data,
@@ -123,11 +140,14 @@ export default function OrderDetailActions({ orderId, orderLabel, currentStatus 
         mutationFn: () => cancelOrder(orderId),
         onSuccess: async () => {
             setShowCancelConfirm(false)
+            setCancelErrorMessage(null)
             await queryClient.invalidateQueries({ queryKey: ['order', 'detail', orderId] })
             await queryClient.refetchQueries({ queryKey: ['order', 'detail', orderId], exact: true, type: 'active' })
         },
         onError: (error: unknown) => {
             const axiosError = error as AxiosError<{ message?: string }>
+            const message = axiosError?.response?.data?.message ?? axiosError?.message ?? 'Unable to cancel order.'
+            setCancelErrorMessage(message)
             console.error('Cancel Order Error:', {
                 status: axiosError?.response?.status,
                 data: axiosError?.response?.data,
@@ -159,22 +179,39 @@ export default function OrderDetailActions({ orderId, orderLabel, currentStatus 
     }, [])
 
     const handleStatusSelect = (status: StatusOption) => {
+        setStatusErrorMessage(null)
         setSelectedStatus(status)
         setStatusDropdownOpen(false)
         setShowStatusConfirm(true)
     }
 
     const handleConfirmStatusUpdate = () => {
+        setStatusErrorMessage(null)
+        if (!selectedStatus) {
+            setStatusErrorMessage('Please select a valid status to update to.')
+            return
+        }
+
         const backendStatus = statusToBackend[selectedStatus]
         statusMutation.mutate(backendStatus)
     }
 
     const handleConfirmCancel = () => {
+        setCancelErrorMessage(null)
         cancelMutation.mutate()
     }
 
     if (isCancelled) {
         return null
+    }
+
+    if (isDelivered) {
+        return null
+        // return (
+        //     <div className="flex items-center gap-2 self-start w-full sm:w-auto justify-end">
+        //         <span className="text-green-600 font-medium">Order Delivered</span>
+        //     </div>
+        // )
     }
 
     return (
@@ -230,6 +267,7 @@ export default function OrderDetailActions({ orderId, orderLabel, currentStatus 
                 description={`Are you sure you want to update this order status to "${selectedStatus}"?`}
                 confirmLabel="Update Status"
                 isLoading={statusMutation.isPending}
+                errorMessage={statusErrorMessage}
                 onConfirm={handleConfirmStatusUpdate}
                 onCancel={() => setShowStatusConfirm(false)}
             />
@@ -241,6 +279,7 @@ export default function OrderDetailActions({ orderId, orderLabel, currentStatus 
                 confirmLabel="Cancel Order"
                 isDangerous
                 isLoading={cancelMutation.isPending}
+                errorMessage={cancelErrorMessage}
                 onConfirm={handleConfirmCancel}
                 onCancel={() => setShowCancelConfirm(false)}
             />

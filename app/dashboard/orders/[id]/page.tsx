@@ -32,11 +32,13 @@ type OrderDetail = {
     client: { id: number; firstName: string; lastName: string }
     timelines: Array<{ status: string; createdAt: string }>
     status?: string
-  }
+}
 
 const toneByStatus: Record<string, string> = {
     CONFIRMED: 'bg-emerald-500/20 text-emerald-700 hover:bg-emerald-500/20 font-semibold',
     DELIVERED: 'bg-green-500/20 text-green-700 hover:bg-green-500/20 font-semibold',
+    IN_PROGRESS: 'bg-violet-500/20 text-violet-700 hover:bg-violet-500/20 font-semibold',
+    SHIPPED: 'bg-sky-500/20 text-sky-700 hover:bg-sky-500/20 font-semibold',
     PENDING: 'bg-amber-500/20 text-amber-700 hover:bg-amber-500/20 font-semibold',
     PROCESSING: 'bg-blue-500/20 text-blue-700 hover:bg-blue-500/20 font-semibold',
     CANCELLED: 'bg-rose-500/20 text-rose-700 hover:bg-rose-500/20 font-semibold',
@@ -44,6 +46,8 @@ const toneByStatus: Record<string, string> = {
 
 const statusLabelMap: Record<string, string> = {
     CONFIRMED: 'Confirmed',
+    IN_PROGRESS: 'In Progress',
+    SHIPPED: 'Shipped',
     DELIVERED: 'Delivered',
     PENDING: 'Awaiting',
     PROCESSING: 'Processing',

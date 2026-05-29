@@ -70,8 +70,8 @@ export async function getOrderById(id: number) {
   return data.data.order
 }
 
-export async function updateOrderStatus(id: number, status: 'CONFIRMED' | 'SHIPPED' | 'DELIVERED') {
-  const { data } = await axiosInstance.patch<OrderDetailResponse>(`/admin/orders/${id}`, null, {
+export async function updateOrderStatus(id: number, status: 'CONFIRMED' | 'IN_PROGRESS' | 'SHIPPED' | 'DELIVERED') {
+  const { data } = await axiosInstance.patch<OrderDetailResponse>(`/admin/orders/${id}`, undefined, {
     params: { status },
   })
   return data.data.order
