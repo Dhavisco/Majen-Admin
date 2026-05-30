@@ -1,14 +1,16 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
+import Link from 'next/link'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
-// import { Badge } from '@/components/ui/badge'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
-import { Button } from '@/components/ui/button'
-import type { Client } from '@/app/dashboard/clients/data'
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
+import { getClientOrders, type ClientDetail, type ClientOrderRecord } from '@/lib/api/clients'
 
 type ClientProfileTabsProps = {
-    client: Client
+    client: ClientDetail
+    clientId: number
 }
 
 type TabId = 'overview' | 'orders'
@@ -26,6 +28,8 @@ const tabs: Array<{ id: TabId; label: string }> = [
     { id: 'orders', label: 'Orders' },
 ]
 
+const ORDER_PAGE_SIZE = 10
+
 const toneClassByAction: Record<AccountActionTone, string> = {
     primary: 'bg-[#1A0089] text-white hover:bg-[#14006b] border-transparent',
     danger: 'bg-red-600 text-white hover:bg-red-700 border-transparent',
@@ -34,55 +38,125 @@ const toneClassByAction: Record<AccountActionTone, string> = {
     muted: 'border border-gray-200 bg-gray-100 text-gray-400 hover:bg-gray-100',
 }
 
-const OrderStatusPill = ({ status }: { status: 'Delivered' | 'Processing' | 'Cancelled' | 'Awaiting' }) => {
-    const styles: Record<string, string> = {
-        Delivered: 'bg-green-50 text-green-700',
-        Processing: 'bg-blue-50 text-blue-700',
-        Cancelled: 'bg-red-50 text-red-700',
-        Awaiting: 'bg-purple-50 text-purple-700',
+
+const formatDate = (value: string) => {
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+        return '—'
     }
 
-    return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs sm:text-sm font-semibold ${styles[status]}`}>• {status}</span>
+    return new Intl.DateTimeFormat('en-NG', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(date)
 }
 
-export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
-    const [activeTab, setActiveTab] = useState<TabId>('overview')
+const formatCurrency = (value: string | number) => {
+    const parsed = typeof value === 'string' ? Number.parseFloat(value) : value
 
-    const orders = useMemo(
-        () => [
-            { id: '#4821', product: 'Amara Braided Dress', designer: 'Treasure James', amount: 'N100,000', date: 'Mar 15', status: 'Delivered' as const },
-            { id: '#4820', product: 'Zara Dress', designer: 'Aisha Bello', amount: 'N100,000', date: 'Mar 14', status: 'Processing' as const },
-            { id: '#4819', product: 'Evening Gown', designer: 'Mary Smith', amount: 'N150,000', date: 'Mar 13', status: 'Cancelled' as const },
-            { id: '#4818', product: 'Linen Set', designer: 'Brenda Thompson', amount: 'N85,000', date: 'Mar 12', status: 'Awaiting' as const },
-        ],
-        []
-    )
+    if (Number.isNaN(Number(parsed))) {
+        return '₦0'
+    }
+
+    return new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+        .format(Number(parsed))
+        .replace('NGN', '₦')
+}
+
+const getOrderStatusTone = (status: string) => {
+    const normalized = status.toUpperCase()
+
+    switch (normalized) {
+        case 'DELIVERED':
+            return 'bg-green-50 text-green-700'
+        case 'CONFIRMED':
+            return 'bg-emerald-50 text-emerald-700'
+        case 'IN_PROGRESS':
+        case 'PROCESSING':
+            return 'bg-violet-50 text-violet-700'
+        case 'SHIPPED':
+            return 'bg-sky-50 text-sky-700'
+        case 'CANCELLED':
+            return 'bg-red-50 text-red-700'
+        default:
+            return 'bg-gray-100 text-gray-700'
+    }
+}
+
+const getOrderStatusLabel = (status: string) => {
+    const normalized = status.toUpperCase()
+
+    switch (normalized) {
+        case 'IN_PROGRESS':
+        case 'PROCESSING':
+            return 'In Progress'
+        case 'SHIPPED':
+            return 'Shipped'
+        case 'DELIVERED':
+            return 'Delivered'
+        case 'CANCELLED':
+            return 'Cancelled'
+        case 'CONFIRMED':
+            return 'Confirmed'
+        default:
+            return status
+    }
+}
+
+const OrderStatusPill = ({ status }: { status: string }) => (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs sm:text-sm font-semibold ${getOrderStatusTone(status)}`}>
+        • {getOrderStatusLabel(status)}
+    </span>
+)
+
+export default function ClientProfileTabs({ client, clientId }: ClientProfileTabsProps) {
+    const [activeTab, setActiveTab] = useState<TabId>('overview')
+    const [currentPage, setCurrentPage] = useState(1)
+
+    const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
+        queryKey: ['clients', 'orders', clientId, currentPage],
+        queryFn: () => getClientOrders(clientId, { page: currentPage, limit: ORDER_PAGE_SIZE, pagination: true }),
+        placeholderData: keepPreviousData,
+        enabled: Number.isFinite(clientId),
+    })
+
+    const orders = ordersData?.records ?? []
+    const orderMeta = ordersData?.meta
+    const pageCount = Math.max(Math.ceil((orderMeta?.totalCount ?? 0) / (orderMeta?.perPage ?? ORDER_PAGE_SIZE)), 1)
+
+    const fullName = `${client.firstName} ${client.lastName}`.trim() || '—'
+    const notes = client.notesReceived ?? []
 
     const accountActions = useMemo<AccountAction[]>(() => {
         switch (client.status) {
-            case 'Pending':
-                return [
-                    { label: 'Verify account', action: 'verify-account', tone: 'primary' },
-                    { label: 'Reject application', action: 'reject-application', tone: 'danger' },
-                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
-                    { label: 'Suspend (verify first)', action: 'suspend-account', tone: 'muted', disabled: true },
-                ]
-            case 'Banned':
+            case 'BANNED':
                 return [
                     { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
                     { label: 'Suspend (already banned)', action: 'suspend-account', tone: 'muted', disabled: true },
                     { label: 'Flag (already banned)', action: 'flag-account', tone: 'muted', disabled: true },
                     { label: 'Verify (resolve ban first)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
-            case 'Suspended':
+            case 'SUSPENDED':
                 return [
                     { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
                     { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
                     { label: 'Ban account', action: 'ban-account', tone: 'danger' },
                     { label: 'Verify (resolve suspension first)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
-            case 'Active':
-            case 'Flagged':
+            case 'FLAGGED':
+                return [
+                    { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                    { label: 'Suspend account', action: 'suspend-account', tone: 'warning' },
+                    { label: 'Ban account', action: 'ban-account', tone: 'danger' },
+                    { label: 'Verify (already verified)', action: 'verify-account', tone: 'muted', disabled: true },
+                ]
+            case 'ACTIVE':
             default:
                 return [
                     { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
@@ -127,27 +201,19 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
                             <div className="grid grid-cols-1 gap-4 sm:gap-5 p-3 sm:p-4 md:grid-cols-2">
                                 <div>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Full name</p>
-                                    <p className="mt-1 font-semibold">{client.name}</p>
+                                    <p className="mt-1 font-semibold">{fullName}</p>
                                 </div>
                                 <div>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Email</p>
                                     <p className="mt-1 font-semibold">{client.email}</p>
                                 </div>
                                 <div>
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Phone</p>
-                                    <p className="mt-1 font-semibold">{client.phone}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Location</p>
-                                    <p className="mt-1 font-semibold">{client.location}</p>
-                                </div>
-                                <div>
-                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Preferred category</p>
-                                    <p className="mt-1 font-semibold">{client.preferredCategory}</p>
-                                </div>
-                                <div>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Member since</p>
-                                    <p className="mt-1 font-semibold">{client.joined}</p>
+                                    <p className="mt-1 font-semibold">{formatDate(client.createdAt)}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
+                                    <p className="mt-1 font-semibold">{client.status}</p>
                                 </div>
                             </div>
                         </div>
@@ -155,36 +221,23 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
                         <div className="overflow-hidden rounded-2xl border bg-white">
                             <div className="border-b px-3 py-3 sm:px-4 font-semibold">Admin notes</div>
                             <div className="space-y-3 p-3 sm:p-4">
-                                {client.notes.map((note, index) => (
-                                    <div key={index} className="rounded-lg border bg-gray-50 p-3">
-                                        <p className="text-sm font-medium">{note.text}</p>
-                                        <p className="mt-1 text-xs text-muted-foreground">{note.meta}</p>
-                                    </div>
-                                ))}
-                                <textarea
-                                    placeholder="Add a note visible to all admins..."
-                                    className="h-24 w-full rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#1A0089]/30"
-                                />
-                                <Button className="w-full bg-[#1A0089] hover:bg-[#14006b]">Save note</Button>
+                                {notes.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No notes received for this client yet.</p>
+                                ) : (
+                                    notes.map((note, index) => (
+                                        <div key={`${note.createdAt}-${index}`} className="rounded-lg border bg-gray-50 p-3">
+                                            <p className="text-sm font-medium">{note.content}</p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {note.createdBy.firstName} {note.createdBy.lastName} - {formatDate(note.createdAt)}
+                                            </p>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </section>
 
                     <aside className="space-y-4">
-                        <div className="overflow-hidden rounded-2xl border bg-white">
-                            <div className="border-b px-3 py-3 sm:px-4 font-semibold">Flags ({client.flags.length})</div>
-                            <div className="space-y-2 p-3 sm:p-4">
-                                {client.flags.length === 0 && <p className="text-sm text-muted-foreground">No active flags on this account.</p>}
-                                {client.flags.map((flag, index) => (
-                                    <div key={index} className="grid grid-cols-1 gap-2 sm:grid-cols-[70px_1fr_auto] sm:items-center rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                                        <span className="text-muted-foreground">{flag.date}</span>
-                                        <span>{flag.reason}</span>
-                                        <Button size="sm" variant="outline" className="w-full sm:w-auto border-green-300 text-green-700 hover:bg-green-50">Remove</Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
                         <div className="overflow-hidden rounded-2xl border border-red-200 bg-red-50/30">
                             <div className="border-b border-red-200 px-3 py-3 sm:px-4">
                                 <p className="font-semibold text-red-700">Account actions</p>
@@ -196,7 +249,7 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
                                         <ModerationActionButton
                                             key={action.label}
                                             action={action.action}
-                                            subject={client.name}
+                                            subject={fullName}
                                             buttonLabel={action.label}
                                             buttonSize="default"
                                             disabled={action.disabled}
@@ -213,12 +266,12 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
             {activeTab === 'orders' && (
                 <div id="tab-panel-orders" role="tabpanel" aria-labelledby="tab-orders" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
-                        <h3 className="font-semibold">Orders ({client.orders})</h3>
+                        <h3 className="font-semibold">Orders ({orderMeta?.totalCount ?? 0})</h3>
                         <p className="text-xs sm:text-sm text-muted-foreground">All orders placed by this customer</p>
                     </div>
 
-                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
-                        <table className="w-full min-w-190 text-left">
+                    <div className="overflow-x-auto scrollbar-thin w-full max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
+                        <table className="w-full min-w-225 text-left">
                             <thead>
                                 <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
                                     <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Order ID</th>
@@ -230,20 +283,85 @@ export default function ClientProfileTabs({ client }: ClientProfileTabsProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {orders.map((order) => (
+                                {isLoadingOrders && orders.length === 0 ? (
+                                    <tr>
+                                        <td className="px-4 py-8 text-sm text-muted-foreground" colSpan={6}>
+                                            Loading orders...
+                                        </td>
+                                    </tr>
+                                ) : orders.length === 0 ? (
+                                    <tr>
+                                        <td className="px-4 py-8 text-sm text-muted-foreground" colSpan={6}>
+                                            No orders found for this client.
+                                        </td>
+                                    </tr>
+                                ) : orders.map((order: ClientOrderRecord) => (
                                     <tr key={order.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
                                         <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 group-hover:bg-muted/40 transition-colors">
-                                            <span className="rounded-md border bg-gray-50 px-3 py-1 font-mono text-sm">{order.id}</span>
+                                            <Link href={`/dashboard/orders/${order.id}`} className="rounded-md border bg-gray-50 px-3 py-1 font-mono text-sm hover:border-[#1A0089]/30 hover:text-[#1A0089]">
+                                                {order.identifier}
+                                            </Link>
                                         </td>
-                                        <td className="px-4 py-4 font-medium">{order.product}</td>
-                                        <td className="px-4 py-4">{order.designer}</td>
-                                        <td className="px-4 py-4">{order.amount}</td>
-                                        <td className="px-4 py-4 text-muted-foreground">{order.date}</td>
+                                        <td className="px-4 py-4 font-medium">{order.items[0]?.product.title ?? '—'}</td>
+                                        <td className="px-4 py-4">
+                                            {order.creator.user.firstName} {order.creator.user.lastName}
+                                        </td>
+                                        <td className="px-4 py-4">{formatCurrency(order.price)}</td>
+                                        <td className="px-4 py-4 text-muted-foreground">{formatDate(order.createdAt)}</td>
                                         <td className="px-4 py-4"><OrderStatusPill status={order.status} /></td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
+
+                        {pageCount > 1 ? (
+                            <div className="flex flex-col gap-3 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs sm:text-sm text-muted-foreground">
+                                    Showing {orders.length} of {orderMeta?.totalCount ?? 0} orders
+                                </p>
+
+                                <Pagination>
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(event) => {
+                                                    event.preventDefault()
+                                                    if (currentPage > 1) setCurrentPage((value) => value - 1)
+                                                }}
+                                                aria-disabled={currentPage <= 1}
+                                            />
+                                        </PaginationItem>
+
+                                        {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
+                                            <PaginationItem key={pageNumber}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={pageNumber === currentPage}
+                                                    onClick={(event) => {
+                                                        event.preventDefault()
+                                                        setCurrentPage(pageNumber)
+                                                    }}
+                                                >
+                                                    {pageNumber}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(event) => {
+                                                    event.preventDefault()
+                                                    if (currentPage < pageCount) setCurrentPage((value) => value + 1)
+                                                }}
+                                                aria-disabled={currentPage >= pageCount}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             )}

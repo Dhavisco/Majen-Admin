@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { getDesignerProfile } from '@/lib/api/designers';
 import { getProductById } from '@/lib/api/products';
+import { getClientDetails } from '@/lib/api/clients';
 
 const pageTitleMap: Array<{ route: string; title: string }> = [
     { route: '/dashboard/designers', title: 'Designers' },
@@ -38,6 +39,11 @@ const Header: React.FC = () => {
         return match ? parseInt(match[1], 10) : null;
     }, [pathname]);
 
+    const clientId = useMemo(() => {
+        const match = pathname.match(/^\/dashboard\/clients\/(\d+)$/);
+        return match ? parseInt(match[1], 10) : null;
+    }, [pathname]);
+
     // Fetch designer profile data
     const { data: designerProfile } = useQuery({
         queryKey: ['designer', 'profile', designerId],
@@ -49,6 +55,12 @@ const Header: React.FC = () => {
         queryKey: ['product', 'detail', productId],
         queryFn: () => (productId ? getProductById(productId) : null),
         enabled: !!productId,
+    });
+
+    const { data: clientDetail } = useQuery({
+        queryKey: ['client', 'detail', clientId],
+        queryFn: () => (clientId ? getClientDetails(clientId) : null),
+        enabled: !!clientId,
     });
 
     const profileContext = useMemo(() => {
@@ -69,8 +81,16 @@ const Header: React.FC = () => {
             };
         }
 
+        if (clientId && clientDetail) {
+            return {
+                label: 'Clients',
+                href: '/dashboard/clients',
+                name: `${clientDetail.firstName} ${clientDetail.lastName}`,
+            };
+        }
+
         return null;
-    }, [designerId, designerProfile, productId, productDetail]);
+    }, [clientDetail, clientId, designerId, designerProfile, productId, productDetail]);
 
     const pageTitle = useMemo(() => {
         const matched = pageTitleMap.find(
