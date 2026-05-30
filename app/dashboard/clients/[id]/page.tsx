@@ -131,7 +131,7 @@ export default function ClientProfilePage() {
 
                             <div className="min-w-0">
                                 <h1 className="text-xl sm:text-2xl font-bold uppercase leading-tight wrap-break-word">{fullName}</h1>
-                                <p className="text-white/80 text-xs sm:text-sm mt-1 wrap-break-word">{client.email}</p>
+                                {/* <p className="text-white/80 text-xs sm:text-sm mt-1 wrap-break-word">{client.email}</p> */}
                                 <p className="text-white/70 text-xs sm:text-sm mt-1">Client since {formatDate(client.createdAt)}</p>
                                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                                     <Badge className={statusBadgeClass[client.status] ?? 'bg-white/20 text-white hover:bg-white/20'}>
