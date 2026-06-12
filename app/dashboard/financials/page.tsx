@@ -19,10 +19,10 @@ const tabs: Array<{ label: string; value: TransactionTab }> = [
     { label: 'All', value: 'all' },
     { label: 'Order payments', value: 'ORDER_PAYMENT' },
     { label: 'Payouts', value: 'PAYOUT' },
-    { label: 'Fees', value: 'FEE' },
+    { label: 'Refund', value: 'REFUND' },
 ]
 
-const formatCurrency = (value: string | number) => {
+const formatCurrency = (value: string | number | undefined) => {
     const parsed = typeof value === 'string' ? Number.parseFloat(value) : value
 
     if (Number.isNaN(Number(parsed))) {
@@ -58,8 +58,8 @@ const getTransactionTypeLabel = (type: string) => {
             return 'Order payment'
         case 'PAYOUT':
             return 'Payout'
-        case 'FEE':
-            return 'Fee'
+        case 'REFUND':
+            return 'Refund'
         default:
             return type.replaceAll('_', ' ')
     }
@@ -71,7 +71,7 @@ const getTypePillClass = (type: string) => {
             return 'bg-emerald-100 text-emerald-700'
         case 'PAYOUT':
             return 'bg-amber-100 text-amber-700'
-        case 'FEE':
+        case 'REFUND':
             return 'bg-red-100 text-red-600'
         default:
             return 'bg-gray-100 text-gray-700'
@@ -262,6 +262,7 @@ const FinancialPage = () => {
                                     <TableHead className="text-muted-foreground font-semibold">BUSINESS</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">TYPE</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">DIRECTION</TableHead>
+                                    <TableHead className="text-muted-foreground font-semibold text-right">AMOUNT</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">ORDER STATUS</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">DATE</TableHead>
                                     <TableHead className="text-muted-foreground font-semibold">STATUS</TableHead>
@@ -273,7 +274,7 @@ const FinancialPage = () => {
                                     records.map((tx: TransactionRecord) => (
                                         <TableRow key={tx.id} className="group hover:bg-muted/50 transition-colors">
                                             <TableCell className="sticky left-0 bg-white z-10 group-hover:bg-muted/50 transition-colors after:absolute after:right-0 after:top-0 after:h-full after:w-px after:bg-border">
-                                                <span className="inline-flex rounded-lg border bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600">
+                                                <span className="inline-flex rounded-lg border bg-gray-50 px-3 py-1.5 text-[10px] md:text-xs font-medium text-gray-600">
                                                     {tx.transactionId}
                                                 </span>
                                             </TableCell>
@@ -287,26 +288,37 @@ const FinancialPage = () => {
                                                 </div>
                                             </TableCell>
                                             <TableCell>
-                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${getTypePillClass(tx.type)}`}>
+                                                <span className={`inline-flex items-center gap-2 rounded-full text-[10px] md:text-xs px-3 py-1 font-semibold ${getTypePillClass(tx.type)}`}>
                                                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                     {getTransactionTypeLabel(tx.type)}
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${getDirectionPillClass(tx.direction)}`}>
+                                                <span className={`inline-flex items-center gap-2 rounded-full text-[10px] md:text-xs px-3 py-1 font-semibold ${getDirectionPillClass(tx.direction)}`}>
                                                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                     {tx.direction}
                                                 </span>
                                             </TableCell>
+                                            <TableCell className="text-right font-semibold">
+                                                <span
+                                                    className={`font-medium ${tx.direction?.toUpperCase() === 'CREDIT'
+                                                        ? 'text-emerald-600'
+                                                        : 'text-rose-600'
+                                                        }`}
+                                                >
+                                                    {tx.direction?.toUpperCase() === 'CREDIT' ? '+' : '-'}
+                                                    {formatCurrency(tx?.amount)}
+                                                </span>
+                                            </TableCell>
                                             <TableCell>
-                                                <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold bg-slate-100 text-slate-700">
+                                                <span className="inline-flex items-center gap-2 rounded-full text-[10px] md:text-xs px-3 py-1 font-semibold bg-slate-100 text-slate-700">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                     {tx.order?.status ?? '—'}
                                                 </span>
                                             </TableCell>
                                             <TableCell className="text-muted-foreground font-medium">{formatDate(tx.createdAt)}</TableCell>
                                             <TableCell>
-                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${getStatusPillClass(tx.status)}`}>
+                                                <span className={`inline-flex items-center gap-2 rounded-full text-[10px] md:text-xs px-3 py-1 font-semibold ${getStatusPillClass(tx.status)}`}>
                                                     <span className="h-1.5 w-1.5 rounded-full bg-current" />
                                                     {tx.status}
                                                 </span>

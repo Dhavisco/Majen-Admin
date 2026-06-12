@@ -1,6 +1,6 @@
 import { axiosInstance } from '@/lib/axios'
 
-export type TransactionType = 'ORDER_PAYMENT' | 'PAYOUT' | 'FEE'
+export type TransactionType = 'ORDER_PAYMENT' | 'PAYOUT' | 'REFUND'
 export type TransactionDirection = 'DEBIT' | 'CREDIT'
 export type TransactionStatus = 'SUCCESS' | 'PENDING' | string
 
@@ -12,6 +12,7 @@ export type TransactionRecord = {
   direction: TransactionDirection | string
   status: TransactionStatus
   createdAt: string
+   amount?: string | number | undefined
   business: {
     businessName: string
     user: {
@@ -22,7 +23,6 @@ export type TransactionRecord = {
   order?: {
     status: string
   } | null
-  amount?: string | number
 }
 
 export type TransactionsSummaryParams = {
