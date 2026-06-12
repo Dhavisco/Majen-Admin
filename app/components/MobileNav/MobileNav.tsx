@@ -9,6 +9,7 @@ import {
     FaChartLine, FaMoneyBillWave, FaCog,
     FaUser,
 } from 'react-icons/fa';
+import { useSidebarStore } from '@/stores/sidebarStore';
 
 const navItems = [
     { name: 'Dashboard', icon: <Image src="/mobileIcon.png" width={26} height={26} alt="Dashboard" />, route: '/dashboard' },
@@ -24,6 +25,19 @@ const navItems = [
 export default function MobileNav() {
     const router = useRouter();
     const pathname = usePathname();
+    const { pendingVerifications, pendingProducts } = useSidebarStore();
+
+    const getBadgeCount = (route: string) => {
+        if (route === '/dashboard/designers') {
+            return pendingVerifications;
+        }
+
+        if (route === '/dashboard/products') {
+            return pendingProducts;
+        }
+
+        return 0;
+    };
 
     return (
         <nav
@@ -36,7 +50,8 @@ export default function MobileNav() {
       "
         >
             {navItems.map((item) => {
-                const isActive = pathname === item.route;
+                const isActive = pathname === item.route || pathname.startsWith(`${item.route}/`);
+                const badgeCount = getBadgeCount(item.route);
 
                 return (
                     <button
@@ -48,7 +63,14 @@ export default function MobileNav() {
               ${isActive ? 'text-white' : 'text-gray-300 hover:text-white'}
             `}
                     >
-                        <span className="text-2xl mb-1">{item.icon}</span>
+                        <span className="relative text-2xl mb-1">
+                            {item.icon}
+                            {badgeCount > 0 ? (
+                                <span className="absolute -right-2 -top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                                    {badgeCount}
+                                </span>
+                            ) : null}
+                        </span>
                         {/* Optional: tiny label below icon if you want */}
                         {/* <span className="text-[10px]">{item.name}</span> */}
                     </button>

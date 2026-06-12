@@ -18,39 +18,51 @@ import { GoSidebarCollapse, GoSidebarExpand } from 'react-icons/go';
 import Link from 'next/link';
 
 const Sidebar: React.FC = () => {
-    const { isCollapsed, toggleCollapse } = useSidebarStore();
+    const { isCollapsed, toggleCollapse, pendingVerifications, pendingProducts } = useSidebarStore();
     const router = useRouter();
     const pathname = usePathname();
+
+    const getBadgeCount = (route: string) => {
+        if (route === '/dashboard/designers') {
+            return pendingVerifications;
+        }
+
+        if (route === '/dashboard/products') {
+            return pendingProducts;
+        }
+
+        return 0;
+    };
 
     const menuSections = [
         {
             title: 'Main',
-            items: [{ name: 'Dashboard', icon: <FaHome />, route: '/dashboard', badge: null }],
+            items: [{ name: 'Dashboard', icon: <FaHome />, route: '/dashboard' }],
         },
         {
             title: 'People',
             items: [
-                { name: 'Designers', icon: <FaUser />, route: '/dashboard/designers', badge: 4 },
-                { name: 'Clients', icon: <FaUsers />, route: '/dashboard/clients', badge: null },
+                { name: 'Designers', icon: <FaUser />, route: '/dashboard/designers' },
+                { name: 'Clients', icon: <FaUsers />, route: '/dashboard/clients' },
             ],
         },
         {
             title: 'Commerce',
             items: [
-                { name: 'Products', icon: <FaBoxOpen />, route: '/dashboard/products', badge: 12 },
-                { name: 'Orders', icon: <FaShoppingCart />, route: '/dashboard/orders', badge: null },
+                { name: 'Products', icon: <FaBoxOpen />, route: '/dashboard/products' },
+                { name: 'Orders', icon: <FaShoppingCart />, route: '/dashboard/orders' },
             ],
         },
         {
             title: 'Operations',
             items: [
-                { name: 'Reports', icon: <FaChartLine />, route: '/dashboard/reports', badge: 5 },
-                { name: 'Financials', icon: <FaMoneyBillWave />, route: '/dashboard/financials', badge: null },
+                { name: 'Reports', icon: <FaChartLine />, route: '/dashboard/reports' },
+                { name: 'Financials', icon: <FaMoneyBillWave />, route: '/dashboard/financials' },
             ],
         },
         {
             title: 'System',
-            items: [{ name: 'Settings', icon: <FaCog />, route: '/dashboard/settings', badge: null }],
+            items: [{ name: 'Settings', icon: <FaCog />, route: '/dashboard/settings' }],
         },
     ];
 
@@ -74,7 +86,8 @@ const Sidebar: React.FC = () => {
                                 <h3 className="text-xs font-bold px-4 uppercase text-gray-300">{section.title}</h3>
                             )}
                             {section.items.map((item) => {
-                                const isActive = pathname === item.route;
+                                const isActive = pathname === item.route || pathname.startsWith(`${item.route}/`);
+                                const badgeCount = getBadgeCount(item.route);
                                 return (
                                     <li
                                         key={item.name}
@@ -90,8 +103,10 @@ const Sidebar: React.FC = () => {
                                             {!isCollapsed && (
                                                 <span className="flex justify-between w-full">
                                                     <span className={`${isActive ? 'font-semibold text-white' : ''}`}>{item.name}</span>
-                                                    {item.badge && (
-                                                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{item.badge}</span>
+                                                    {badgeCount > 0 && (
+                                                        <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                                            {badgeCount}
+                                                        </span>
                                                     )}
                                                 </span>
                                             )}

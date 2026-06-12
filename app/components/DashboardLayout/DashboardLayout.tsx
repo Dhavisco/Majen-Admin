@@ -2,23 +2,44 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useSidebarStore } from '@/stores/sidebarStore';
 import { useAuthStore } from '@/stores/authStore';
+import { getDashboardSummary } from '@/lib/api/dashboard';
 import Sidebar from '../Sidebar/Sidebar';
 import Header from '../Header/Header';
 import MobileNav from '../MobileNav/MobileNav';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const { isCollapsed } = useSidebarStore();
+    const setPendingCounts = useSidebarStore((state) => state.setPendingCounts);
     const { hydrated, user } = useAuthStore();
     const router = useRouter();
+
+    const { data: dashboardSummary } = useQuery({
+        queryKey: ['dashboard', 'summary', 'nav-badges'],
+        queryFn: getDashboardSummary,
+        enabled: hydrated && !!user,
+        staleTime: 60_000,
+    });
 
     useEffect(() => {
         if (hydrated && !user) {
             router.replace('/login');
         }
     }, [hydrated, user, router]);
+
+    useEffect(() => {
+        if (!dashboardSummary) {
+            return;
+        }
+
+        setPendingCounts({
+            pendingVerifications: dashboardSummary.pendingVerifications,
+            pendingProducts: dashboardSummary.pendingProducts,
+        });
+    }, [dashboardSummary, setPendingCounts]);
 
     if (!hydrated) {
         return (
