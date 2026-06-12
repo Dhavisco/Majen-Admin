@@ -524,7 +524,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
 
             {activeTab === 'products' && (
                 <div id="tab-panel-products" role="tabpanel" aria-labelledby="tab-products" className="overflow-hidden rounded-2xl border bg-white">
-                    <div className="flex flex-col justify-between gap-2 border-b px-3 py-3 sm:px-4 sm:py-4 sm:flex-row sm:items-center">
+                    <div className="flex flex-row justify-between items-center gap-2 border-b px-3 py-3 sm:px-4 sm:py-4 sm:flex-row sm:items-center">
                         <div>
                             <h3 className="text-base font-semibold">Products ({statusCounts.all || designer.products})</h3>
                             <p className="text-xs sm:text-sm text-muted-foreground">{buildProductCountsString(productsData?.groupProductCountsByStatus)}</p>
@@ -533,7 +533,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                     </div>
 
                     <div className="border-b px-3 sm:px-4">
-                        <div className="flex items-center gap-2 overflow-x-auto">
+                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                             {productStatusTabs.map((status) => {
                                 const isActive = productStatus === status.value
                                 const count =
@@ -738,7 +738,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 </table>
                             </div>
 
-                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                                     Showing {orderRows.length} of {orderMeta?.totalCount ?? 0} orders
                                 </p>
@@ -848,7 +848,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 </table>
                             </div>
 
-                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                                     Showing {financialRows.length} of {transactionMeta?.totalCount ?? 0} transactions
                                 </p>
@@ -912,8 +912,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
             {activeTab === 'reviews' && (
                 <div id="tab-panel-reviews" role="tabpanel" aria-labelledby="tab-reviews" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
-                        <h3 className="font-semibold">Reviews</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground">4.9 average rating</p>
+                        <h3 className="font-semibold">Reviews ({reviewRows.length})</h3>
+                        {/* <p className="text-xs sm:text-sm text-muted-foreground">4.9 average rating</p> */}
                     </div>
 
                     {isReviewLoading ? (
