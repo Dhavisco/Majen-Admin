@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { FaFacebookF, FaInstagram } from 'react-icons/fa'
+import { FaFacebookF, FaInstagram, FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { FaTiktok, FaXTwitter } from 'react-icons/fa6'
 import type { IconType } from 'react-icons'
 import { useQuery } from '@tanstack/react-query'
@@ -25,6 +25,7 @@ import {
     getDesignerTransactions,
     rejectDesignerVerification,
     verifyDesigner,
+    getDesignerReviews,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -160,7 +161,9 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const [orderPage, setOrderPage] = useState(1)
     const orderLimit = 10
     const [transactionPage, setTransactionPage] = useState(1)
+    const [reviewPage, setReviewPage] = useState(1)
     const transactionLimit = 10
+    const reviewLimit = 10
 
     const productStatusTabs = useMemo(
         () => [
@@ -241,6 +244,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         queryFn: () => getDesignerTransactions(designer.id, { page: transactionPage, limit: transactionLimit }),
     })
 
+    const { data: reviewsData, isLoading: isReviewLoading } = useQuery({
+        queryKey: ['designer', 'reviews', designer.id, reviewPage],
+        queryFn: () => getDesignerReviews(designer.id, { page: reviewPage, limit: reviewLimit }),
+    })
+
     const verifyMutation = useMutation({
         mutationFn: () => verifyDesigner(designer.id),
         onSuccess: async () => {
@@ -273,14 +281,47 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         }))
     }, [transactionsData])
 
-    const reviews = useMemo(
-        () => [
-            { id: 1, customer: 'Treasure James', product: 'Amara Braided Dress', rating: 5, text: 'Love this dress!' },
-            { id: 2, customer: 'Aisha Bello', product: 'Amara Braided Dress', rating: 5, text: 'Beautiful craftsmanship' },
-            { id: 3, customer: 'Mary Smith', product: 'Evening Gown', rating: 4, text: 'Great quality' },
-        ],
-        []
-    )
+
+    const reviewMeta = reviewsData?.meta
+    const reviewPageCount = reviewMeta?.pageCount ?? 1
+    const canPreviousReviews = reviewPage > 1
+    const canNextReviews = reviewPage < reviewPageCount
+
+    const reviewRows = useMemo(() => {
+        if (!reviewsData) return [];
+        return reviewsData.records.map((review) => ({
+            id: `review-${review.reviewer.firstName}-${review.reviewer.lastName}`,
+            reviewer: `${review.reviewer.firstName} ${review.reviewer.lastName}`,
+            product: review.product.title,
+            rating: review.rating,
+            review: review.description,
+            // type: mapTransactionDirection(review.direction),
+            // amount: `${review.direction === 'CREDIT' ? '+' : '-'}₦${parseInt(review.amount, 10).toLocaleString()}`,
+        }))
+    }, [reviewsData])
+
+    const renderStars = (rating: number) => {
+        const stars = [];
+        for (let i = 1; i <= 5; i++) {
+            if (rating >= i) {
+                stars.push(<FaStar key={i} className="text-amber-500 inline" />);
+            } else if (rating >= i - 0.5) {
+                stars.push(<FaStarHalfAlt key={i} className="text-amber-500 inline" />);
+            } else {
+                stars.push(<FaRegStar key={i} className="text-amber-500 inline" />);
+            }
+        }
+        return stars;
+    };
+
+    // const reviews = useMemo(
+    //     () => [
+    //         { id: 1, customer: 'Treasure James', product: 'Amara Braided Dress', rating: 5, text: 'Love this dress!' },
+    //         { id: 2, customer: 'Aisha Bello', product: 'Amara Braided Dress', rating: 5, text: 'Beautiful craftsmanship' },
+    //         { id: 3, customer: 'Mary Smith', product: 'Evening Gown', rating: 4, text: 'Great quality' },
+    //     ],
+    //     []
+    // )
 
     const accountActions = useMemo<AccountAction[]>(() => {
         switch (designer.status) {
@@ -871,43 +912,110 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
             {activeTab === 'reviews' && (
                 <div id="tab-panel-reviews" role="tabpanel" aria-labelledby="tab-reviews" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
-                        <h3 className="font-semibold">Reviews (150)</h3>
+                        <h3 className="font-semibold">Reviews</h3>
                         <p className="text-xs sm:text-sm text-muted-foreground">4.9 average rating</p>
                     </div>
 
-                    <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
-                        <table className="w-full min-w-190 text-left">
-                            <thead>
-                                <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
-                                    <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Customer</th>
-                                    <th className="px-4 py-3">Product</th>
-                                    <th className="px-4 py-3">Rating</th>
-                                    <th className="px-4 py-3">Review</th>
-                                    <th className="px-4 py-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {reviews.map((review) => (
-                                    <tr key={review.id} className="group border-b last:border-b-0 hover:bg-muted/40 transition-colors text-xs sm:text-sm">
-                                        <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 font-medium group-hover:bg-muted/40 transition-colors">{review.customer}</td>
-                                        <td className="px-4 py-4 text-muted-foreground">{review.product}</td>
-                                        <td className="px-4 py-4 text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</td>
-                                        <td className="px-4 py-4 italic text-slate-700">&quot;{review.text}&quot;</td>
-                                        <td className="px-4 py-4">
-                                            <ModerationActionButton
-                                                action="remove-review"
-                                                subject={`review #${review.id}`}
-                                                buttonLabel="Remove"
-                                                buttonVariant="outline"
-                                                buttonSize="sm"
-                                                buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
+                    {isReviewLoading ? (
+                        <OrdersSkeleton />
+                    ) : (
+                        <>
+                            <div className="overflow-x-auto scrollbar-thin w-full mt-4 max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
+                                <table className="w-full min-w-190 text-left">
+                                    <thead>
+                                        <tr className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                                            <th className="sticky left-0 z-10 border-r bg-white px-4 py-3">Customer</th>
+                                            <th className="px-4 py-3">Product</th>
+                                            <th className="px-4 py-3">Rating</th>
+                                            <th className="px-4 py-3">Review</th>
+                                            <th className="px-4 py-3">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reviewRows.map((review) => (
+                                            <tr key={review.id} className="group border-b last:border-b-0 hover:bg-muted/40 items-center transition-colors text-xs sm:text-sm">
+                                                <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 font-medium group-hover:bg-muted/40 transition-colors">{review.reviewer}</td>
+                                                <td className="px-4 py-4 text-muted-foreground">{review.product}</td>
+                                                {/* <td className="px-4 py-4 text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</td> */}
+                                                <td className="px-4 pt-5.5 text-amber-500 flex items-center">
+                                                    {renderStars(review.rating)}
+                                                    {/* <span className="ml-2 text-xs text-slate-600">{review.rating}/5</span> */}
+                                                </td>
+                                                <td className="px-4 py-4 italic text-slate-700">&quot;{review.review}&quot;</td>
+                                                <td className="px-4 py-4">
+                                                    <ModerationActionButton
+                                                        action="remove-review"
+                                                        subject={`review #${review.id}`}
+                                                        buttonLabel="Remove"
+                                                        buttonVariant="outline"
+                                                        buttonSize="sm"
+                                                        buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex flex-col gap-3 border-t px-3 py-4 sm:px-4 sm:flex-row sm:items-center sm:justify-between">
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                                    Showing {reviewRows.length} of {reviewMeta?.totalCount ?? 0} reviews
+                                </p>
+
+                                <Pagination className="mx-0 w-auto justify-start sm:justify-end">
+                                    <PaginationContent>
+                                        <PaginationItem>
+                                            <PaginationPrevious
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    if (canPreviousReviews) {
+                                                        setReviewPage((prev) => prev - 1)
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] text-xs border-[0.5px] ${!canPreviousReviews ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!canPreviousReviews}
                                             />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                        </PaginationItem>
+
+                                        {Array.from({ length: reviewPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={pageNum === reviewPage}
+                                                    onClick={(e) => {
+                                                        e.preventDefault()
+                                                        setReviewPage(pageNum)
+                                                    }}
+                                                    className={`${pageNum === reviewPage
+                                                        ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]'
+                                                        : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'
+                                                        } text-xs cursor-pointer`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
+
+                                        <PaginationItem>
+                                            <PaginationNext
+                                                href="#"
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    if (canNextReviews) {
+                                                        setReviewPage((prev) => prev + 1)
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] text-xs ${!canNextReviews ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!canNextReviews}
+                                            />
+                                        </PaginationItem>
+                                    </PaginationContent>
+                                </Pagination>
+                            </div>
+                        </>
+                    )}
                 </div>
             )}
         </section>

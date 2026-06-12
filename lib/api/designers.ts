@@ -318,3 +318,57 @@ export async function getDesignerTransactions(
 
   return data.data;
 }
+
+
+export interface DesignerReview {
+  reviewer: {
+    firstName: string;
+    lastName: string;
+  };
+ product: {
+    title: string;
+    description: string;
+  };
+  rating: number;
+ description: string;
+  createdAt: string;
+  };
+  
+export interface GetDesignerReviewsParams {
+  page?: number;
+  limit?: number;
+}
+
+interface DesignerReviewsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    meta: {
+      totalCount: number;
+      // page: number;
+      // perPage: number;
+      pageCount: number;
+    };
+    records: DesignerReview[];
+  };
+}
+
+export async function getDesignerReviews(
+  designerId: number,
+  params: GetDesignerReviewsParams = {}
+): Promise<DesignerReviewsResponse["data"]> {
+  const { page = 1, limit = 10 } = params;
+
+  const { data } = await axiosInstance.get<DesignerReviewsResponse>(
+    `/admin/businesses/${designerId}/reviews`,
+    {
+      params: {
+        pagination: true,
+        page,
+        limit,
+      },
+    }
+  );
+
+  return data.data;
+}
