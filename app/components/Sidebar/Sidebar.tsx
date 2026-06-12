@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useSidebarStore } from '@/stores/sidebarStore';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import {
     FaHome,
@@ -19,7 +19,7 @@ import Link from 'next/link';
 
 const Sidebar: React.FC = () => {
     const { isCollapsed, toggleCollapse, pendingVerifications, pendingProducts } = useSidebarStore();
-    const router = useRouter();
+    // const router = useRouter();
     const pathname = usePathname();
 
     const getBadgeCount = (route: string) => {
@@ -32,6 +32,18 @@ const Sidebar: React.FC = () => {
         }
 
         return 0;
+    };
+
+    // const pathname = usePathname();
+
+    const isActive = (route: string) => {
+        if (route === '/dashboard') {
+            // Dashboard should only be active on exact /dashboard
+            return pathname === '/dashboard';
+        }
+
+        // For all other routes, exact match or sub-routes
+        return pathname === route || pathname.startsWith(`${route}/`);
     };
 
     const menuSections = [
@@ -66,6 +78,38 @@ const Sidebar: React.FC = () => {
         },
     ];
 
+    // const menuSections = [
+    //     {
+    //         title: 'Main',
+    //         items: [{ name: 'Dashboard', icon: <FaHome />, route: '/dashboard' }],
+    //     },
+    //     {
+    //         title: 'People',
+    //         items: [
+    //             { name: 'Designers', icon: <FaUser />, route: '/dashboard/designers' },
+    //             { name: 'Clients', icon: <FaUsers />, route: '/dashboard/clients' },
+    //         ],
+    //     },
+    //     {
+    //         title: 'Commerce',
+    //         items: [
+    //             { name: 'Products', icon: <FaBoxOpen />, route: '/dashboard/products' },
+    //             { name: 'Orders', icon: <FaShoppingCart />, route: '/dashboard/orders' },
+    //         ],
+    //     },
+    //     {
+    //         title: 'Operations',
+    //         items: [
+    //             { name: 'Reports', icon: <FaChartLine />, route: '/dashboard/reports' },
+    //             { name: 'Financials', icon: <FaMoneyBillWave />, route: '/dashboard/financials' },
+    //         ],
+    //     },
+    //     {
+    //         title: 'System',
+    //         items: [{ name: 'Settings', icon: <FaCog />, route: '/dashboard/settings' }],
+    //     },
+    // ];
+
     return (
         <div
             className={`bg-[#1A0089] text-white h-screen flex flex-col justify-between ${isCollapsed ? 'w-20' : 'w-54'
@@ -86,23 +130,25 @@ const Sidebar: React.FC = () => {
                                 <h3 className="text-xs font-bold px-4 uppercase text-gray-300">{section.title}</h3>
                             )}
                             {section.items.map((item) => {
-                                const isActive = pathname === item.route || pathname.startsWith(`${item.route}/`);
+                                // const isActive = pathname === item.route || pathname.startsWith(`${item.route}/`);
+                                // const badgeCount = getBadgeCount(item.route);
+                                const active = isActive(item.route);   // ← Changed here
                                 const badgeCount = getBadgeCount(item.route);
                                 return (
-                                    <li
+                                    <Link href={item.route}
                                         key={item.name}
                                         className={`flex items-center px-3 my-0.5 cursor-pointer 
-                    ${isActive ? 'border-l-3 border-white' : ''}
+                    ${active ? 'border-l-3 border-white' : ''}
                   `}
-                                        onClick={() => router.push(item.route)}
+                                    // onClick={() => router.push(item.route)}
                                     >
-                                        <div className={`flex w-full items-center ${isActive ? 'bg-[#ffffff24] rounded-sm p-2' : 'hover:bg-[#ffffff18] rounded-sm p-2'}`}>
-                                            <span className={`${isCollapsed ? 'mx-auto' : 'mr-4'} ${isActive ? 'text-white' : ''}`}>
+                                        <div className={`flex w-full items-center ${active ? 'bg-[#ffffff24] rounded-sm p-2' : 'hover:bg-[#ffffff18] rounded-sm p-2'}`}>
+                                            <span className={`${isCollapsed ? 'mx-auto' : 'mr-4'} ${active ? 'text-white' : ''}`}>
                                                 {item.icon}
                                             </span>
                                             {!isCollapsed && (
                                                 <span className="flex justify-between w-full">
-                                                    <span className={`${isActive ? 'font-semibold text-white' : ''}`}>{item.name}</span>
+                                                    <span className={`${active ? 'font-semibold text-white' : ''}`}>{item.name}</span>
                                                     {badgeCount > 0 && (
                                                         <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                                                             {badgeCount}
@@ -114,7 +160,7 @@ const Sidebar: React.FC = () => {
                                         </div>
 
 
-                                    </li>
+                                    </Link>
                                 );
                             })}
                         </div>
