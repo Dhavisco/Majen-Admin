@@ -26,6 +26,7 @@ import {
     rejectDesignerVerification,
     verifyDesigner,
     getDesignerReviews,
+    addDesignerNote,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -155,6 +156,7 @@ const OrdersSkeleton = () => (
 export default function DesignerProfileTabs({ designer }: DesignerProfileTabsProps) {
     const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState<TabId>('overview')
+    const [noteDraft, setNoteDraft] = useState('')
     const [productStatus, setProductStatus] = useState<'ACTIVE' | 'PENDING' | 'REJECTED' | undefined>(undefined)
     const [productPage, setProductPage] = useState(1)
     const productLimit = 10
@@ -261,6 +263,14 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         mutationFn: (reason: string) => rejectDesignerVerification(designer.id, reason),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
+    const addNoteMutation = useMutation({
+        mutationFn: (note: string) => addDesignerNote(designer.id, note),
+        onSuccess: async () => {
+            setNoteDraft('')
             await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
         },
     })
@@ -439,10 +449,26 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                     </div>
                                 ))}
                                 <textarea
+                                    value={noteDraft}
+                                    onChange={(event) => setNoteDraft(event.target.value)}
                                     placeholder="Add a note visible to all admins..."
                                     className="h-24 w-full rounded-lg border p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-[#1A0089]/30"
                                 />
-                                <Button className="w-full bg-[#1A0089] hover:bg-[#14006b]">Save note</Button>
+                                <Button
+                                    className="w-full bg-[#1A0089] hover:bg-[#14006b] cursor-pointer"
+                                    onClick={() => {
+                                        const trimmedNote = noteDraft.trim()
+
+                                        if (!trimmedNote || addNoteMutation.isPending) {
+                                            return
+                                        }
+
+                                        addNoteMutation.mutate(trimmedNote)
+                                    }}
+                                    disabled={!noteDraft.trim() || addNoteMutation.isPending}
+                                >
+                                    {addNoteMutation.isPending ? 'Saving...' : 'Save note'}
+                                </Button>
                             </div>
                         </div>
                     </section>

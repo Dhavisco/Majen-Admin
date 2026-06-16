@@ -164,6 +164,28 @@ export async function rejectDesignerVerification(id: number, reason: string): Pr
   });
 }
 
+interface DesignerNoteResponse {
+  success: boolean;
+  message: string;
+  data: {
+    note: {
+      id: number;
+      identifier: string;
+      content: string;
+      createdById: number;
+      designerId: number;
+      createdAt: string;
+      updatedAt: string;
+    };
+  };
+}
+
+export async function addDesignerNote(id: number, note: string): Promise<void> {
+  await axiosInstance.post<DesignerNoteResponse>(`/admin/businesses/${id}/add-note`, {
+    note,
+  });
+}
+
 export interface DesignerProduct {
   id: number;
   title: string;
