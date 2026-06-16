@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { logoutCurrentUser } from '@/lib/api/auth';
+import { getAdminProfileDetails, getAdminSettings, updateAdminSettings, type PayoutSchedule } from '@/lib/api/settings';
 import { useAuthStore } from '@/stores/authStore';
 
 type ToggleProps = {
@@ -56,11 +59,275 @@ const SettingToggleRow: React.FC<ToggleProps> = ({ checked, onChange, label, sub
     );
 };
 
+function formatLastLogin(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return 'Unknown';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(date);
+}
+
+type CommerceSettingsCardProps = {
+    settings?: Awaited<ReturnType<typeof getAdminSettings>>;
+    isLoading: boolean;
+};
+
+function CommerceSettingsCard({ settings, isLoading }: CommerceSettingsCardProps) {
+    const queryClient = useQueryClient();
+    const [isEditing, setIsEditing] = useState(false);
+    const [autoApproveProducts, setAutoApproveProducts] = useState(settings?.autoApproveProducts ?? false);
+    const [payoutSchedule, setPayoutSchedule] = useState<PayoutSchedule>(settings?.payoutSchedule ?? 'MONTHLY');
+    const [platformFeePercentage, setPlatformFeePercentage] = useState(String(settings?.platformFeePercentage ?? 10));
+
+    const formatPayoutSchedule = (value?: PayoutSchedule) => {
+        if (value === 'DAILY') {
+            return 'Daily';
+        }
+
+        return 'Monthly';
+    };
+
+    const openEditor = () => {
+        if (!settings) {
+            return;
+        }
+
+        setPlatformFeePercentage(String(settings.platformFeePercentage));
+        setPayoutSchedule(settings.payoutSchedule);
+        setAutoApproveProducts(settings.autoApproveProducts);
+        setIsEditing(true);
+    };
+
+    const closeEditor = () => {
+        if (settings) {
+            setPlatformFeePercentage(String(settings.platformFeePercentage));
+            setPayoutSchedule(settings.payoutSchedule);
+            setAutoApproveProducts(settings.autoApproveProducts);
+        }
+
+        setIsEditing(false);
+    };
+
+    const updateSettingsMutation = useMutation({
+        mutationFn: updateAdminSettings,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['admin', 'settings'] });
+            setIsEditing(false);
+        },
+    });
+
+    const isDirty =
+        !!settings &&
+        (autoApproveProducts !== settings.autoApproveProducts ||
+            payoutSchedule !== settings.payoutSchedule ||
+            platformFeePercentage !== String(settings.platformFeePercentage));
+
+    const handleSaveSettings = () => {
+        const fee = Number(platformFeePercentage);
+
+        if (Number.isNaN(fee)) {
+            return;
+        }
+
+        updateSettingsMutation.mutate({
+            platformFeePercentage: fee,
+            payoutSchedule,
+            autoApproveProducts,
+        });
+    };
+
+    return (
+        <div className="bg-white rounded-2xl border overflow-hidden">
+            <div className="px-3 py-2 border-b flex items-center justify-between gap-3">
+                <div>
+                    <h3 className="text-base md:text-lg font-bold tracking-tight">Commerce settings</h3>
+                    {/* <p className="text-xs md:text-sm text-muted-foreground mt-0.5">Update fees and payout behavior for the platform.</p> */}
+                </div>
+                {isEditing ? (
+                    <span className="text-xs font-medium text-amber-600">Editing</span>
+                ) : (
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={openEditor}
+                        disabled={isLoading || !settings}
+                        className="border-[#1A0089]/20 text-[#1A0089] hover:bg-[#F1EFFF]"
+                    >
+                        Edit
+                    </Button>
+                )}
+            </div>
+
+            <div className="px-4 py-4 space-y-5">
+                {isLoading ? (
+                    <div className="space-y-4 animate-pulse">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="h-20 rounded-xl bg-gray-100" />
+                            <div className="h-20 rounded-xl bg-gray-100" />
+                        </div>
+                        <div className="h-16 rounded-xl bg-gray-100" />
+                        <div className="h-16 rounded-xl bg-gray-100" />
+                    </div>
+                ) : !isEditing ? (
+                    <div className="space-y-4">
+                        <div className="rounded-xl border bg-[#fafaff] p-3">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Platform fee percentage</p>
+                                     <div className=" text-xs font-semibold text-[#1A0089]">
+                                    Applied to every transaction
+                                </div>
+                                   
+                                </div>
+                                <p className="mt-1 text-2xl font-bold text-[#0f172a]">{settings?.platformFeePercentage ?? 0}%</p>
+                            </div>
+                        </div>
+
+                        <div className="rounded-xl border bg-[#fafaff] p-3">
+                            <div className="flex items-center justify-between gap-4">
+                                <div>
+                                    <p className="text-xs uppercase tracking-wider text-muted-foreground">Payout schedule</p>
+                                     <div className="text-xs font-semibold text-gray-700">
+                                    When funds are disbursed
+                                </div>
+                                   
+                                </div>
+                                <p className="mt-1 text-lg font-semibold text-[#0f172a]">{formatPayoutSchedule(settings?.payoutSchedule)}</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-xl border bg-[#fafaff] p-3">
+                            <div>
+                                <p className="text-sm font-semibold text-[#0f172a]">Auto-approve products</p>
+                                <p className="text-xs text-muted-foreground">Skip review for verified sellers</p>
+                            </div>
+                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${settings?.autoApproveProducts ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
+                                {settings?.autoApproveProducts ? 'Enabled' : 'Disabled'}
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        <div className="space-y-4">
+                            <div className="flex flex-row justify-between">
+                                 <div>
+                                <label className="text-xs md:text-sm font-semibold tracking-wider text-muted-foreground uppercase" htmlFor="platform-fee">
+                                    Platform fee percentage
+                                </label>
+                                <p className="mt-1 text-xs md:text-sm text-muted-foreground">Applied to every transaction</p>
+                            </div>
+
+                              <div className="mt-1 flex items-center gap-2">
+                                    <Input
+                                        id="platform-fee"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value={platformFeePercentage}
+                                        // onChange={(event) => setPlatformFeePercentage(event.target.value)}
+                                         onChange={(event) => {
+        const value = event.target.value
+
+        // Allow empty input while editing
+        if (value === '') {
+            setPlatformFeePercentage('')
+            return
+        }
+
+        const number = Number(value)
+
+        if (number >= 0 && number <= 100) {
+            setPlatformFeePercentage(value)
+        }
+    }}
+                                        className="h-10 text-sm"
+                                    />
+                                    <span className="text-sm font-semibold text-muted-foreground">%</span>
+                                </div>
+                            </div>
+                           
+
+
+                            <div className="flex flex-row justify-between">
+                                <div>
+                                      <label className="text-xs md:text-sm font-semibold tracking-wider text-muted-foreground uppercase" htmlFor="payout-schedule">
+                                    Payout schedule
+                                </label>
+                                <p className="mt-1 text-xs md:text-sm text-muted-foreground">When funds are disbursed</p>
+                                </div>
+                              <div>
+                                <select
+                                    id="payout-schedule"
+                                    value={payoutSchedule}
+                                    onChange={(event) => setPayoutSchedule(event.target.value as PayoutSchedule)}
+                                    className="mt-1 h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                                >
+                                    <option value="MONTHLY">Monthly</option>
+                                    <option value="DAILY">Daily</option>
+                                </select>
+                              </div>
+                            </div>
+                            <SettingToggleRow
+                                checked={autoApproveProducts}
+                                onChange={() => setAutoApproveProducts((prev) => !prev)}
+                                label="Auto-approve products"
+                                subLabel="Skip review for verified sellers"
+                            />
+
+                            <div className="flex flex-col gap-2 rounded-xl border bg-[#f8f8ff] p-3 md:flex-row md:items-center md:justify-between">
+                                <div>
+                                    <p className="text-sm font-semibold text-[#0f172a]">Save changes</p>
+                                    <p className="text-xs text-muted-foreground">Your updates will be applied immediately across the dashboard.</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        onClick={closeEditor}
+                                        className="border-gray-200 text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        onClick={handleSaveSettings}
+                                        disabled={!isDirty || updateSettingsMutation.isPending}
+                                        className="bg-[#1A0089] hover:bg-[#14006b] text-white"
+                                    >
+                                        {updateSettingsMutation.isPending ? 'Saving...' : 'Save settings'}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+}
+
 const SettingsPage: React.FC = () => {
-    const [autoApproveProducts, setAutoApproveProducts] = useState(false);
     const [newApplications, setNewApplications] = useState(true);
     const [flaggedContent, setFlaggedContent] = useState(true);
     const [weeklyDigest, setWeeklyDigest] = useState(false);
+    const profileQuery = useQuery({
+        queryKey: ['admin', 'profile'],
+        queryFn: getAdminProfileDetails,
+    });
+
+    const settingsQuery = useQuery({
+        queryKey: ['admin', 'settings'],
+        queryFn: getAdminSettings,
+    });
+    const adminProfile = profileQuery.data;
+    const isLoading = profileQuery.isLoading || settingsQuery.isLoading;
 
     return (
         <DashboardLayout>
@@ -76,76 +343,60 @@ const SettingsPage: React.FC = () => {
                     <div className="bg-white rounded-2xl border overflow-hidden">
                         <div className="px-3 py-2 border-b flex items-center justify-between">
                             <h3 className="text-base md:text-lg font-bold tracking-tight">Admin profile</h3>
-                            <div className="flex items-center gap-3">
-                                <button className="text-[#1A0089] hover:text-[#14006b] text-sm md:text-base font-medium">Edit</button>
-                            </div>
+                            {/* <div className="flex items-center gap-3">
+                                <span className="text-xs font-medium text-muted-foreground">Read only</span>
+                            </div> */}
                         </div>
 
                         <div className="px-4 py-4 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+                            {isLoading ? (
+                                Array.from({ length: 4 }).map((_, index) => (
+                                    <div key={`profile-skeleton-${index}`} className="space-y-2 animate-pulse">
+                                        <div className="h-3 w-20 rounded bg-gray-200" />
+                                        <div className="h-4 w-32 rounded bg-gray-200" />
+                                    </div>
+                                ))
+                            ) : (
+                                <>
                             <div>
                                 <p className="text-xs md:text-sm font-semibold tracking-wider text-muted-foreground uppercase">
                                     Full Name
                                 </p>
-                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">Super Admin</p>
+                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">
+                                    {adminProfile ? `${adminProfile.firstName} ${adminProfile.lastName}` : '—'}
+                                </p>
                             </div>
 
                             <div>
                                 <p className="text-xs md:text-sm font-semibold tracking-wider text-muted-foreground uppercase">
                                     Role
                                 </p>
-                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">Super Admin</p>
+                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">{adminProfile?.role.name ?? '—'}</p>
                             </div>
 
                             <div>
                                 <p className="text-xs md:text-sm font-semibold tracking-wider text-muted-foreground uppercase">
                                     Email
                                 </p>
-                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">admin@majen.com</p>
+                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">{adminProfile?.email ?? '—'}</p>
                             </div>
 
                             <div>
                                 <p className="text-xs md:text-sm font-semibold tracking-wider text-muted-foreground uppercase">
                                     Last Login
                                 </p>
-                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">Today, 9:04 AM</p>
+                                <p className="mt-1 text-sm md:text-base font-medium text-[#0f172a]">{adminProfile ? formatLastLogin(adminProfile.lastLogin) : '—'}</p>
                             </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
-                    <div className="bg-white rounded-2xl border overflow-hidden">
-                        <div className="px-3 py-2 border-b">
-                            <h3 className="text-base md:text-lg font-bold tracking-tight">Commerce settings</h3>
-                        </div>
-
-                        <div className="px-4 divide-y">
-                            <div className="flex items-center justify-between gap-2 py-2">
-                                <div>
-                                    <p className="text-sm md:text-base font-medium text-[#0f172a]">Platform fee</p>
-                                    <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                                        Applied to every transaction
-                                    </p>
-                                </div>
-                                <p className="text-[#1A0089] text-sm md:text-base font-bold">10%</p>
-                            </div>
-
-                            <div className="flex items-center justify-between gap-2 py-2">
-                                <div>
-                                    <p className="text-sm md:text-base font-medium text-[#0f172a]">Payout schedule</p>
-                                    <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
-                                        When funds are disbursed
-                                    </p>
-                                </div>
-                                <p className="text-sm md:text-base font-semibold text-[#0f172a]">Monthly (1st)</p>
-                            </div>
-
-                            <SettingToggleRow
-                                checked={autoApproveProducts}
-                                onChange={() => setAutoApproveProducts((prev) => !prev)}
-                                label="Auto-approve products"
-                                subLabel="Skip review for verified sellers"
-                            />
-                        </div>
-                    </div>
+                    <CommerceSettingsCard
+                        key={settingsQuery.data ? `${settingsQuery.data.platformFeePercentage}-${settingsQuery.data.payoutSchedule}-${String(settingsQuery.data.autoApproveProducts)}` : 'loading'}
+                        settings={settingsQuery.data}
+                        isLoading={settingsQuery.isLoading}
+                    />
 
                     <div className="bg-white rounded-2xl border overflow-hidden">
                         <div className="px-4 py-2 border-b">
