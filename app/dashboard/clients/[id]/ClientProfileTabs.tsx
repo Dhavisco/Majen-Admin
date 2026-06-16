@@ -2,11 +2,12 @@
 
 import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { Button } from '@/components/ui/button'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
-import { getClientOrders, type ClientDetail, type ClientOrderRecord } from '@/lib/api/clients'
+import { addClientNote, getClientOrders, type ClientDetail, type ClientOrderRecord } from '@/lib/api/clients'
 
 type ClientProfileTabsProps = {
     client: ClientDetail
@@ -116,8 +117,10 @@ const OrderStatusPill = ({ status }: { status: string }) => (
 )
 
 export default function ClientProfileTabs({ client, clientId }: ClientProfileTabsProps) {
+    const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState<TabId>('overview')
     const [currentPage, setCurrentPage] = useState(1)
+    const [noteDraft, setNoteDraft] = useState('')
 
     const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
         queryKey: ['clients', 'orders', clientId, currentPage],
@@ -132,6 +135,14 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
 
     const fullName = `${client.firstName} ${client.lastName}`.trim() || '—'
     const notes = client.notesReceived ?? []
+
+    const addNoteMutation = useMutation({
+        mutationFn: (note: string) => addClientNote(clientId, note),
+        onSuccess: async () => {
+            setNoteDraft('')
+            await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
+        },
+    })
 
     const accountActions = useMemo<AccountAction[]>(() => {
         switch (client.status) {
@@ -233,6 +244,38 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                                         </div>
                                     ))
                                 )}
+
+                                <div className="rounded-xl border bg-[#fafaff] p-3 sm:p-4 space-y-3">
+                                    <div>
+                                        <p className="text-sm font-semibold text-[#0f172a]">Add note</p>
+                                        <p className="text-xs text-muted-foreground">Save an internal note and refresh the client profile instantly.</p>
+                                    </div>
+
+                                    <textarea
+                                        value={noteDraft}
+                                        onChange={(event) => setNoteDraft(event.target.value)}
+                                        placeholder="Type a note about this client..."
+                                        className="min-h-24 w-full rounded-lg border border-input bg-white p-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                                    />
+
+                                    <div className="flex justify-end">
+                                        <Button
+                                            onClick={() => {
+                                                const trimmedNote = noteDraft.trim()
+
+                                                if (!trimmedNote || addNoteMutation.isPending) {
+                                                    return
+                                                }
+
+                                                addNoteMutation.mutate(trimmedNote)
+                                            }}
+                                            disabled={!noteDraft.trim() || addNoteMutation.isPending}
+                                            className="bg-[#1A0089] hover:bg-[#14006b] text-white cursor-pointer"
+                                        >
+                                            {addNoteMutation.isPending ? 'Saving...' : 'Save note'}
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </section>

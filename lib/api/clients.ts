@@ -158,3 +158,25 @@ export async function getClientOrders(clientId: number, params: { page?: number;
 
   return data.data
 }
+
+interface ClientNoteResponse {
+  success: boolean
+  message: string
+  data: {
+    note: {
+      id: number
+      identifier: string
+      content: string
+      createdById: number
+      userId: number
+      createdAt: string
+      updatedAt: string
+    }
+  }
+}
+
+export async function addClientNote(clientId: number, note: string): Promise<void> {
+  await axiosInstance.post<ClientNoteResponse>(`/admin/user/${clientId}/add-note`, {
+    note,
+  })
+}
