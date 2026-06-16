@@ -248,7 +248,7 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                                 <div className="rounded-xl border bg-[#fafaff] p-3 sm:p-4 space-y-3">
                                     <div>
                                         <p className="text-sm font-semibold text-[#0f172a]">Add note</p>
-                                        <p className="text-xs text-muted-foreground">Save an internal note and refresh the client profile instantly.</p>
+                                        {/* <p className="text-xs text-muted-foreground">Save an internal note and refresh the client profile instantly.</p> */}
                                     </div>
 
                                     <textarea
