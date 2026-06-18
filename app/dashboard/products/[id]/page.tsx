@@ -414,14 +414,17 @@ export default function ProductProfilePage() {
                                         <button
                                             type="button"
                                             onClick={() => setSelectedPhotoIndex(0)}
-                                            className="block h-44 w-full overflow-hidden rounded-lg bg-[#DAD3F0]"
+                                            className="block h-74 sm:h-150 lg:h-64 w-full overflow-hidden rounded-lg bg-[#DAD3F0]"
                                         >
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <div className="relative overflow-hidden rounded-xl bg-[#DAD3F0] aspect-3/4">
+                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={selectedPhoto}
                                                 alt={product.title}
-                                                className="h-full w-full object-cover"
-                                            />
+                                                className="absolute inset-0 h-full w-full object-contain"
+                                            />  
+                                            </div>
+                                         
                                         </button>
                                     ) : (
                                         <div className="h-44 rounded-lg bg-[#DAD3F0]" />
@@ -433,14 +436,14 @@ export default function ProductProfilePage() {
                                                 key={photo}
                                                 type="button"
                                                 onClick={() => setSelectedPhotoIndex(index)}
-                                                className={`overflow-hidden rounded-md border transition-all ${selectedPhotoIndex === index ? 'border-[#1A0089] ring-2 ring-[#1A0089]/20' : 'border-transparent'}`}
+                                                className={`overflow-hidden rounded-md border relative aspect-3/4 transition-all ${selectedPhotoIndex === index ? 'border-[#1A0089] ring-2 ring-[#1A0089]/20' : 'border-transparent'}`}
                                                 aria-label={`View product image ${index + 1}`}
                                             >
                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                                 <img
                                                     src={photo}
                                                     alt={`${product.title} preview ${index + 1}`}
-                                                    className="h-12 w-full object-cover"
+                                                    className="absolute inset-0 h-full w-full object-cover"
                                                 />
                                             </button>
                                         )) : (

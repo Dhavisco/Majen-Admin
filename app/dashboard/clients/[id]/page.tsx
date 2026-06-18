@@ -121,8 +121,15 @@ export default function ClientProfilePage() {
                                 <Image
                                     src={client.image}
                                     alt={fullName}
+                                    width={56}
+                                    height={56}
                                     className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full object-cover ring-2 ring-white/30"
                                 />
+//                                 <img
+//   src={client.image}
+//   alt={fullName}
+//   className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full object-cover ring-2 ring-white/30"
+// />
                             ) : (
                                 <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full bg-white/15 ring-2 ring-white/30 flex items-center justify-center text-lg sm:text-xl font-semibold">
                                     {getInitials(client.firstName, client.lastName)}
