@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { FaTiktok, FaXTwitter } from 'react-icons/fa6'
+import { AiOutlineArrowUp, AiOutlineArrowDown } from 'react-icons/ai'
 import type { IconType } from 'react-icons'
 import { useQuery } from '@tanstack/react-query'
 
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/pagination'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ModerationActionButton, { type ModerationActionType } from '../../../components/ModerationAction/ModerationActionButton'
-import type { Designer } from '@/app/dashboard/designers/data'
+// import type { Designer } from '@/app/dashboard/designers/data'
 import {
     getDesignerProducts,
     getDesignerOrders,
@@ -268,7 +269,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     })
 
     const addNoteMutation = useMutation({
-        mutationFn: (note: string) => addDesignerNote(designer.id, note),
+        mutationFn: (note: string) => addDesignerNote(designer.userId ?? designer.id, note),
         onSuccess: async () => {
             setNoteDraft('')
             await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
@@ -383,7 +384,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 aria-controls={`tab-panel-${tab.id}`}
                                 id={`tab-${tab.id}`}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`whitespace-nowrap rounded-lg px-2 py-2 text-xs sm:px-4 sm:text-sm font-semibold transition-colors ${isActive ? 'bg-[#F1EFFF] text-[#1A0089]' : 'text-[#97A0AF] hover:text-[#1A0089]'
+                                className={`whitespace-nowrap rounded-lg px-2 py-2 cursor-pointer text-xs sm:px-4 sm:text-sm font-semibold transition-colors ${isActive ? 'bg-[#F1EFFF] text-[#1A0089]' : 'text-[#97A0AF] hover:text-[#1A0089]'
                                     }`}
                             >
                                 {tab.label}
@@ -480,19 +481,24 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('financials')}
-                                    className="text-xs sm:text-sm font-semibold text-[#1A0089] hover:underline"
+                                    className="text-xs sm:text-sm font-semibold text-[#1A0089] cursor-pointer hover:underline"
                                 >
                                     History →
                                 </button>
                             </div>
                             <div className="border-b p-3 sm:p-4">
                                 <p className="text-sm text-muted-foreground">Current balance</p>
-                                <p className="mt-1 text-3xl sm:text-4xl font-bold text-[#1A0089]">{designer.balance}</p>
+                                <p className="mt-1 text-3xl sm:text-4xl font-bold text-[#1A0089]">{typeof designer.balance === 'string' ? designer.balance : designer.balance?.totalBalanceFormatted}</p>
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
                                 {designer.recentMovements.map((movement, index) => (
                                     <div key={index} className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                                        <span className="min-w-0 truncate">{movement.label}</span>
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <span className={`inline-flex h-8 w-8 items-center justify-center rounded-md ${movement.kind === 'credit' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                                                {movement.kind === 'credit' ? <AiOutlineArrowUp className="h-4 w-4" /> : <AiOutlineArrowDown className="h-4 w-4" />}
+                                            </span>
+                                            <span className="min-w-0 truncate">{movement.label}</span>
+                                        </div>
                                         <span className={movement.kind === 'credit' ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>{movement.amount}</span>
                                     </div>
                                 ))}

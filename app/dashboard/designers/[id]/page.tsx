@@ -82,6 +82,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
 
     return {
         id: designer.id,
+        userId: designer.user.id,
         name: `${designer.user.firstName} ${designer.user.lastName}`,
         email: designer.user.email,
         business: designer.businessName,
@@ -114,8 +115,32 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
             text: note.content,
             meta: `${note.createdBy.firstName} ${note.createdBy.lastName} - ${formatDate(note.createdAt)}`,
         })),
-        balance: formatPrice(balance.totalBalance),
-        recentMovements: [],
+        balance: {
+            totalBalance: balance.totalBalance,
+            totalBalanceFormatted: formatPrice(balance.totalBalance),
+            lastWithdrawal: balance.lastWithdrawal,
+            lastSale: balance.lastSale,
+        },
+        recentMovements: [
+            ...(balance.lastSale
+                ? [
+                      {
+                          label: `Last sale — ${balance.lastSale.productName}`,
+                          amount: `+${formatCurrency(balance.lastSale.amount)}`,
+                          kind: 'credit',
+                      },
+                  ]
+                : []),
+            ...(balance.lastWithdrawal
+                ? [
+                      {
+                          label: 'Withdrawal',
+                          amount: `-${formatCurrency(balance.lastWithdrawal)}`,
+                          kind: 'debit',
+                      },
+                  ]
+                : []),
+        ],
     }
 }
 

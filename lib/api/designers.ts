@@ -181,7 +181,7 @@ interface DesignerNoteResponse {
 }
 
 export async function addDesignerNote(id: number, note: string): Promise<void> {
-  await axiosInstance.post<DesignerNoteResponse>(`/admin/businesses/${id}/add-note`, {
+  await axiosInstance.post<DesignerNoteResponse>(`/admin/user/${id}/add-note`, {
     note,
   });
 }

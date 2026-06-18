@@ -17,8 +17,16 @@ export type Designer = {
   socials: Array<{ platform: string; handle: string; url: string }>
   flags: Array<{ date: string; reason: string }>
   notes: Array<{ text: string; meta: string }>
-  balance: string
+  balance:
+    | string
+    | {
+        totalBalance: number
+        totalBalanceFormatted: string
+        lastWithdrawal: number
+        lastSale: { productName: string; amount: number } | null
+      }
   recentMovements: Array<{ label: string; amount: string; kind: 'credit' | 'debit' }>
+  userId?: number
 }
 
 export const designers: Designer[] = [
