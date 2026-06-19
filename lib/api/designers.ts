@@ -106,6 +106,7 @@ export interface DesignerProfile {
       twitter?: string;
     };
     user: {
+      id: number;
       firstName: string;
       lastName: string;
       email: string;
@@ -132,7 +133,10 @@ export interface DesignerProfile {
   balance: {
     totalBalance: number;
     lastWithdrawal: number;
-    lastSale: string | null;
+    lastSale: {
+      productName: string;
+      amount: number;
+    } | null;
   };
 }
 

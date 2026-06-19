@@ -124,23 +124,23 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
         recentMovements: [
             ...(balance.lastSale
                 ? [
-                      {
-                          label: `Last sale — ${balance.lastSale.productName}`,
-                          amount: `+${formatCurrency(balance.lastSale.amount)}`,
-                          kind: 'credit',
-                      },
-                  ]
+                    {
+                        label: `Last sale — ${balance.lastSale.productName}`,
+                        amount: `+${formatCurrency(balance.lastSale.amount)}`,
+                        kind: 'credit' as const,
+                    },
+                ]
                 : []),
             ...(balance.lastWithdrawal
                 ? [
-                      {
-                          label: 'Withdrawal',
-                          amount: `-${formatCurrency(balance.lastWithdrawal)}`,
-                          kind: 'debit',
-                      },
-                  ]
+                    {
+                        label: 'Withdrawal',
+                        amount: `-${formatCurrency(balance.lastWithdrawal)}`,
+                        kind: 'debit' as const,
+                    },
+                ]
                 : []),
-        ],
+        ] as Designer['recentMovements'],
     }
 }
 

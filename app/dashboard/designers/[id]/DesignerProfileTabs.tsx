@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/pagination'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ModerationActionButton, { type ModerationActionType } from '../../../components/ModerationAction/ModerationActionButton'
-// import type { Designer } from '@/app/dashboard/designers/data'
+import type { Designer } from '@/app/dashboard/designers/data'
 import {
     getDesignerProducts,
     getDesignerOrders,
@@ -87,6 +87,10 @@ const OrderStatusPill = ({ status }: { status: 'Delivered' | 'Processing' | 'Can
     }
 
     return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs sm:text-sm font-semibold ${styles[status]}`}>• {status}</span>
+}
+
+function formatDesignerBalance(balance: Designer['balance']): string {
+    return typeof balance === 'string' ? balance : balance.totalBalanceFormatted
 }
 
 function formatPrice(price: string): string {
@@ -488,7 +492,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </div>
                             <div className="border-b p-3 sm:p-4">
                                 <p className="text-sm text-muted-foreground">Current balance</p>
-                                <p className="mt-1 text-3xl sm:text-4xl font-bold text-[#1A0089]">{typeof designer.balance === 'string' ? designer.balance : designer.balance?.totalBalanceFormatted}</p>
+                                <p className="mt-1 text-3xl sm:text-4xl font-bold text-[#1A0089]">{formatDesignerBalance(designer.balance)}</p>
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
                                 {designer.recentMovements.map((movement, index) => (
@@ -835,8 +839,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                 <div id="tab-panel-financials" role="tabpanel" aria-labelledby="tab-financials" className="overflow-hidden rounded-2xl border bg-white">
                     <div className="border-b px-3 py-3 sm:px-4 sm:py-4">
                         <h3 className="font-semibold">Financial history</h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground">
+                        {/* <p className="text-xs sm:text-sm text-muted-foreground">
                             Balance: <span className="font-semibold text-[#1A0089]">₦{transactionsData?.balance ? parseInt(String(transactionsData.balance), 10).toLocaleString() : designer.balance.replace(/[^\d]/g, '')}</span>
+                        </p> */}
+                        <p className="text-xs sm:text-sm text-muted-foreground">
+                            Balance: <span className="font-semibold text-[#1A0089]">
+                                {formatDesignerBalance(designer.balance)}
+                            </span>
                         </p>
                     </div>
 
