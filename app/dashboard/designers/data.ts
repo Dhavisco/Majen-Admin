@@ -16,7 +16,10 @@ export type Designer = {
   rating: string
   registeredName: string
   socials: Array<{ platform: string; handle: string; url: string }>
-  flags: Array<{ date: string; reason: string }>
+  flags: Array<{ createdAt: string; reason: string }>
+  _count: {
+    flagsReceived: number
+  }
   notes: Array<{ text: string; meta: string }>
   balance:
     | string
@@ -53,6 +56,9 @@ export const designers: Designer[] = [
       { platform: 'FB', handle: 'facebook.com/yvelabel', url: '#' },
     ],
     flags: [],
+    _count: {
+      flagsReceived: 0
+    },  
     notes: [
       { text: 'Verified June 15 2025. Top performer, no complaints.', meta: 'Admin - Jun 16, 2025' },
     ],
@@ -79,6 +85,9 @@ export const designers: Designer[] = [
     registeredName: 'Liz and Co LTD',
     socials: [],
     flags: [],
+    _count  : {
+      flagsReceived: 0
+    },
     notes: [],
     balance: 'N0',
     recentMovements: [],
@@ -99,7 +108,10 @@ export const designers: Designer[] = [
     rating: '3.2',
     registeredName: 'Mary Atelier LTD',
     socials: [],
-    flags: [{ date: 'Mar 10', reason: 'Product listing dispute' }],
+    flags: [{ createdAt: '2024-03-10', reason: 'Product listing dispute' }],
+    _count  : {
+      flagsReceived: 1
+    },  
     notes: [],
     balance: 'N0',
     recentMovements: [],
@@ -125,7 +137,10 @@ export const designers: Designer[] = [
       { platform: 'X', handle: 'x.com/yvelabel', url: '#' },
       { platform: 'FB', handle: 'facebook.com/yvelabel', url: '#' },
     ],
-    flags: [{ date: 'Mar 10', reason: 'Product listing dispute' }],
+    flags: [{ createdAt: '2024-03-10', reason: 'Product listing dispute' }],
+    _count  : {
+      flagsReceived: 1
+    },    
     notes: [
       { text: 'Verified June 15 2025. Top performer, no complaints.', meta: 'Admin - Jun 16, 2025' },
     ],
@@ -152,8 +167,11 @@ export const designers: Designer[] = [
     registeredName: 'Shop Mora LTD',
     socials: [],
     flags: [],
+    _count  : {
+      flagsReceived: 0
+    },
     notes: [],
-    balance: 'N0',
+    balance: 'N0', 
     recentMovements: [],
   },
   {
@@ -172,30 +190,12 @@ export const designers: Designer[] = [
     rating: '3.6',
     registeredName: "Sarah's Designs LTD",
     socials: [],
-    flags: [{ date: 'Feb 28', reason: 'Late fulfillment complaint' }],
+    flags: [{ createdAt: 'Feb 28', reason: 'Late fulfillment complaint' }],
+    _count  : {
+      flagsReceived: 1
+    },
     notes: [],
     balance: 'N15,000',
-    recentMovements: [],
-  },
-  {
-    id: 7,
-    name: 'Tolu Aribisala',
-    email: 'spiceoflagos@gmail.com',
-    business: 'Spice of Lagos',
-    type: 'Ready to wear',
-    cac: 'RC 1234567',
-    verificationStatus: 'Verified',
-    products: 5,
-    joined: 'Nov 2024',
-    status: 'Active',
-    orders: 9,
-    revenue: 'N280K',
-    rating: '4.6',
-    registeredName: 'Spice of Lagos LTD',
-    socials: [],
-    flags: [],
-    notes: [],
-    balance: 'N38,000',
     recentMovements: [],
   },
 ]

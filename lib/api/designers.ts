@@ -120,7 +120,15 @@ export interface DesignerProfile {
         };
         createdAt: string;
       }>;
+      flagsReceived: Array<{
+      reason: string;
+      createdAt: string;
+    }>;
+    _count: {
+      flagsReceived: number;
     };
+    };
+    
     verification: {
       rcNumber: string;
       status: string;
@@ -187,6 +195,25 @@ interface DesignerNoteResponse {
 export async function addDesignerNote(id: number, note: string): Promise<void> {
   await axiosInstance.post<DesignerNoteResponse>(`/admin/user/${id}/add-note`, {
     note,
+  });
+}
+
+type Flag = {
+  id: number
+  reason: string
+  createdAt: string
+  flaggedById: number
+}
+
+export type flagUserResponse = {
+  // ...existing props
+  flags: Flag[]
+  flagCount: number
+}
+
+export async function flagUser(id: number, reason: string): Promise<void> {
+  await axiosInstance.post<flagUserResponse>(`/admin/user/${id}/flag`, {
+    reason,
   });
 }
 

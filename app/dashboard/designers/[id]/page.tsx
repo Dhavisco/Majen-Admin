@@ -141,7 +141,13 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
                     url: handle as string,
                 }
             }),
-        flags: [],
+        flags: designer.user.flagsReceived.map((flag) => ({
+            reason: flag.reason,
+            createdAt: flag.createdAt,
+        })),
+        _count: {
+            flagsReceived: designer.user._count.flagsReceived,
+        },
         notes: designer.user.notesReceived.map((note) => ({
             text: note.content,
             meta: `${note.createdBy.firstName} ${note.createdBy.lastName} - ${formatDate(note.createdAt)}`,

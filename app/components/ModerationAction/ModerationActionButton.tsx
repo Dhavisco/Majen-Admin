@@ -209,6 +209,7 @@ export default function ModerationActionButton({
     const [open, setOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [rejectionReason, setRejectionReason] = useState('')
+    const [ackWarning, setAckWarning] = useState(false)
 
     const config = useMemo(() => actionConfigByType[action], [action])
     const TriggerIcon = triggerIconByAction[action]
@@ -305,19 +306,20 @@ export default function ModerationActionButton({
                                 </div>
                             </div>
 
-                            <div className="mt-4 space-y-2 text-center">
+                            <div className="mt-4 space-y-2">
                                 <h3 id={`moderation-title-${action}`} className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
                                     {config.title}
                                 </h3>
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                    {/* <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Subject</p> */}
+                                    <p className="mt-1 max-w-full wrap-break-word text-sm font-medium text-slate-900 sm:text-base whitespace-normal leading-6">{subject}</p>
+                                </div>
                                 <p id={`moderation-description-${action}`} className="mx-auto max-w-full text-sm text-slate-600 sm:text-base wrap-break-word whitespace-normal leading-6">
                                     {config.description}
                                 </p>
                             </div>
 
-                            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Subject</p>
-                                <p className="mt-1 max-w-full wrap-break-word text-sm font-medium text-slate-900 sm:text-base whitespace-normal leading-6">{subject}</p>
-                            </div>
+
 
                             {finalWarning && (
                                 <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -325,6 +327,14 @@ export default function ModerationActionButton({
                                         <span className="mt-0.5 text-amber-700">⚠</span>
                                         <p className="wrap-break-word whitespace-normal leading-6">{finalWarning}</p>
                                     </div>
+                                    <label className="mt-2 flex items-center gap-2 text-xs text-amber-800">
+                                        <input
+                                            type="checkbox"
+                                            checked={ackWarning}
+                                            onChange={(e) => setAckWarning(e.target.checked)}
+                                        />
+                                        I understand this action cannot be undone
+                                    </label>
                                 </div>
                             )}
 
@@ -333,7 +343,7 @@ export default function ModerationActionButton({
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <label htmlFor={`moderation-reason-${action}`} className="text-sm font-semibold text-slate-900">
-                                                Rejection reason
+                                                {action === 'flag-account' ? 'Flag reason' : 'Rejection reason'}
                                             </label>
                                             {/* <p className="mt-1 text-xs text-slate-500">
                                                 Tell the admin team why this request is being rejected. Keep it clear and specific.

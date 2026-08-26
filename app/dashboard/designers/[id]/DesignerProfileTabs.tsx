@@ -28,6 +28,7 @@ import {
     verifyDesigner,
     getDesignerReviews,
     addDesignerNote,
+    flagUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -97,6 +98,18 @@ function formatPrice(price: string): string {
     const num = parseInt(price, 10)
     if (isNaN(num)) return '₦0'
     return `₦${num.toLocaleString()}`
+}
+
+function formatDateTime(dateString: string): string {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'long',   // Full month name
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: true,    // 12-hour format with AM/PM
+    }).format(date)
 }
 
 function mapProductStatus(status: 'ACTIVE' | 'PENDING' | 'REJECTED'): 'Active' | 'Pending review' | 'Rejected' {
@@ -276,6 +289,15 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         mutationFn: (note: string) => addDesignerNote(designer.userId ?? designer.id, note),
         onSuccess: async () => {
             setNoteDraft('')
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
+    const flagMutation = useMutation({
+        mutationFn: (reason: string) =>
+            flagUser(designer.userId ?? designer.id, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
             await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
         },
     })
@@ -511,15 +533,21 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
 
                         <div className="overflow-hidden rounded-2xl border bg-white">
                             <div className="border-b px-3 py-3 sm:px-4 font-semibold">Flags ({designer.flags.length})</div>
-                            <div className="space-y-2 p-3 sm:p-4">
-                                {designer.flags.length === 0 && <p className="text-sm text-muted-foreground">No active flags on this account.</p>}
-                                {designer.flags.map((flag, index) => (
-                                    <div key={index} className="grid grid-cols-1 gap-2 sm:grid-cols-[70px_1fr_auto] sm:items-center rounded-lg bg-gray-50 px-3 py-2 text-sm">
-                                        <span className="text-muted-foreground">{flag.date}</span>
-                                        <span>{flag.reason}</span>
-                                        <Button size="sm" variant="outline" className="w-full sm:w-auto border-green-300 text-green-700 hover:bg-green-50">Remove</Button>
-                                    </div>
-                                ))}
+                            <div className="divide-y divide-slate-200">
+                                {designer.flags.length === 0 ? (
+                                    <p className="p-4 text-sm text-muted-foreground">
+                                        No active flags on this account.
+                                    </p>
+                                ) : (
+                                    designer.flags.map((flag) => (
+                                        <div key={flag.reason} className="px-4 py-3 text-sm">
+                                            <p className="font-medium text-slate-900">{flag.reason}</p>
+                                            <p className="text-xs text-slate-500">
+                                                {formatDateTime(flag.createdAt)}
+                                            </p>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
 
@@ -532,6 +560,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 {accountActions.map((action) => {
                                     const isVerifyAction = action.action === 'verify-account' && !action.disabled
                                     const isRejectAction = action.action === 'reject-application' && !action.disabled
+                                    const isFlagAction = action.action === 'flag-account' && !action.disabled
 
                                     return (
                                         <ModerationActionButton
@@ -541,13 +570,19 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             buttonLabel={action.label}
                                             buttonSize="default"
                                             disabled={action.disabled}
+                                            requireReason={isFlagAction}
                                             buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
                                             onConfirm={
                                                 isVerifyAction
                                                     ? () => verifyMutation.mutateAsync()
                                                     : isRejectAction
                                                         ? (reason: string | undefined) => rejectMutation.mutateAsync(reason ?? '')
-                                                        : undefined
+                                                        : isFlagAction
+                                                            ? (reason?: string) => {
+                                                                if (!reason?.trim()) return
+                                                                return flagMutation.mutateAsync(reason.trim())
+                                                            }
+                                                            : undefined
                                             }
                                         />
                                     )
