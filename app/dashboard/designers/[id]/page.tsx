@@ -28,6 +28,36 @@ const statusBadgeClass: Record<string, string> = {
     Banned: 'bg-red-500/20 text-red-200 hover:bg-red-500/20',
 }
 
+// Circle colors per status
+const statusIndicatorColor: Record<string, string> = {
+    Active: 'bg-emerald-400',
+    Pending: 'bg-amber-400',
+    Flagged: 'bg-orange-400',
+    Suspended: 'bg-yellow-400',
+    Banned: 'bg-red-400',
+}
+
+// Consistent uppercase keys
+const verificationBadgeClass: Record<string, string> = {
+    VERIFIED: 'bg-[#FFFFFF1F] border border-[#FFFFFF33] text-[#E0D8FF] font-semibold text-[12px]',
+    'NOT VERIFIED': 'bg-[#FFFFFF1F] border border-[#FFFFFF33] text-[#E0D8FF] font-semibold text-[12px]',
+}
+
+// Map uppercase status to both UI class and readable label
+function mapVerificationStatus(status: string): { label: string; className: string } {
+    const normalized = status.toUpperCase()
+
+    const labelMap: Record<string, string> = {
+        VERIFIED: 'Verified',
+        'NOT VERIFIED': 'Not Verified',
+    }
+
+    return {
+        label: labelMap[normalized] || status, // fallback to original if unknown
+        className: verificationBadgeClass[normalized] || 'bg-[#FFFFFF1F] border border-[#FFFFFF33] text-[#E0D8FF] font-semibold text-[12px]',
+    }
+}
+
 function mapStatusToUI(status: string): DesignerStatus {
     const normalized = status.toUpperCase()
     switch (normalized) {
@@ -88,6 +118,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
         business: designer.businessName,
         type: mapBusinessType(designer.businessType),
         cac: designer.verification.rcNumber,
+        verificationStatus: designer.verification.status,
         products: productCount,
         joined: formatDate(designer.user.createdAt),
         status: mapStatusToUI(designer.status),
@@ -173,6 +204,7 @@ function DesignerProfileContent() {
     if (!data) return null
 
     const designer = mapProfileToDesigner(data)
+    const verification = mapVerificationStatus(designer.verificationStatus)
 
     return (
         <DashboardLayout>
@@ -189,7 +221,16 @@ function DesignerProfileContent() {
                                     {designer.business} · {designer.type}
                                 </p>
                                 <div className="mt-3 flex items-center gap-2">
-                                    <Badge className={statusBadgeClass[designer.status] ?? 'bg-white/20 text-white hover:bg-white/20'}>{designer.status}</Badge>
+
+                                    <Badge className={statusBadgeClass[designer.status]}>
+                                        <span
+                                            className={`inline-block w-2 h-2 rounded-full ${statusIndicatorColor[designer.status]}`}
+                                        />
+                                        {designer.status}
+                                    </Badge>
+                                    <Badge className={verification.className}>
+                                        {verification.label}
+                                    </Badge>
                                     {designer.flags.length > 0 && (
                                         <Badge className="bg-rose-500/20 text-rose-200 hover:bg-rose-500/20">
                                             {designer.flags.length} flagged

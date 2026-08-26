@@ -7,6 +7,7 @@ export type Designer = {
   business: string
   type: 'Ready to wear' | 'Custom'
   cac: string
+  verificationStatus: string
   products: number
   joined: string
   status: DesignerStatus
@@ -37,6 +38,7 @@ export const designers: Designer[] = [
     business: 'YVE Label',
     type: 'Ready to wear',
     cac: 'RC 1234567',
+    verificationStatus: 'Verified',
     products: 25,
     joined: 'Jun 2024',
     status: 'Active',
@@ -67,6 +69,7 @@ export const designers: Designer[] = [
     business: 'Liz&Co',
     type: 'Ready to wear',
     cac: 'RC 1234567',
+    verificationStatus: 'Not Verified',
     products: 0,
     joined: 'Mar 2026',
     status: 'Pending',
@@ -87,6 +90,7 @@ export const designers: Designer[] = [
     business: 'Mary Atelier',
     type: 'Custom',
     cac: 'RC 1234567',
+    verificationStatus: 'Not Verified',
     products: 5,
     joined: 'Jan 2024',
     status: 'Banned',
@@ -107,6 +111,7 @@ export const designers: Designer[] = [
     business: 'Kuwaj',
     type: 'Ready to wear',
     cac: 'RC 1234567',
+    verificationStatus: 'Verified',
     products: 18,
     joined: 'Aug 2024',
     status: 'Flagged',
@@ -137,6 +142,7 @@ export const designers: Designer[] = [
     business: 'Shop Mora',
     type: 'Custom',
     cac: 'RC 1234567',
+    verificationStatus: 'Not Verified',
     products: 0,
     joined: 'Mar 2026',
     status: 'Pending',
@@ -157,6 +163,7 @@ export const designers: Designer[] = [
     business: "Sarah's Designs",
     type: 'Custom',
     cac: 'RC 1234567',
+    verificationStatus: 'Verified',
     products: 6,
     joined: 'Sep 2024',
     status: 'Suspended',
@@ -177,6 +184,7 @@ export const designers: Designer[] = [
     business: 'Spice of Lagos',
     type: 'Ready to wear',
     cac: 'RC 1234567',
+    verificationStatus: 'Verified',
     products: 5,
     joined: 'Nov 2024',
     status: 'Active',
