@@ -539,8 +539,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                         No active flags on this account.
                                     </p>
                                 ) : (
-                                    designer.flags.map((flag) => (
-                                        <div key={flag.reason} className="px-4 py-3 text-sm">
+                                    designer.flags.map((flag, index) => (
+                                        <div key={index} className="px-4 py-3 text-sm">
                                             <p className="font-medium text-slate-900">{flag.reason}</p>
                                             <p className="text-xs text-slate-500">
                                                 {formatDateTime(flag.createdAt)}

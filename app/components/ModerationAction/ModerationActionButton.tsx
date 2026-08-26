@@ -207,9 +207,10 @@ export default function ModerationActionButton({
     requireReason,
 }: ModerationActionButtonProps) {
     const [open, setOpen] = useState(false)
+    const [showWarning, setShowWarning] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [rejectionReason, setRejectionReason] = useState('')
-    const [ackWarning, setAckWarning] = useState(false)
+
 
     const config = useMemo(() => actionConfigByType[action], [action])
     const TriggerIcon = triggerIconByAction[action]
@@ -221,12 +222,17 @@ export default function ModerationActionButton({
     const confirmLabel = needsReason ? 'Enter reason' : finalConfirmLabel
 
     const handleConfirm = async () => {
-        if (needsReason || isSubmitting) {
-            return
-        }
+        if (isSubmitting) return
 
+        // Always show warning first
+        setShowWarning(true)
+    }
+
+    // Final confirmation after warning
+    const handleFinalConfirm = async () => {
         if (!onConfirm) {
             setOpen(false)
+            setShowWarning(false)
             return
         }
 
@@ -234,6 +240,7 @@ export default function ModerationActionButton({
             setIsSubmitting(true)
             await onConfirm(showReasonInput ? rejectionReason.trim() : undefined)
             setOpen(false)
+            setShowWarning(false)
         } finally {
             setIsSubmitting(false)
         }
@@ -248,7 +255,7 @@ export default function ModerationActionButton({
         setRejectionReason(reasonText ?? '')
 
         const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
+            if (event.key === 'Escape' && !isSubmitting) {
                 setOpen(false)
             }
         }
@@ -258,7 +265,8 @@ export default function ModerationActionButton({
         return () => {
             window.removeEventListener('keydown', handleEscape)
         }
-    }, [open, reasonText])
+    }, [open, reasonText, isSubmitting])
+
 
     return (
         <>
@@ -327,14 +335,6 @@ export default function ModerationActionButton({
                                         <span className="mt-0.5 text-amber-700">⚠</span>
                                         <p className="wrap-break-word whitespace-normal leading-6">{finalWarning}</p>
                                     </div>
-                                    <label className="mt-2 flex items-center gap-2 text-xs text-amber-800">
-                                        <input
-                                            type="checkbox"
-                                            checked={ackWarning}
-                                            onChange={(e) => setAckWarning(e.target.checked)}
-                                        />
-                                        I understand this action cannot be undone
-                                    </label>
                                 </div>
                             )}
 
@@ -400,6 +400,39 @@ export default function ModerationActionButton({
                     </div>
                 </div>
             )}
+
+            {showWarning && (
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/55 p-3 sm:p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl p-6">
+                        <h3 className="text-lg font-bold text-slate-900">⚠ Confirm Action</h3>
+                        <p className="mt-2 text-sm text-slate-700">
+                            Are you sure you want to {config.title}?
+                        </p>
+                        <div className="mt-4 flex justify-end gap-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowWarning(false)}
+                                disabled={isSubmitting} // disable cancel while submitting
+                                className={isSubmitting ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                className="bg-rose-600 text-white hover:bg-rose-700 flex items-center gap-2 cursor-pointer"
+                                onClick={handleFinalConfirm}
+                                disabled={needsReason || isSubmitting}
+                            >
+                                {isSubmitting && (
+                                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                )}
+                                {isSubmitting ? "Processing..." : `Yes, ${config.confirmLabel}`}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </>
     )
 }
