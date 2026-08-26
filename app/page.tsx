@@ -187,7 +187,7 @@ export default function Home() {
               M
             </span> */}
             <div>
-              <p className="font-semibold">© 2026 Majen.</p>
+              <p className="font-semibold">© 2026 Majen Technologies. All rights reserved.</p>
               <p>Internal admin system for authorized personnel only.</p>
             </div>
           </div>
