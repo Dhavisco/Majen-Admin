@@ -303,7 +303,7 @@ export default function ModerationActionButton({
                                 type="button"
                                 onClick={() => setOpen(false)}
                                 aria-label="Close dialog"
-                                className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                                className="absolute right-3 top-3 cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                             >
                                 <FaTimes className="h-4 w-4" />
                             </button>
@@ -345,7 +345,9 @@ export default function ModerationActionButton({
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <label htmlFor={`moderation-reason-${action}`} className="text-sm font-semibold text-slate-900">
-                                                {action === 'flag-account' ? 'Flag reason' : 'Rejection reason'}
+                                                {action === 'flag-account' && 'Flag reason'}
+                                                {action === 'reject-application' && 'Rejection reason'}
+                                                {action === 'suspend-account' && 'Suspension reason'}
                                             </label>
                                             {/* <p className="mt-1 text-xs text-slate-500">
                                                 Tell the admin team why this request is being rejected. Keep it clear and specific.

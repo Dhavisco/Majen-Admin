@@ -29,6 +29,7 @@ import {
     getDesignerReviews,
     addDesignerNote,
     flagUser,
+    suspendUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -248,16 +249,34 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const canNextOrders = orderPage < orderPageCount
 
     const orderRows = useMemo(() => {
-        if (!ordersData) return [];
-        return ordersData.records.map((order) => ({
-            id: order.identifier,
-            product: order.items[0]?.product.title || 'N/A',
-            client: `${order.client.firstName} ${order.client.lastName}`,
-            amount: formatPrice(order.price),
-            date: formatDate(order.createdAt),
-            status: mapOrderStatus(order.status),
-        }))
+        if (!ordersData) return []
+
+        return ordersData.records.map((order) => {
+            const firstItem = order.items?.[0]
+            const productTitle = firstItem?.product?.title ?? 'N/A'
+
+            return {
+                id: order.identifier,
+                product: productTitle,
+                client: `${order.client?.firstName ?? ''} ${order.client?.lastName ?? ''}`.trim(),
+                amount: formatPrice(order.price),
+                date: formatDate(order.createdAt),
+                status: mapOrderStatus(order.status),
+            }
+        })
     }, [ordersData])
+
+    // const orderRows = useMemo(() => {
+    //     if (!ordersData) return [];
+    //     return ordersData.records.map((order) => ({
+    //         id: order.identifier,
+    //         product: order.items[0]?.product.title || 'N/A',
+    //         client: `${order.client.firstName} ${order.client.lastName}`,
+    //         amount: formatPrice(order.price),
+    //         date: formatDate(order.createdAt),
+    //         status: mapOrderStatus(order.status),
+    //     }))
+    // }, [ordersData])
 
     const { data: transactionsData, isLoading: isTransactionsLoading } = useQuery({
         queryKey: ['designer', 'transactions', designer.id, transactionPage],
@@ -286,7 +305,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     })
 
     const addNoteMutation = useMutation({
-        mutationFn: (note: string) => addDesignerNote(designer.userId ?? designer.id, note),
+        mutationFn: (note: string) => addDesignerNote(designer.userId, note),
         onSuccess: async () => {
             setNoteDraft('')
             await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
@@ -295,7 +314,15 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
 
     const flagMutation = useMutation({
         mutationFn: (reason: string) =>
-            flagUser(designer.userId ?? designer.id, reason),
+            flagUser(designer.userId, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
+    const suspendMutation = useMutation({
+        mutationFn: (reason: string) => suspendUser(designer.userId, reason),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['designers'] })
             await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
@@ -560,6 +587,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 {accountActions.map((action) => {
                                     const isVerifyAction = action.action === 'verify-account' && !action.disabled
                                     const isRejectAction = action.action === 'reject-application' && !action.disabled
+                                    const isSuspendAction = action.action === 'suspend-account' && !action.disabled
                                     const isFlagAction = action.action === 'flag-account' && !action.disabled
 
                                     return (
@@ -570,7 +598,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             buttonLabel={action.label}
                                             buttonSize="default"
                                             disabled={action.disabled}
-                                            requireReason={isFlagAction}
+                                            requireReason={isFlagAction || isSuspendAction}
                                             buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
                                             onConfirm={
                                                 isVerifyAction
@@ -582,7 +610,12 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                                 if (!reason?.trim()) return
                                                                 return flagMutation.mutateAsync(reason.trim())
                                                             }
-                                                            : undefined
+                                                            : isSuspendAction
+                                                                ? (reason?: string) => {
+                                                                    if (!reason?.trim()) return
+                                                                    return suspendMutation.mutateAsync(reason.trim())
+                                                                }
+                                                                : undefined
                                             }
                                         />
                                     )
@@ -1008,8 +1041,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {reviewRows.map((review) => (
-                                            <tr key={review.id} className="group border-b last:border-b-0 hover:bg-muted/40 items-center transition-colors text-xs sm:text-sm">
+                                        {reviewRows.map((review, index) => (
+                                            <tr key={index} className="group border-b last:border-b-0 hover:bg-muted/40 items-center transition-colors text-xs sm:text-sm">
                                                 <td className="sticky left-0 z-10 border-r bg-white px-4 py-4 font-medium group-hover:bg-muted/40 transition-colors">{review.reviewer}</td>
                                                 <td className="px-4 py-4 text-muted-foreground">{review.product}</td>
                                                 {/* <td className="px-4 py-4 text-amber-500">{'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}</td> */}

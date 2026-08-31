@@ -16,6 +16,8 @@ export type Designer = {
   rating: string
   registeredName: string
   socials: Array<{ platform: string; handle: string; url: string }>
+  userStatus: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'BANNED' | 'FLAGGED'
+  suspensionCount: number
   flags: Array<{ createdAt: string; reason: string }>
   _count: {
     flagsReceived: number
@@ -30,12 +32,13 @@ export type Designer = {
         lastSale: { productName: string; amount: number } | null
       }
   recentMovements: Array<{ label: string; amount: string; kind: 'credit' | 'debit' }>
-  userId?: number
+  userId: number
 }
 
 export const designers: Designer[] = [
   {
     id: 1,
+    userId: 1,
     name: 'Yvonne Onyata',
     email: 'info@yvelabel.com',
     business: 'YVE Label',
@@ -49,6 +52,8 @@ export const designers: Designer[] = [
     revenue: 'N450K',
     rating: '4.9',
     registeredName: 'YVE Label LTD',
+    userStatus: 'ACTIVE',
+    suspensionCount: 0,
     socials: [
       { platform: 'IG', handle: 'instagram.com/yvelabel', url: '#' },
       { platform: 'TT', handle: 'tiktok.com/@yvelabel', url: '#' },
@@ -70,6 +75,7 @@ export const designers: Designer[] = [
   },
   {
     id: 2,
+    userId: 2,
     name: 'Kike Johnson',
     email: 'kikejohnson3@gmail.com',
     business: 'Liz&Co',
@@ -83,7 +89,9 @@ export const designers: Designer[] = [
     revenue: 'N0',
     rating: '0.0',
     registeredName: 'Liz and Co LTD',
+    userStatus: 'PENDING',
     socials: [],
+    suspensionCount: 0,
     flags: [],
     _count  : {
       flagsReceived: 0
@@ -94,6 +102,7 @@ export const designers: Designer[] = [
   },
   {
     id: 3,
+    userId: 3,
     name: 'Mary Johnson',
     email: 'maryjohnson@gmail.com',
     business: 'Mary Atelier',
@@ -107,95 +116,15 @@ export const designers: Designer[] = [
     revenue: 'N80K',
     rating: '3.2',
     registeredName: 'Mary Atelier LTD',
+    userStatus: 'BANNED',
     socials: [],
+    suspensionCount: 1,
     flags: [{ createdAt: '2024-03-10', reason: 'Product listing dispute' }],
     _count  : {
       flagsReceived: 1
     },  
     notes: [],
     balance: 'N0',
-    recentMovements: [],
-  },
-  {
-    id: 4,
-    name: 'Joy Akigbe',
-    email: 'joyakigbe34@gmail.com',
-    business: 'Kuwaj',
-    type: 'Ready to wear',
-    cac: 'RC 1234567',
-    verificationStatus: 'Verified',
-    products: 18,
-    joined: 'Aug 2024',
-    status: 'Flagged',
-    orders: 12,
-    revenue: 'N450K',
-    rating: '4.9',
-    registeredName: 'Kuwaj Designs LTD',
-    socials: [
-      { platform: 'IG', handle: 'instagram.com/kuwaj', url: '#' },
-      { platform: 'TT', handle: 'tiktok.com/@yvelabel', url: '#' },
-      { platform: 'X', handle: 'x.com/yvelabel', url: '#' },
-      { platform: 'FB', handle: 'facebook.com/yvelabel', url: '#' },
-    ],
-    flags: [{ createdAt: '2024-03-10', reason: 'Product listing dispute' }],
-    _count  : {
-      flagsReceived: 1
-    },    
-    notes: [
-      { text: 'Verified June 15 2025. Top performer, no complaints.', meta: 'Admin - Jun 16, 2025' },
-    ],
-    balance: 'N20,000',
-    recentMovements: [
-      { label: 'Last sale - Amara Dress', amount: '+N150K', kind: 'credit' },
-      { label: 'Withdrawal', amount: '-N50K', kind: 'debit' },
-    ],
-  },
-  {
-    id: 5,
-    name: 'Omowaju Ayotunde',
-    email: 'shopmora.co@gmail.com',
-    business: 'Shop Mora',
-    type: 'Custom',
-    cac: 'RC 1234567',
-    verificationStatus: 'Not Verified',
-    products: 0,
-    joined: 'Mar 2026',
-    status: 'Pending',
-    orders: 0,
-    revenue: 'N0',
-    rating: '0.0',
-    registeredName: 'Shop Mora LTD',
-    socials: [],
-    flags: [],
-    _count  : {
-      flagsReceived: 0
-    },
-    notes: [],
-    balance: 'N0', 
-    recentMovements: [],
-  },
-  {
-    id: 6,
-    name: 'Sarah Martin',
-    email: 'smartin123@gmail.com',
-    business: "Sarah's Designs",
-    type: 'Custom',
-    cac: 'RC 1234567',
-    verificationStatus: 'Verified',
-    products: 6,
-    joined: 'Sep 2024',
-    status: 'Suspended',
-    orders: 4,
-    revenue: 'N120K',
-    rating: '3.6',
-    registeredName: "Sarah's Designs LTD",
-    socials: [],
-    flags: [{ createdAt: 'Feb 28', reason: 'Late fulfillment complaint' }],
-    _count  : {
-      flagsReceived: 1
-    },
-    notes: [],
-    balance: 'N15,000',
     recentMovements: [],
   },
 ]

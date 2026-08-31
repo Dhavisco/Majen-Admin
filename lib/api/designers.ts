@@ -112,6 +112,8 @@ export interface DesignerProfile {
       email: string;
       createdAt: string;
       image?: string | null;
+      status: "ACTIVE" | "PENDING" | "SUSPENDED" | "BANNED" | "FLAGGED";
+      suspensionCount: number;
       notesReceived: Array<{
         content: string;
         createdBy: {
@@ -213,6 +215,12 @@ export type flagUserResponse = {
 
 export async function flagUser(id: number, reason: string): Promise<void> {
   await axiosInstance.post<flagUserResponse>(`/admin/user/${id}/flag`, {
+    reason,
+  });
+}
+
+export async function suspendUser(id: number, reason: string): Promise<void> {
+  await axiosInstance.post<flagUserResponse>(`/admin/user/${id}/suspend`, {
     reason,
   });
 }

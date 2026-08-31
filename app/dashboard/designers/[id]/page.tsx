@@ -141,6 +141,8 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
                     url: handle as string,
                 }
             }),
+        userStatus: designer.user.status,
+        suspensionCount: designer.user.suspensionCount ?? 0,
         flags: designer.user.flagsReceived.map((flag) => ({
             reason: flag.reason,
             createdAt: flag.createdAt,
@@ -240,6 +242,11 @@ function DesignerProfileContent() {
                                     {designer.flags.length > 0 && (
                                         <Badge className="bg-rose-500/20 text-rose-200 hover:bg-rose-500/20">
                                             {designer.flags.length} flagged
+                                        </Badge>
+                                    )}
+                                    {designer.suspensionCount > 0 && (
+                                        <Badge className="bg-amber-500/20 text-amber-200 hover:bg-amber-500/20">
+                                            {designer.suspensionCount} suspension{designer.suspensionCount > 1 ? 's' : ''}
                                         </Badge>
                                     )}
                                 </div>
