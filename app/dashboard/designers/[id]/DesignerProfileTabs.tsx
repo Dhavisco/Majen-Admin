@@ -32,6 +32,7 @@ import {
     suspendUser,
     getActiveOrders,
     reactivateUser,
+    banUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -346,6 +347,15 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         },
     })
 
+    const banMutation = useMutation({
+        mutationFn: (reason: string) => banUser(designer.userId, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
+
     const transactionMeta = transactionsData?.meta
     const transactionPageCount = transactionMeta?.pageCount ?? 1
     const canPreviousTransactions = transactionPage > 1
@@ -607,6 +617,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                     const isSuspendAction = action.action === 'suspend-account' && !action.disabled
                                     const isFlagAction = action.action === 'flag-account' && !action.disabled
                                     const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
+                                    const isBanAction = action.action === 'ban-account' && !action.disabled
+
 
                                     return (
                                         <ModerationActionButton
@@ -617,7 +629,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             activeOrderCount={activeOrdersData}
                                             buttonSize="default"
                                             disabled={action.disabled}
-                                            requireReason={isFlagAction || isSuspendAction}
+                                            requireReason={isFlagAction || isSuspendAction || isBanAction}
                                             buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
                                             onConfirm={
                                                 isVerifyAction
@@ -635,7 +647,12 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                                     return suspendMutation.mutateAsync(reason.trim())
                                                                 } : isReactivateAction
                                                                     ? () => reactivateMutation.mutateAsync()
-                                                                    : undefined
+                                                                    : isBanAction
+                                                                        ? (reason?: string) => {
+                                                                            if (!reason?.trim()) return
+                                                                            return banMutation.mutateAsync(reason.trim())
+                                                                        }
+                                                                        : undefined
                                             }
                                         />
                                     )

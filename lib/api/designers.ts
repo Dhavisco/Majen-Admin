@@ -231,6 +231,13 @@ export async function reactivateUser(id: number): Promise<void> {
   await axiosInstance.post(`/admin/user/${id}/reactivate`);
 }
 
+export async function banUser(id: number, reason: string): Promise<void> {
+  await axiosInstance.post(`/admin/user/${id}/ban`, {
+    reason,
+  });
+}
+
+
 export type ActiveOrdersResponse = {
   success: boolean
   message: string
