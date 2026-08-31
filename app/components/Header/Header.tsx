@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { getDesignerProfile } from '@/lib/api/designers';
 import { getProductById } from '@/lib/api/products';
 import { getClientDetails } from '@/lib/api/clients';
+import { getFlaggedReviewById, getReportedChatById } from '@/lib/api/reports';
 
 const pageTitleMap: Array<{ route: string; title: string }> = [
     { route: '/dashboard/designers', title: 'Designers' },
@@ -44,6 +45,17 @@ const Header: React.FC = () => {
         return match ? parseInt(match[1], 10) : null;
     }, [pathname]);
 
+    const reviewReportId = useMemo(() => {
+        const match = pathname.match(/^\/dashboard\/reports\/([^/]+)$/);
+        return match ? match[1] : null; // keep as string
+    }, [pathname]);
+
+    const reviewFlagId = useMemo(() => {
+        const match = pathname.match(/^\/dashboard\/reports\/reviews\/(\d+)$/);
+        return match ? parseInt(match[1], 10) : null;
+    }, [pathname]);
+
+
     // Fetch designer profile data
     const { data: designerProfile } = useQuery({
         queryKey: ['designer', 'profile', designerId],
@@ -61,6 +73,18 @@ const Header: React.FC = () => {
         queryKey: ['client', 'detail', clientId],
         queryFn: () => (clientId ? getClientDetails(clientId) : null),
         enabled: !!clientId,
+    });
+
+    const { data: reviewReportDetail } = useQuery({
+        queryKey: ['report', 'detail', reviewReportId],
+        queryFn: () => (reviewReportId ? getReportedChatById(reviewReportId) : null),
+        enabled: !!reviewReportId,
+    });
+
+    const { data: reviewFlagDetail } = useQuery({
+        queryKey: ['report', 'flagged-review', reviewFlagId],
+        queryFn: () => (reviewFlagId ? getFlaggedReviewById(reviewFlagId) : null),
+        enabled: !!reviewFlagId,
     });
 
     const profileContext = useMemo(() => {
@@ -88,9 +112,23 @@ const Header: React.FC = () => {
                 name: `${clientDetail.firstName} ${clientDetail.lastName}`,
             };
         }
+        if (reviewReportId && reviewReportDetail) {
+            return {
+                label: 'Reports',
+                href: '/dashboard/reports',
+                name: `Report #${reviewReportDetail.report.identifier}`,
+            };
+        }
+        if (reviewFlagId && reviewFlagDetail) {
+            return {
+                label: 'Flagged Reviews',
+                href: '/dashboard/reports',
+                name: `Flagged Review #${reviewFlagDetail.report.identifier}`,
+            };
+        }
 
         return null;
-    }, [clientDetail, clientId, designerId, designerProfile, productId, productDetail]);
+    }, [designerId, designerProfile, productId, productDetail, clientId, clientDetail, reviewReportId, reviewReportDetail, reviewFlagId, reviewFlagDetail]);
 
     const pageTitle = useMemo(() => {
         const matched = pageTitleMap.find(

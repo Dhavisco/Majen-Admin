@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { FaCheckCircle, FaClock, FaRegFlag, FaShieldAlt } from 'react-icons/fa';
 
@@ -65,6 +66,9 @@ const ReportPage: React.FC = () => {
     const summary = summaryQuery.data;
     const openReports = openReportsQuery.data ?? [];
     const flaggedReviews = flaggedReviewsQuery.data ?? [];
+
+    // console.log('Open Reports:', openReports);
+    // console.log('Flagged Reviews:', flaggedReviews);
 
     const metrics = [
         {
@@ -155,8 +159,10 @@ const ReportPage: React.FC = () => {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button size="xs" className="bg-[#1A0089] px-4 font-semibold hover:bg-[#14006b]">
-                                                        Review
+                                                    <Button size="xs" className="bg-[#1A0089] text-white px-4 font-semibold hover:bg-[#14006b]">
+                                                        <Link href={`/dashboard/reports/${item.id}`} className="text-white">
+                                                            Review
+                                                        </Link>
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>
@@ -207,9 +213,8 @@ const ReportPage: React.FC = () => {
                                                 <Button
                                                     size="xs"
                                                     variant="outline"
-                                                    className="border-red-300 px-4 font-semibold text-red-500 hover:bg-red-50 hover:text-red-600"
-                                                >
-                                                    Remove
+                                                    className="bg-[#1A0089] text-white px-4 font-semibold hover:bg-[#14006b]">
+                                                    <Link href={`/dashboard/reports/reviews/${item.review.id}`}>Review</Link>
                                                 </Button>
                                             </TableCell>
                                         </TableRow>
