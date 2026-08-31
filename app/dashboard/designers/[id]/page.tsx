@@ -232,9 +232,9 @@ function DesignerProfileContent() {
 
                                     <Badge className={statusBadgeClass[designer.userStatus]}>
                                         <span
-                                            className={`inline-block w-2 h-2 rounded-full ${statusIndicatorColor[designer.status]}`}
+                                            className={`inline-block w-2 h-2 rounded-full ${statusIndicatorColor[designer.userStatus]}`}
                                         />
-                                        {designer.status}
+                                        {designer.userStatus}
                                     </Badge>
                                     <Badge className={verification.className}>
                                         {verification.label}
