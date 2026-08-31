@@ -389,7 +389,7 @@ export default function ModerationActionButton({
                                     />
 
                                     <div className="mt-2 flex flex-col gap-1 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between">
-                                        <span>{needsReason ? 'Please enter a reason before continuing.' : 'This note will be saved with the rejection action.'}</span>
+                                        <span>{needsReason ? 'Please enter a reason before continuing.' : 'This note will be saved.'}</span>
                                         <span>{rejectionReason.trim().length} characters</span>
                                     </div>
                                 </div>
