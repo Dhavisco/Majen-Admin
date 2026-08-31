@@ -202,14 +202,16 @@ export async function addDesignerNote(id: number, note: string): Promise<void> {
 
 type Flag = {
   id: number
+  identifier: string
   reason: string
+  userId: number
   createdAt: string
   flaggedById: number
 }
 
 export type flagUserResponse = {
   // ...existing props
-  flags: Flag[]
+  flag: Flag[]
   flagCount: number
 }
 
@@ -220,10 +222,25 @@ export async function flagUser(id: number, reason: string): Promise<void> {
 }
 
 export async function suspendUser(id: number, reason: string): Promise<void> {
-  await axiosInstance.post<flagUserResponse>(`/admin/user/${id}/suspend`, {
+  await axiosInstance.post(`/admin/user/${id}/suspend`, {
     reason,
   });
 }
+
+export type ActiveOrdersResponse = {
+  success: boolean
+  message: string
+  data: {
+    activeOrderCount: number
+  }
+}
+
+export async function getActiveOrders(id: number): Promise<number> {
+  const response = await axiosInstance.get<ActiveOrdersResponse>(`/admin/user/${id}/active-orders`)
+  return response.data.data.activeOrderCount
+  
+}
+
 
 export interface DesignerProduct {
   id: number;

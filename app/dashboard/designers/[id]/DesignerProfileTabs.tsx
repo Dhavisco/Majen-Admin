@@ -30,6 +30,7 @@ import {
     addDesignerNote,
     flagUser,
     suspendUser,
+    getActiveOrders,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -288,6 +289,11 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         queryFn: () => getDesignerReviews(designer.id, { page: reviewPage, limit: reviewLimit }),
     })
 
+    const { data: activeOrdersData } = useQuery({
+        queryKey: ['designer', 'activeOrders', designer.userId],
+        queryFn: () => getActiveOrders(designer.userId),
+    })
+
     const verifyMutation = useMutation({
         mutationFn: () => verifyDesigner(designer.id),
         onSuccess: async () => {
@@ -311,6 +317,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
             await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
         },
     })
+
+
 
     const flagMutation = useMutation({
         mutationFn: (reason: string) =>
@@ -596,6 +604,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             action={action.action}
                                             subject={`${designer.name} · ${designer.business}`}
                                             buttonLabel={action.label}
+                                            activeOrderCount={activeOrdersData}
                                             buttonSize="default"
                                             disabled={action.disabled}
                                             requireReason={isFlagAction || isSuspendAction}

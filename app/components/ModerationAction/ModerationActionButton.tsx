@@ -56,6 +56,7 @@ type ModerationActionButtonProps = {
     warningText?: string
     reasonText?: string
     requireReason?: boolean
+    activeOrderCount?: number
 }
 
 const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
@@ -198,6 +199,7 @@ export default function ModerationActionButton({
     subject,
     buttonLabel,
     buttonClassName,
+    activeOrderCount,
     buttonVariant,
     buttonSize = 'default',
     disabled,
@@ -215,7 +217,26 @@ export default function ModerationActionButton({
     const config = useMemo(() => actionConfigByType[action], [action])
     const TriggerIcon = triggerIconByAction[action]
 
-    const finalWarning = warningText ?? config.warningText
+    const finalWarning = useMemo(() => {
+        // Only show warning for suspend or ban
+        if (action !== 'suspend-account' && action !== 'ban-account') {
+            return undefined
+        }
+
+        // No active orders → no warning
+        if (activeOrderCount === 0 || activeOrderCount === undefined) {
+            return undefined
+        }
+
+        // Active orders present → dynamic warning
+        if (typeof activeOrderCount === 'number' && activeOrderCount > 0) {
+            return `This account has ${activeOrderCount} active order${activeOrderCount > 1 ? 's' : ''}. Clients will be notified and orders may be affected.`
+        }
+
+        // Fallback to static warning text if provided
+        return warningText ?? config.warningText
+    }, [action, activeOrderCount, warningText, config.warningText])
+
     const showReasonInput = action === 'reject-application' || requireReason
     const needsReason = showReasonInput && rejectionReason.trim().length === 0
     const finalConfirmLabel = action === 'reject-product' ? 'Select Reasons' : config.confirmLabel
