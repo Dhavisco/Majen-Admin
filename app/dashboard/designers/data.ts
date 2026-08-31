@@ -16,7 +16,7 @@ export type Designer = {
   rating: string
   registeredName: string
   socials: Array<{ platform: string; handle: string; url: string }>
-  userStatus: 'ACTIVE' | 'PENDING' | 'SUSPENDED' | 'BANNED' | 'FLAGGED'
+  userStatus: DesignerStatus  
   suspensionCount: number
   flags: Array<{ createdAt: string; reason: string }>
   _count: {
@@ -52,7 +52,7 @@ export const designers: Designer[] = [
     revenue: 'N450K',
     rating: '4.9',
     registeredName: 'YVE Label LTD',
-    userStatus: 'ACTIVE',
+    userStatus: 'Active',
     suspensionCount: 0,
     socials: [
       { platform: 'IG', handle: 'instagram.com/yvelabel', url: '#' },
@@ -89,7 +89,7 @@ export const designers: Designer[] = [
     revenue: 'N0',
     rating: '0.0',
     registeredName: 'Liz and Co LTD',
-    userStatus: 'PENDING',
+    userStatus: 'Pending',
     socials: [],
     suspensionCount: 0,
     flags: [],
@@ -116,7 +116,7 @@ export const designers: Designer[] = [
     revenue: 'N80K',
     rating: '3.2',
     registeredName: 'Mary Atelier LTD',
-    userStatus: 'BANNED',
+    userStatus: 'Banned',
     socials: [],
     suspensionCount: 1,
     flags: [{ createdAt: '2024-03-10', reason: 'Product listing dispute' }],

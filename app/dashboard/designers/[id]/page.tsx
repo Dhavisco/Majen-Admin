@@ -141,7 +141,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
                     url: handle as string,
                 }
             }),
-        userStatus: designer.user.status,
+        userStatus: mapStatusToUI(designer.user.status),
         suspensionCount: designer.user.suspensionCount ?? 0,
         flags: designer.user.flagsReceived.map((flag) => ({
             reason: flag.reason,
@@ -230,7 +230,7 @@ function DesignerProfileContent() {
                                 </p>
                                 <div className="mt-3 flex items-center gap-2">
 
-                                    <Badge className={statusBadgeClass[designer.status]}>
+                                    <Badge className={statusBadgeClass[designer.userStatus]}>
                                         <span
                                             className={`inline-block w-2 h-2 rounded-full ${statusIndicatorColor[designer.status]}`}
                                         />
