@@ -322,6 +322,15 @@ export default function ModerationActionButton({
                                     {/* <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Subject</p> */}
                                     <p className="mt-1 max-w-full wrap-break-word text-sm font-medium text-slate-900 sm:text-base whitespace-normal leading-6">{subject}</p>
                                 </div>
+                                {finalWarning && (
+                                    <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                        <div className="flex items-start gap-2">
+                                            <span className="mt-0.5 text-amber-700">⚠</span>
+                                            <p className="wrap-break-word whitespace-normal leading-6">{finalWarning}</p>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <p id={`moderation-description-${action}`} className="mx-auto max-w-full text-sm text-slate-600 sm:text-base wrap-break-word whitespace-normal leading-6">
                                     {config.description}
                                 </p>
@@ -329,14 +338,7 @@ export default function ModerationActionButton({
 
 
 
-                            {finalWarning && (
-                                <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                                    <div className="flex items-start gap-2">
-                                        <span className="mt-0.5 text-amber-700">⚠</span>
-                                        <p className="wrap-break-word whitespace-normal leading-6">{finalWarning}</p>
-                                    </div>
-                                </div>
-                            )}
+
 
                             {showReasonInput && (
                                 <div className="mt-5 rounded-2xl bg-white p-4 shadow-xs">
