@@ -13,6 +13,8 @@ import {
     FaTrash,
 } from 'react-icons/fa'
 import type { IconType } from 'react-icons'
+import type { AxiosError } from 'axios'
+
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -213,6 +215,9 @@ export default function ModerationActionButton({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [rejectionReason, setRejectionReason] = useState('')
 
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+
 
     const config = useMemo(() => actionConfigByType[action], [action])
     const TriggerIcon = triggerIconByAction[action]
@@ -242,6 +247,12 @@ export default function ModerationActionButton({
     const finalConfirmLabel = action === 'reject-product' ? 'Select Reasons' : config.confirmLabel
     const confirmLabel = needsReason ? 'Enter reason' : finalConfirmLabel
 
+    const closeDialog = () => {
+        setOpen(false)
+        setShowWarning(false)
+        setErrorMessage(null) // clear errors when closing
+    }
+
     const handleConfirm = async () => {
         if (isSubmitting) return
 
@@ -252,16 +263,26 @@ export default function ModerationActionButton({
     // Final confirmation after warning
     const handleFinalConfirm = async () => {
         if (!onConfirm) {
-            setOpen(false)
-            setShowWarning(false)
+            closeDialog()
             return
         }
 
         try {
             setIsSubmitting(true)
+            setErrorMessage(null)
             await onConfirm(showReasonInput ? rejectionReason.trim() : undefined)
             setOpen(false)
             setShowWarning(false)
+        } catch (err) {
+            const error = err as AxiosError<{ success: boolean; message: string; stack?: string }>
+            // Axios error handling
+            const backendMessage = error?.response?.data?.message
+            if (backendMessage) {
+                setErrorMessage(backendMessage)
+            } else {
+                setErrorMessage("An unexpected error occurred. Please try again.")
+            }
+            setShowWarning(false) // Keep the modal open to show the error
         } finally {
             setIsSubmitting(false)
         }
@@ -306,7 +327,7 @@ export default function ModerationActionButton({
             {open && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 p-3 sm:p-4"
-                    onClick={() => setOpen(false)}
+                    onClick={closeDialog}
                     role="presentation"
                 >
                     <div
@@ -322,7 +343,7 @@ export default function ModerationActionButton({
                         <div className="relative px-4 py-5 sm:px-6 sm:py-6">
                             <button
                                 type="button"
-                                onClick={() => setOpen(false)}
+                                onClick={closeDialog}
                                 aria-label="Close dialog"
                                 className="absolute right-3 top-3 cursor-pointer inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                             >
@@ -399,12 +420,21 @@ export default function ModerationActionButton({
                                 <p className="mt-3 text-sm text-slate-700 wrap-break-word">Reason: {reasonText}</p>
                             )}
 
+                            {errorMessage && (
+                                <div className="mt-4 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+                                    <div className="flex items-start gap-2">
+                                        <span className="mt-0.5 text-red-700">⚠</span>
+                                        <p className="wrap-break-word whitespace-normal leading-6">{errorMessage}</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <Button
                                     type="button"
                                     variant="outline"
                                     className="h-11 border-[#C4BCEF] border-2 text-[#1A0089] hover:bg-[#F1EFFF] text-sm font-semibold cursor-pointer"
-                                    onClick={() => setOpen(false)}
+                                    onClick={closeDialog}
                                 >
                                     Cancel
                                 </Button>
