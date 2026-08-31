@@ -150,8 +150,6 @@ export async function getFlaggedReviews(limit = 10, page = 1): Promise<FlaggedRe
     },
   });
 
-  console.log('Flagged Reviews Response:', data); // Log the entire response for debugging
-
   return data.data.records;
 }
 
