@@ -227,6 +227,10 @@ export async function suspendUser(id: number, reason: string): Promise<void> {
   });
 }
 
+export async function reactivateUser(id: number): Promise<void> {
+  await axiosInstance.post(`/admin/user/${id}/reactivate`);
+}
+
 export type ActiveOrdersResponse = {
   success: boolean
   message: string

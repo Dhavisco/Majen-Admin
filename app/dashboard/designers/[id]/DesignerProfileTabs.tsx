@@ -31,6 +31,7 @@ import {
     flagUser,
     suspendUser,
     getActiveOrders,
+    reactivateUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 
@@ -337,6 +338,14 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         },
     })
 
+    const reactivateMutation = useMutation({
+        mutationFn: () => reactivateUser(designer.userId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
     const transactionMeta = transactionsData?.meta
     const transactionPageCount = transactionMeta?.pageCount ?? 1
     const canPreviousTransactions = transactionPage > 1
@@ -597,6 +606,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                     const isRejectAction = action.action === 'reject-application' && !action.disabled
                                     const isSuspendAction = action.action === 'suspend-account' && !action.disabled
                                     const isFlagAction = action.action === 'flag-account' && !action.disabled
+                                    const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
 
                                     return (
                                         <ModerationActionButton
@@ -623,8 +633,9 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                                 ? (reason?: string) => {
                                                                     if (!reason?.trim()) return
                                                                     return suspendMutation.mutateAsync(reason.trim())
-                                                                }
-                                                                : undefined
+                                                                } : isReactivateAction
+                                                                    ? () => reactivateMutation.mutateAsync()
+                                                                    : undefined
                                             }
                                         />
                                     )
