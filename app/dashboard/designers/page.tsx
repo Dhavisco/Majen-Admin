@@ -97,7 +97,7 @@ const DesignersPageContent: React.FC = () => {
         }
     }, [activeTab]);
 
-    const { metrics, designers, pagination, currentPage, setCurrentPage, isLoading } = useDesigners({
+    const { metrics, statistics, designers, pagination, currentPage, setCurrentPage, isLoading } = useDesigners({
         page: 1,
         limit: 10,
         status: backendStatus,
@@ -138,14 +138,14 @@ const DesignersPageContent: React.FC = () => {
     // Build counts - for filtered views, we show the current result count
     const counts = useMemo(() => {
         return {
-            all: metrics[0]?.value ?? 0,
-            pending: metrics[2]?.value ?? 0,
-            verified: metrics[1]?.value ?? 0,
-            flagged: 0,
-            suspended: 0,
-            banned: 0,
+            all: statistics?.designers.total ?? 0,
+            pending: statistics?.pendingVerifications ?? 0,
+            verified: statistics?.verifiedDesigners.total ?? 0,
+            flagged: statistics?.flaggedDesigners ?? 0,
+            suspended: statistics?.suspendedDesigners ?? 0,
+            banned: statistics?.bannedDesigners ?? 0,
         };
-    }, [metrics]);
+    }, [statistics]);
 
 
     const getStatusBadge = (status: string) => {

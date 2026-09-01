@@ -10,6 +10,9 @@ export interface DesignersStatistics {
     growth: number;
   };
   pendingVerifications: number;
+  flaggedDesigners: number;
+  suspendedDesigners: number;
+  bannedDesigners: number;
 }
 
 interface DesignersStatisticsResponse {

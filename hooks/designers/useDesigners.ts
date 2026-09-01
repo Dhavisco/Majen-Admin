@@ -100,8 +100,8 @@ export function useDesigners(options: UseDesignersOptions = {}) {
         },
         {
           title: "Suspended / Banned",
-          value: 0,
-          indicator: { type: "text" as const, text: "Monitoring", tone: ("neutral" as const) },
+          value: statistics.suspendedDesigners + statistics.bannedDesigners,
+          indicator: { type: "text" as const, text: statistics.flaggedDesigners + " flagged", tone: ("danger" as const) },
           icon: createElement(FaBan),
           color: "bg-red-100 text-red-600",
         },
@@ -140,6 +140,7 @@ export function useDesigners(options: UseDesignersOptions = {}) {
 
   return {
     metrics,
+    statistics,
     designers,
     pagination,
     currentPage,
