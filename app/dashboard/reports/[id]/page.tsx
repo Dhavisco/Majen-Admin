@@ -164,7 +164,7 @@ export default function ReportDetailPage() {
             <div className="space-y-6 md:p-0">
                 <div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p className="text-xl text-2xl font-bold">Flagged Review</p>
+                        <p className="text-2xl font-bold">Flagged Review</p>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Filed by {reporterName} | Submitted {formatDate(report.createdAt)}
                         </p>
