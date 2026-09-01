@@ -165,7 +165,7 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
     },
     'remove-review': {
         title: 'Remove review',
-        description: 'Permanently removes this review. This cannot be undone.',
+        description: 'This review will no longer be visible to users.',
         confirmLabel: 'Remove review',
         tone: 'danger',
         icon: FaTrash,
