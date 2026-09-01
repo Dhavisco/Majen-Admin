@@ -247,6 +247,10 @@ export default function ModerationActionButton({
     const finalConfirmLabel = action === 'reject-product' ? 'Select Reasons' : config.confirmLabel
     const confirmLabel = needsReason ? 'Enter reason' : finalConfirmLabel
 
+    const hasActiveOrders = typeof activeOrderCount === 'number' && activeOrderCount > 0
+    const isSuspendOrBan = action === 'suspend-account' || action === 'ban-account'
+    const blockAction = isSuspendOrBan && hasActiveOrders
+
     const closeDialog = () => {
         setOpen(false)
         setShowWarning(false)
@@ -382,7 +386,7 @@ export default function ModerationActionButton({
 
 
 
-                            {showReasonInput && (
+                            {showReasonInput && !blockAction && (
                                 <div className="mt-5 rounded-2xl bg-white p-4 shadow-xs">
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
