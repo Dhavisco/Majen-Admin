@@ -120,6 +120,7 @@ export function useDashboard() {
   const pendingCounts = {
     pendingVerifications: dashboardSummary?.pendingVerifications ?? 0,
     pendingProducts: dashboardSummary?.pendingProducts ?? 0,
+    flaggedAccounts: dashboardSummary?.flaggedAccounts ?? 0,
   };
 
   return {

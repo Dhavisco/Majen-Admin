@@ -3,6 +3,7 @@ import { axiosInstance } from "@/lib/axios";
 export interface DashboardSummary {
   pendingVerifications: number;
   pendingProducts: number;
+  flaggedAccounts: number;
   clients: {
     total: number;
     growth: number;
