@@ -247,9 +247,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     })
 
     const orderMeta = ordersData?.meta
-    const orderPageCount = orderMeta?.pageCount ?? 1
+    const orderTotalCount = orderMeta?.totalCount ?? 0
+    const orderPerPage = orderMeta?.perPage ?? orderLimit //using requested limit as fallback
+    const orderTotalPages = Math.ceil(orderTotalCount / orderPerPage)
+
     const canPreviousOrders = orderPage > 1
-    const canNextOrders = orderPage < orderPageCount
+    const canNextOrders = orderPage < orderTotalPages
+
 
     const orderRows = useMemo(() => {
         if (!ordersData) return []
@@ -269,17 +273,6 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         })
     }, [ordersData])
 
-    // const orderRows = useMemo(() => {
-    //     if (!ordersData) return [];
-    //     return ordersData.records.map((order) => ({
-    //         id: order.identifier,
-    //         product: order.items[0]?.product.title || 'N/A',
-    //         client: `${order.client.firstName} ${order.client.lastName}`,
-    //         amount: formatPrice(order.price),
-    //         date: formatDate(order.createdAt),
-    //         status: mapOrderStatus(order.status),
-    //     }))
-    // }, [ordersData])
 
     const { data: transactionsData, isLoading: isTransactionsLoading } = useQuery({
         queryKey: ['designer', 'transactions', designer.id, transactionPage],
@@ -356,10 +349,17 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     })
 
 
+
+
+
     const transactionMeta = transactionsData?.meta
-    const transactionPageCount = transactionMeta?.pageCount ?? 1
+    const totalCount = transactionMeta?.totalCount ?? 0
+    const transactionPerPage = transactionMeta?.perPage ?? transactionLimit // fallback to your requested limit
+    const transactionTotalPages = Math.ceil(totalCount / transactionPerPage)
+
     const canPreviousTransactions = transactionPage > 1
-    const canNextTransactions = transactionPage < transactionPageCount
+    const canNextTransactions = transactionPage < transactionTotalPages
+
 
     const financialRows = useMemo(() => {
         if (!transactionsData) return [];
@@ -374,9 +374,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
 
 
     const reviewMeta = reviewsData?.meta
-    const reviewPageCount = reviewMeta?.pageCount ?? 1
+    const reviewTotalCount = reviewMeta?.totalCount ?? 0
+    const reviewPerPage = reviewLimit // fallback to your requested limit
+    const reviewTotalPages = Math.ceil(reviewTotalCount / reviewPerPage)
+
     const canPreviousReviews = reviewPage > 1
-    const canNextReviews = reviewPage < reviewPageCount
+    const canNextReviews = reviewPage < reviewTotalPages
+
 
     const reviewRows = useMemo(() => {
         if (!reviewsData) return [];
@@ -900,7 +904,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             />
                                         </PaginationItem>
 
-                                        {Array.from({ length: orderPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                        {Array.from({ length: orderTotalPages }, (_, i) => i + 1).map((pageNum) => (
                                             <PaginationItem key={pageNum}>
                                                 <PaginationLink
                                                     href="#"
@@ -1015,7 +1019,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             />
                                         </PaginationItem>
 
-                                        {Array.from({ length: transactionPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                        {Array.from({ length: transactionTotalPages }, (_, i) => i + 1).map((pageNum) => (
                                             <PaginationItem key={pageNum}>
                                                 <PaginationLink
                                                     href="#"
@@ -1125,7 +1129,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             />
                                         </PaginationItem>
 
-                                        {Array.from({ length: reviewPageCount }, (_, i) => i + 1).map((pageNum) => (
+                                        {Array.from({ length: reviewTotalPages }, (_, i) => i + 1).map((pageNum) => (
                                             <PaginationItem key={pageNum}>
                                                 <PaginationLink
                                                     href="#"
