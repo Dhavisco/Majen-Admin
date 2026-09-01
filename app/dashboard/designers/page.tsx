@@ -104,6 +104,9 @@ const DesignersPageContent: React.FC = () => {
         search: searchInput || undefined,
     });
 
+    const totalPages = Math.ceil(pagination.totalCount / pagination.perPage)
+
+
     const verifyMutation = useMutation({
         mutationFn: (id: number) => verifyDesigner(id),
         onSuccess: async () => {
@@ -197,7 +200,10 @@ const DesignersPageContent: React.FC = () => {
                 {/* Tabs */}
                 <Tabs
                     value={activeTab}
-                    onValueChange={(value) => setActiveTab(value as DesignerTab)}
+                    onValueChange={(value) => {
+                        setActiveTab(value as DesignerTab);
+                        setCurrentPage(1)
+                    }}
                     className="w-full rounded-none"
                 >
                     <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
@@ -231,7 +237,15 @@ const DesignersPageContent: React.FC = () => {
                             placeholder="Search by name, email or CAC number..."
                             className="pl-10 bg-white text-xs md:text-sm"
                             value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
+                            // onChange={(e) => setSearchInput(e.target.value)}
+                            onChange={(event) => {
+                                const nextValue = event.target.value
+                                setSearchInput(nextValue)
+
+                                if (nextValue.trim() !== searchInput.trim()) {
+                                    setCurrentPage(1)
+                                }
+                            }}
                         />
                     </div>
 
@@ -388,22 +402,23 @@ const DesignersPageContent: React.FC = () => {
                                             aria-disabled={!pagination.canPrevious || isLoading}
                                         />
                                     </PaginationItem>
-                                    {Array.from({ length: pagination.pageCount }, (_, i) => i + 1).map((pageNum) => (
-                                        <PaginationItem key={pageNum}>
-                                            <PaginationLink
-                                                href="#"
-                                                isActive={pageNum === currentPage}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    if (isLoading) return;
-                                                    setCurrentPage(pageNum);
-                                                }}
-                                                className={`${pageNum === currentPage ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]' : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'} md:text-xs text-[11px] ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                            >
-                                                {pageNum}
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                    ))}
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                        .map((pageNum) => (
+                                            <PaginationItem key={pageNum}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={pageNum === currentPage}
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (isLoading) return;
+                                                        setCurrentPage(pageNum);
+                                                    }}
+                                                    className={`${pageNum === currentPage ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]' : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'} md:text-xs text-[11px] ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                >
+                                                    {pageNum}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
                                     <PaginationItem>
                                         <PaginationNext
                                             href="#"

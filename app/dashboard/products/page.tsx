@@ -91,6 +91,7 @@ const ProductPage: React.FC = () => {
     const {
         metrics,
         products: apiProducts,
+        pagination, currentPage, setCurrentPage,
         isLoading,
     } = useProducts({
         page: 1,
@@ -98,6 +99,7 @@ const ProductPage: React.FC = () => {
         status: backendStatus,
         search: searchInput || undefined,
     });
+    const totalPages = Math.ceil(pagination.totalCount / pagination.perPage);
 
     // Map API products to UI products
     const products: UIProduct[] = useMemo(() =>
@@ -213,7 +215,10 @@ const ProductPage: React.FC = () => {
                     {/* Tabs */}
                     <Tabs
                         value={activeTab}
-                        onValueChange={setActiveTab}
+                        onValueChange={(value) => {
+                            setActiveTab(value)
+                            setCurrentPage(1)
+                        }}
                         className="w-full rounded-none"
                     >
                         <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
@@ -247,7 +252,15 @@ const ProductPage: React.FC = () => {
                                 placeholder="Search by product name, or designer..."
                                 className="pl-10 bg-white text-xs md:text-sm"
                                 value={searchInput}
-                                onChange={(event) => setSearchInput(event.target.value)}
+                                // onChange={(event) => setSearchInput(event.target.value)}
+                                onChange={(event) => {
+                                    const nextValue = event.target.value
+                                    setSearchInput(nextValue)
+
+                                    if (nextValue.trim() !== searchInput.trim()) {
+                                        setCurrentPage(1)
+                                    }
+                                }}
                             />
                         </div>
 
@@ -374,38 +387,46 @@ const ProductPage: React.FC = () => {
                                         <PaginationItem>
                                             <PaginationPrevious
                                                 href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px]"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (isLoading) return;
+                                                    if (pagination.canPrevious) {
+                                                        setCurrentPage(currentPage - 1);
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px] ${!pagination.canPrevious || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!pagination.canPrevious || isLoading}
                                             />
                                         </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                isActive
-                                                className="bg-[#1A0089] text-white! hover:bg-[#14006b] md:text-xs text-[11px]"
-                                            >
-                                                1
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            >
-                                                2
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            >
-                                                3
-                                            </PaginationLink>
-                                        </PaginationItem>
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                            .map((pageNum) => (
+                                                <PaginationItem key={pageNum}>
+                                                    <PaginationLink
+                                                        href="#"
+                                                        isActive={pageNum === currentPage}
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            if (isLoading) return;
+                                                            setCurrentPage(pageNum);
+                                                        }}
+                                                        className={`${pageNum === currentPage ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]' : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'} md:text-xs text-[11px] ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                    >
+                                                        {pageNum}
+                                                    </PaginationLink>
+                                                </PaginationItem>
+                                            ))}
                                         <PaginationItem>
                                             <PaginationNext
                                                 href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    if (isLoading) return;
+                                                    if (pagination.canNext) {
+                                                        setCurrentPage(currentPage + 1);
+                                                    }
+                                                }}
+                                                className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px] ${!pagination.canNext || isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                                aria-disabled={!pagination.canNext || isLoading}
                                             />
                                         </PaginationItem>
                                     </PaginationContent>

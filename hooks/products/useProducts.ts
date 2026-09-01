@@ -25,6 +25,8 @@ export function useProducts(options: UseProductsOptions = {}) {
   });
 
 
+
+
   // Defensive: fallback to empty object if apiData or apiData.data is undefined, wrapped in useMemo
   const data = useMemo(() => {
     return apiData?.data ?? {
@@ -66,18 +68,36 @@ export function useProducts(options: UseProductsOptions = {}) {
 
   const products = useMemo(() => data.records ?? [], [data]);
 
-  const pagination = useMemo(() => {
-    if (!data.meta) return { currentPage: 1, totalCount: 0, perPage: 10, pageCount: 1, canPrevious: false, canNext: false };
-    const { page, totalCount, perPage, pageCount } = data.meta;
-    return {
-      currentPage: page,
-      totalCount,
-      perPage,
-      pageCount,
-      canPrevious: page > 1,
-      canNext: page < pageCount,
-    };
-  }, [data]);
+   const pagination = useMemo(() => {
+    if (!data.meta) {
+      return { currentPage: 1, totalCount: 0, perPage: limit, itemsInPage: 0, totalPages: 1, canPrevious: false, canNext: false, startIndex: 0, endIndex: 0 };
+    }
+
+    const { page, totalCount, perPage, pageCount } = data.meta; // pageCount = items in this page
+    const totalPages = Math.ceil(totalCount / perPage);
+    const canPrevious = page > 1;
+    const canNext = page < totalPages;
+    const startIndex = (page - 1) * perPage + 1;
+    const endIndex = Math.min(startIndex + pageCount - 1, totalCount);
+
+    return { currentPage: page, totalCount, perPage, itemsInPage: pageCount, totalPages, canPrevious, canNext, startIndex, endIndex };
+  }, [data, limit]);
+
+  // const pagination = useMemo(() => {
+  //   if (!data.meta) return {
+  //     currentPage: 1, totalCount: 0, perPage: 10, pageCount: 1, canPrevious: false, canNext: false 
+  //   };
+   
+  //   const { page, totalCount, perPage, pageCount } = data.meta;
+  //   return {
+  //     currentPage: page,
+  //     totalCount,
+  //     perPage,
+  //     pageCount,
+  //     canPrevious: page > 1,
+  //     canNext: page < pageCount,
+  //   };
+  // }, [data]);
 
   return {
     metrics,
