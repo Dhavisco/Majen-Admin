@@ -47,6 +47,7 @@ interface OpenReportsResponse {
 export interface FlaggedReviewRecord {
   id: string;
   reason: string;
+  status: string;
   review: {
     id: number;
     description: string;

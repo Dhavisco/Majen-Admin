@@ -209,9 +209,10 @@ const ReportPage: React.FC = () => {
                         <Table className="text-xs md:text-sm">
                             <TableHeader>
                                 <TableRow className="bg-gray-50/50">
-                                    <TableHead className="font-semibold text-muted-foreground">REVIEW</TableHead>
+
                                     <TableHead className="font-semibold text-muted-foreground">REPORTER</TableHead>
-                                    <TableHead className="font-semibold text-muted-foreground">AGAINST</TableHead>
+                                    <TableHead className="font-semibold text-muted-foreground">REVIEW</TableHead>
+                                    <TableHead className="font-semibold text-muted-foreground">STATUS</TableHead>
                                     <TableHead className="font-semibold text-muted-foreground">ACTION</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -228,9 +229,15 @@ const ReportPage: React.FC = () => {
                                 ) : flaggedReviews.length > 0 ? (
                                     flaggedReviews.map((item) => (
                                         <TableRow key={item.id}>
-                                            <TableCell className="font-medium italic text-gray-600">{item.review.description}</TableCell>
+
                                             <TableCell className="font-medium">{formatPerson(item.reporter)}</TableCell>
-                                            <TableCell className="font-medium">{formatPerson(item.reportedUser)}</TableCell>
+                                            <TableCell className="font-medium italic text-gray-600">{item.review.description}</TableCell>
+                                            <TableCell>
+                                                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${getStatusTone(item.status)}`}>
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                                                    {getStatusLabel(item.status)}
+                                                </span>
+                                            </TableCell>
                                             <TableCell>
                                                 <Button
                                                     size="xs"
