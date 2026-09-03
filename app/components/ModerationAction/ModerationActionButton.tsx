@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export type ModerationActionType =
+    | 'resolve-report'
     | 'verify-account'
     | 'reject-application'
     | 'flag-account'
@@ -55,6 +56,7 @@ type ModerationActionButtonProps = {
     buttonSize?: React.ComponentProps<typeof Button>['size']
     disabled?: boolean
     onConfirm?: (reason?: string) => Promise<void> | void
+    onSuccess?: (message: string) => void
     warningText?: string
     reasonText?: string
     requireReason?: boolean
@@ -62,6 +64,15 @@ type ModerationActionButtonProps = {
 }
 
 const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
+    'resolve-report': {
+        title: 'Resolve report',
+        description: 'Marks this report as resolved.',
+        confirmLabel: 'Resolve Report',
+        tone: 'primary',
+        icon: FaCheckCircle,
+        iconBoxClassName: 'bg-indigo-50',
+        iconClassName: 'text-[#1A0089]',
+    },
     'verify-account': {
         title: 'Verify account',
         description: 'Grants full access to sell on Majen. Their profile and products become visible to clients.',
@@ -175,6 +186,7 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
 }
 
 const triggerIconByAction: Record<ModerationActionType, IconType> = {
+    'resolve-report': FaCheckCircle,
     'verify-account': FaCheckCircle,
     'reject-application': FaTimes,
     'flag-account': FaFlag,
@@ -206,6 +218,7 @@ export default function ModerationActionButton({
     buttonSize = 'default',
     disabled,
     onConfirm,
+    onSuccess,
     warningText,
     reasonText,
     requireReason,
@@ -216,6 +229,7 @@ export default function ModerationActionButton({
     const [rejectionReason, setRejectionReason] = useState('')
 
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
 
 
@@ -277,6 +291,9 @@ export default function ModerationActionButton({
             await onConfirm(showReasonInput ? rejectionReason.trim() : undefined)
             setOpen(false)
             setShowWarning(false)
+            const message = `${config.title} for ${subject} was successful.`
+            setSuccessMessage(message)
+            onSuccess?.(message)
         } catch (err) {
             const error = err as AxiosError<{ success: boolean; message: string; stack?: string }>
             // Axios error handling
@@ -313,9 +330,33 @@ export default function ModerationActionButton({
         }
     }, [open, reasonText, isSubmitting])
 
+    useEffect(() => {
+        if (!successMessage) {
+            return
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setSuccessMessage(null)
+        }, 4000)
+
+        return () => {
+            window.clearTimeout(timeoutId)
+        }
+    }, [successMessage])
+
 
     return (
         <>
+            {successMessage && (
+                <div
+                    className="fixed right-4 top-4 z-70 max-w-sm rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-lg"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {successMessage}
+                </div>
+            )}
+
             <Button
                 type="button"
                 variant={buttonVariant}

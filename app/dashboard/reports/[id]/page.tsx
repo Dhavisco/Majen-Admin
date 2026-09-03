@@ -1,13 +1,15 @@
 'use client'
 
-// import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout'
+import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getReportedChatById, type ReportPerson } from '@/lib/api/reports'
+import { getReportedChatById, resolveReport, type ReportPerson } from '@/lib/api/reports'
+import { flagUser, suspendUser } from '@/lib/api/designers'
 
 const formatPerson = (person?: Partial<ReportPerson> | null) => {
     if (!person) {
@@ -134,6 +136,8 @@ function ReportDetailSkeleton() {
 export default function ReportDetailPage() {
     const params = useParams()
     const rawId = Array.isArray(params.id) ? params.id[0] : params.id
+    const queryClient = useQueryClient()
+    const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
     if (!rawId) {
         notFound()
@@ -145,6 +149,40 @@ export default function ReportDetailPage() {
         enabled: Boolean(rawId),
     })
 
+    const resolveMutation = useMutation({
+        mutationFn: () => resolveReport(rawId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+            await queryClient.invalidateQueries({ queryKey: ['reports', 'detail', rawId] })
+        },
+    })
+
+    const flagMutation = useMutation({
+        mutationFn: (reason: string) => flagUser(report?.reportedUserId ?? 0, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+        },
+    })
+
+    const suspendMutation = useMutation({
+        mutationFn: (reason: string) => suspendUser(report?.reportedUserId ?? 0, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+        },
+    })
+
+    useEffect(() => {
+        if (!successMessage) {
+            return
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setSuccessMessage(null)
+        }, 4000)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [successMessage])
+
     if (isError) {
         notFound()
     }
@@ -153,31 +191,49 @@ export default function ReportDetailPage() {
         return <ReportDetailSkeleton />
     }
 
+    // const report = data.report
     const report = data.report
     const reporterName = formatPerson(report.reporter)
     const reportedUserName = formatPerson(report.reportedUser)
     const statusTone = getStatusTone(report.status)
     const statusLabel = getStatusLabel(report.status)
 
+    const isResolved = report.status === 'RESOLVED'
+
+
     return (
         <DashboardLayout>
+            {successMessage && (
+                <div
+                    className="fixed right-4 top-4 z-70 max-w-sm rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-lg"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {successMessage}
+                </div>
+            )}
+
             <div className="space-y-6 md:p-0">
                 <div className="flex flex-col gap-3 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <p className="text-2xl font-bold">Flagged Review</p>
+                        <p className="text-2xl font-bold">Chat Report</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Filed by {reporterName} | Submitted {formatDate(report.createdAt)}
+                            Filed by {reporterName} | Submitted {formatDate(report?.createdAt)}
                         </p>
                     </div>
 
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="border-slate-200 text-slate-700 hover:bg-slate-50">
-                            Resolve Report
-                        </Button>
-                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b]">
-                            Flag User
-                        </Button>
-                    </div>
+                    {!isResolved && (
+                        <ModerationActionButton
+                            action="resolve-report"
+                            subject={report.identifier}
+                            buttonLabel="Resolve Report"
+                            buttonSize="sm"
+                            buttonClassName="bg-[#1A0089] hover:bg-[#14006b]"
+                            disabled={resolveMutation.isPending}
+                            onSuccess={setSuccessMessage}
+                            onConfirm={() => resolveMutation.mutateAsync()}
+                        />
+                    )}
                 </div>
 
                 <section className="overflow-hidden rounded-xl border bg-white">
@@ -185,7 +241,7 @@ export default function ReportDetailPage() {
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <p className="text-lg font-bold">Chat Report</p>
-                                <h1 className="mt-2 text-base font-bold text-[#1A0089]">{report.identifier}</h1>
+                                <h1 className="mt-2 text-base font-bold text-[#1A0089]">{report?.identifier}</h1>
 
                             </div>
 
@@ -218,11 +274,11 @@ export default function ReportDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Submitted</p>
-                                        <p className="mt-2 font-semibold">{formatDate(report.createdAt)}</p>
+                                        <p className="mt-2 font-semibold">{formatDate(report?.createdAt)}</p>
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Last updated</p>
-                                        <p className="mt-2 font-semibold">{formatDate(report.updatedAt)}</p>
+                                        <p className="mt-2 font-semibold">{formatDate(report?.updatedAt)}</p>
                                     </div>
                                 </div>
                             </div>
@@ -244,7 +300,7 @@ export default function ReportDetailPage() {
                                     <div className="rounded-xl border bg-slate-50 px-3 py-3 text-sm text-slate-700">
                                         {report.notes || 'No admin note has been added for this report yet.'}
                                     </div>
-                                    <Button variant="outline" className="border-[#1A0089] text-[#1A0089] hover:bg-[#1A0089]/5">
+                                    <Button variant="outline" className="border-[#1A0089] text-[#1A0089] hover:bg-[#1A0089]/5 cursor-pointer">
                                         Save note
                                     </Button>
                                 </div>
@@ -263,13 +319,52 @@ export default function ReportDetailPage() {
                                     </div>
                                     <div className="flex items-center justify-between gap-3">
                                         <span className="text-muted-foreground">Last updated</span>
-                                        <span className="font-semibold">{formatDate(report.updatedAt)}</span>
+                                        <span className="font-semibold">{formatDate(report?.updatedAt)}</span>
                                     </div>
+
+
+
+
                                     <div className="space-y-2 pt-2">
-                                        <Button className="w-full bg-[#1A0089] hover:bg-[#14006b]">Resolve Report</Button>
-                                        <Button variant="destructive" className="w-full hover:bg-red-600">Flag User</Button>
-                                        <Button variant="outline" className="w-full border-red-200 text-red-600 hover:bg-red-50">Suspend User</Button>
+                                        {!isResolved && (
+                                            <ModerationActionButton
+                                                action="resolve-report"
+                                                subject={report.identifier}
+                                                buttonLabel="Resolve Report"
+                                                buttonClassName="w-full bg-[#1A0089] hover:bg-[#14006b]"
+                                                disabled={resolveMutation.isPending}
+                                                onSuccess={setSuccessMessage}
+                                                onConfirm={() => resolveMutation.mutateAsync()}
+                                            />
+                                        )}
+                                        <ModerationActionButton
+                                            action="flag-account"
+                                            subject={reportedUserName}
+                                            buttonLabel="Flag User"
+                                            buttonClassName="w-full bg-[#D97706] text-white hover:bg-[#b86500]"
+                                            requireReason
+                                            disabled={flagMutation.isPending}
+                                            onSuccess={setSuccessMessage}
+                                            onConfirm={(reason?: string) => {
+                                                if (!reason?.trim()) return
+                                                return flagMutation.mutateAsync(reason.trim())
+                                            }}
+                                        />
+                                        <ModerationActionButton
+                                            action="suspend-account"
+                                            subject={reportedUserName}
+                                            buttonLabel="Suspend User"
+                                            buttonClassName="w-full border-red-200 bg-[#DC2626] text-white hover:bg-[#b91d1d]"
+                                            requireReason
+                                            disabled={suspendMutation.isPending}
+                                            onSuccess={setSuccessMessage}
+                                            onConfirm={(reason?: string) => {
+                                                if (!reason?.trim()) return
+                                                return suspendMutation.mutateAsync(reason.trim())
+                                            }}
+                                        />
                                     </div>
+
                                 </div>
                             </div>
 
@@ -280,11 +375,11 @@ export default function ReportDetailPage() {
                                 <div className="p-4">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E9E3FF] text-sm font-bold text-[#1A0089]">
-                                            {getInitials(report.reportedUser?.firstName, report.reportedUser?.lastName)}
+                                            {getInitials(report?.reportedUser?.firstName, report?.reportedUser?.lastName)}
                                         </div>
                                         <div>
                                             <p className="font-semibold">{reportedUserName}</p>
-                                            <p className="text-sm text-muted-foreground">User #{report.reportedUserId}</p>
+                                            <p className="text-sm text-muted-foreground">User #{report?.reportedUserId}</p>
                                         </div>
                                     </div>
                                 </div>

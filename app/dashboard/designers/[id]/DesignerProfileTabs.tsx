@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaRegStar, FaStar, FaStarHalfAlt } from 'react-icons/fa'
 import { FaTiktok, FaXTwitter } from 'react-icons/fa6'
@@ -179,6 +179,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState<TabId>('overview')
     const [noteDraft, setNoteDraft] = useState('')
+    const [successMessage, setSuccessMessage] = useState<string | null>(null)
     const [productStatus, setProductStatus] = useState<'ACTIVE' | 'PENDING' | 'REJECTED' | undefined>(undefined)
     const [productPage, setProductPage] = useState(1)
     const productLimit = 10
@@ -348,6 +349,18 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         },
     })
 
+    useEffect(() => {
+        if (!successMessage) {
+            return
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setSuccessMessage(null)
+        }, 4000)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [successMessage])
+
 
 
 
@@ -455,6 +468,16 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
 
     return (
         <section className="space-y-4">
+            {successMessage && (
+                <div
+                    className="fixed right-4 top-4 z-70 max-w-sm rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-lg"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {successMessage}
+                </div>
+            )}
+
             <div className="overflow-x-auto">
                 <div className="inline-flex justify-between w-max min-w-full gap-1 rounded-xl border bg-white p-1 sm:min-w-0" role="tablist" aria-label="Designer profile sections">
                     {tabs.map((tab) => {
@@ -633,6 +656,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                             activeOrderCount={activeOrdersData}
                                             buttonSize="default"
                                             disabled={action.disabled}
+                                            onSuccess={setSuccessMessage}
                                             requireReason={isFlagAction || isSuspendAction || isBanAction}
                                             buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
                                             onConfirm={

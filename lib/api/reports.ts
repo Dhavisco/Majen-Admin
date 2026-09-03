@@ -164,3 +164,7 @@ export async function getFlaggedReviewById(id: number): Promise<FlaggedReviewDet
 
   return data.data;
 }
+
+export async function resolveReport(id: string): Promise<void> {
+  await axiosInstance.post(`/admin/reports/${id}/resolve`);
+}
