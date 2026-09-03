@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { FaCheckCircle, FaClock, FaRegFlag, FaShieldAlt } from 'react-icons/fa';
@@ -18,6 +18,14 @@ import {
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout';
 import MetricCard from '@/app/components/MetricCard/MetricCard';
 import { getFlaggedReviews, getOpenReports, getReportsSummary } from '@/lib/api/reports';
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination'
 
 function formatPerson(person: { firstName: string; lastName: string }) {
     return `${person.firstName} ${person.lastName}`.trim();
@@ -75,19 +83,48 @@ const ReportPage: React.FC = () => {
         queryFn: getReportsSummary,
     });
 
+    const [openReportsPage, setOpenReportsPage] = useState(1)
+    const openReportsLimit = 10
+
     const openReportsQuery = useQuery({
-        queryKey: ['reports', 'open', 1, 10],
-        queryFn: () => getOpenReports(10, 1),
-    });
+        queryKey: ['reports', 'open', openReportsPage, openReportsLimit],
+        queryFn: () => getOpenReports(openReportsLimit, openReportsPage),
+    })
+
+    const openReportsData = openReportsQuery.data
+    const openReports = openReportsData?.records ?? []
+    const openReportsMeta = openReportsData?.meta
+
+    const openReporttotalCount = openReportsMeta?.totalCount ?? 0
+    const openReportsPerPage = openReportsMeta?.perPage ?? openReportsLimit
+    const openReportsTotalPages = Math.ceil(openReporttotalCount / openReportsPerPage)
+
+    const canPreviousReports = openReportsPage > 1
+    const canNextReports = openReportsPage < openReportsTotalPages
+
+
+    const [flaggedReviewsPage, setFlaggedReviewsPage] = useState(1)
+    const flaggedReviewsLimit = 10
 
     const flaggedReviewsQuery = useQuery({
-        queryKey: ['reports', 'flagged-reviews', 1, 10],
-        queryFn: () => getFlaggedReviews(10, 1),
-    });
+        queryKey: ['reports', 'flagged-reviews', flaggedReviewsPage, flaggedReviewsLimit],
+        queryFn: () => getFlaggedReviews(flaggedReviewsLimit, flaggedReviewsPage),
+    })
+
+    const flaggedReviewsData = flaggedReviewsQuery.data
+    const flaggedReviews = flaggedReviewsData?.records ?? []
+    const flaggedReviewsMeta = flaggedReviewsData?.meta
+
+    const flaggedReviewstotalCount = flaggedReviewsMeta?.totalCount ?? 0
+    const flaggedReviewsperPage = flaggedReviewsMeta?.perPage ?? flaggedReviewsLimit
+    const totalPages = Math.ceil(flaggedReviewstotalCount / flaggedReviewsperPage)
+
+    const canPreviousFlagged = flaggedReviewsPage > 1
+    const canNextFlagged = flaggedReviewsPage < totalPages
+
+
 
     const summary = summaryQuery.data;
-    const openReports = openReportsQuery.data ?? [];
-    const flaggedReviews = flaggedReviewsQuery.data ?? [];
 
     // console.log('Open Reports:', openReports);
     // console.log('Flagged Reviews:', flaggedReviews);
@@ -181,11 +218,11 @@ const ReportPage: React.FC = () => {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button size="xs" className="bg-[#1A0089] text-white px-4 font-semibold cursor-pointer hover:text-white hover:bg-[#14006b]">
-                                                        <Link href={`/dashboard/reports/${item.id}`} className="text-white">
+                                                    <Link href={`/dashboard/reports/${item.id}`} className="text-white">
+                                                        <Button size="xs" className="bg-[#1A0089] text-white px-4 font-semibold cursor-pointer hover:text-white hover:bg-[#14006b]">
                                                             Review
-                                                        </Link>
-                                                    </Button>
+                                                        </Button>
+                                                    </Link>
                                                 </TableCell>
                                             </TableRow>
                                         );
@@ -199,6 +236,66 @@ const ReportPage: React.FC = () => {
                                 )}
                             </TableBody>
                         </Table>
+
+                        <div className="flex items-center justify-between border-t px-3 py-4">
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                                Showing {openReports.length} of {openReportsMeta?.totalCount ?? 0} reports
+                            </p>
+
+                            <Pagination className="mx-0 w-auto justify-start sm:justify-end">
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (canPreviousReports) {
+                                                    setOpenReportsPage((prev) => prev - 1)
+                                                }
+                                            }}
+                                            className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] text-xs border-[0.5px] ${!canPreviousReports ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                                }`}
+                                            aria-disabled={!canPreviousReports}
+                                        />
+                                    </PaginationItem>
+
+                                    {Array.from({ length: openReportsTotalPages }, (_, i) => i + 1).map((pageNum) => (
+                                        <PaginationItem key={pageNum}>
+                                            <PaginationLink
+                                                href="#"
+                                                isActive={pageNum === openReportsPage}
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    setOpenReportsPage(pageNum)
+                                                }}
+                                                className={`${pageNum === openReportsPage
+                                                    ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]'
+                                                    : 'text-[#1A0089]! hover:text-[#1A0089]/10 border-[#1A00894b] border-[0.5px]'
+                                                    } text-xs cursor-pointer`}
+                                            >
+                                                {pageNum}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (canNextReports) {
+                                                    setOpenReportsPage((prev) => prev + 1)
+                                                }
+                                            }}
+                                            className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] text-xs ${!canNextReports ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                                }`}
+                                            aria-disabled={!canNextReports}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </div>
+
                     </div>
 
                     <div className="overflow-hidden rounded-xl border bg-white">
@@ -239,12 +336,14 @@ const ReportPage: React.FC = () => {
                                                 </span>
                                             </TableCell>
                                             <TableCell>
-                                                <Button
-                                                    size="xs"
-                                                    variant="outline"
-                                                    className="bg-[#1A0089] text-white px-4 font-semibold cursor-pointer hover:text-white hover:bg-[#14006b]">
-                                                    <Link href={`/dashboard/reports/reviews/${item.review.id}`}>Review</Link>
-                                                </Button>
+                                                <Link href={`/dashboard/reports/reviews/${item.review.id}`}>
+                                                    <Button
+                                                        size="xs"
+                                                        variant="outline"
+                                                        className="bg-[#1A0089] text-white px-4 font-semibold cursor-pointer hover:text-white hover:bg-[#14006b]">
+                                                        Review
+                                                    </Button>
+                                                </Link>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -257,6 +356,63 @@ const ReportPage: React.FC = () => {
                                 )}
                             </TableBody>
                         </Table>
+
+                        <div className="flex items-center justify-between border-t px-3 py-4">
+                            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+                                Showing {flaggedReviews.length} of {flaggedReviewsMeta?.totalCount ?? 0} flagged reviews
+                            </p>
+
+                            <Pagination className="mx-0 w-auto justify-start sm:justify-end">
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (canPreviousFlagged) setFlaggedReviewsPage((prev) => prev - 1)
+                                            }}
+                                            aria-disabled={!canPreviousFlagged}
+                                            className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] text-xs border-[0.5px] ${!canPreviousFlagged ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                                }`}
+                                        />
+                                    </PaginationItem>
+
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                                        <PaginationItem key={pageNum}>
+                                            <PaginationLink
+                                                href="#"
+                                                isActive={pageNum === flaggedReviewsPage}
+                                                onClick={(e) => {
+                                                    e.preventDefault()
+                                                    setFlaggedReviewsPage(pageNum)
+                                                }}
+                                                className={`${pageNum === flaggedReviewsPage
+                                                    ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]'
+                                                    : 'text-[#1A0089]! hover:text-[#1A0089]/10 border-[#1A00894b] border-[0.5px]'
+                                                    } text-xs cursor-pointer`}
+                                            >
+                                                {pageNum}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    ))}
+
+                                    <PaginationItem>
+                                        <PaginationNext
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault()
+                                                if (canNextFlagged) setFlaggedReviewsPage((prev) => prev + 1)
+                                            }}
+                                            aria-disabled={!canNextFlagged}
+                                            className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] text-xs ${!canNextFlagged ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                                }`}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                        </div>
+
+
                     </div>
                 </div>
             </div>

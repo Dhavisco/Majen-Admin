@@ -22,54 +22,6 @@ export interface ReportPerson {
   };
 }
 
-export interface OpenReportRecord {
-  id: string;
-  status: string;
-  reason: string;
-  reporter: ReportPerson;
-  reportedUser: ReportPerson;
-}
-
-interface OpenReportsResponse {
-  success: boolean;
-  message: string;
-  data: {
-    records: OpenReportRecord[];
-    meta: {
-      totalCount: number;
-      page: number;
-      perPage: number;
-      pageCount: number;
-    };
-  };
-}
-
-export interface FlaggedReviewRecord {
-  id: string;
-  reason: string;
-  status: string;
-  review: {
-    id: number;
-    description: string;
-  };
-  reporter: ReportPerson;
-  reportedUser: ReportPerson;
-}
-
-interface FlaggedReviewsResponse {
-  success: boolean;
-  message: string;
-  data: {
-    records: FlaggedReviewRecord[];
-    meta: {
-      totalCount: number;
-      page: number;
-      perPage: number;
-      pageCount: number;
-    };
-  };
-}
-
 export interface ReportDetail {
   id: string;
   identifier: string;
@@ -131,29 +83,110 @@ export async function getReportsSummary(): Promise<ReportsSummary> {
   return data.data;
 }
 
-export async function getOpenReports(limit = 10, page = 1): Promise<OpenReportRecord[]> {
-  const { data } = await axiosInstance.get<OpenReportsResponse>('/admin/reports/open', {
-    params: {
-      pagination: true,
-      limit,
-      page,
-    },
-  });
-
-  return data.data.records;
+export interface OpenReportRecord {
+  id: string
+  status: string
+  reason: string
+  reporter: ReportPerson
+  reportedUser: ReportPerson
 }
 
-export async function getFlaggedReviews(limit = 10, page = 1): Promise<FlaggedReviewRecord[]> {
-  const { data } = await axiosInstance.get<FlaggedReviewsResponse>('/admin/reports/flagged-reviews', {
-    params: {
-      pagination: true,
-      limit,
-      page,
-    },
-  });
-
-  return data.data.records;
+export interface OpenReportsResponse {
+  success: boolean
+  message: string
+  data: {
+    records: OpenReportRecord[]
+    meta: {
+      totalCount: number
+      page: number
+      perPage: number
+      pageCount: number
+    }
+  }
 }
+
+// smaller type for UI
+export interface OpenReportsData {
+  records: OpenReportRecord[]
+  meta: {
+    totalCount: number
+    page: number
+    perPage: number
+    pageCount: number
+  }
+}
+
+export async function getOpenReports(
+  limit = 10,
+  page = 1
+): Promise<OpenReportsData> {
+  const { data } = await axiosInstance.get<OpenReportsResponse>(
+    '/admin/reports/open',
+    { params: { pagination: true, limit, page } }
+  )
+
+  // return only the inner data
+  return data.data
+}
+
+export interface ReportPerson {
+  id?: number
+  firstName: string
+  lastName: string
+  _count?: {
+    givenReviews?: number
+  }
+}
+
+export interface FlaggedReviewRecord {
+  id: string
+  reason: string
+  status: string
+  review: {
+    id: number
+    description: string
+  }
+  reporter: ReportPerson
+  reportedUser: ReportPerson
+}
+
+export interface FlaggedReviewsResponse {
+  success: boolean
+  message: string
+  data: {
+    records: FlaggedReviewRecord[]
+    meta: {
+      totalCount: number
+      page: number
+      perPage: number
+      pageCount: number
+    }
+  }
+}
+
+// ✅ Smaller type for UI
+export interface FlaggedReviewsData {
+  records: FlaggedReviewRecord[]
+  meta: {
+    totalCount: number
+    page: number
+    perPage: number
+    pageCount: number
+  }
+}
+
+export async function getFlaggedReviews(
+  limit = 10,
+  page = 1
+): Promise<FlaggedReviewsData> {
+  const { data } = await axiosInstance.get<FlaggedReviewsResponse>(
+    '/admin/reports/flagged-reviews',
+    { params: { pagination: true, limit, page } }
+  )
+
+  return data.data
+}
+
 
 export async function getReportedChatById(id: string): Promise<{ report: ReportDetail; priorReportsCount: number }> {
   const { data } = await axiosInstance.get<ReportDetailResponse>(`/admin/reports/${id}`);

@@ -275,7 +275,7 @@ export default function FlaggedReviewDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Rating</p>
-                                        <p className="mt-2 font-semibold text-red-500">{review?.rating} star</p>
+                                        <p className="mt-2 font-semibold text-[#E11D48]">{review?.rating} star</p>
                                     </div>
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Submitted</p>
@@ -283,7 +283,7 @@ export default function FlaggedReviewDetailPage() {
                                     </div>
                                     <div className="md:col-span-2">
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Reason</p>
-                                        <p className="mt-2 font-semibold text-slate-700">{report?.reason || 'Unspecified'}</p>
+                                        <p className="mt-2 font-semibold text-[#E11D48]">{report?.reason || 'Unspecified'}</p>
                                     </div>
                                     <div className="md:col-span-2">
                                         <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Related order</p>
