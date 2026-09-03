@@ -181,7 +181,7 @@ const ReportPage: React.FC = () => {
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button size="xs" className="bg-[#1A0089] text-white px-4 font-semibold hover:bg-[#14006b]">
+                                                    <Button size="xs" className="bg-[#1A0089] text-white px-4 font-semibold cursor-pointer hover:text-white hover:bg-[#14006b]">
                                                         <Link href={`/dashboard/reports/${item.id}`} className="text-white">
                                                             Review
                                                         </Link>
@@ -242,7 +242,7 @@ const ReportPage: React.FC = () => {
                                                 <Button
                                                     size="xs"
                                                     variant="outline"
-                                                    className="bg-[#1A0089] text-white px-4 font-semibold hover:bg-[#14006b]">
+                                                    className="bg-[#1A0089] text-white px-4 font-semibold cursor-pointer hover:text-white hover:bg-[#14006b]">
                                                     <Link href={`/dashboard/reports/reviews/${item.review.id}`}>Review</Link>
                                                 </Button>
                                             </TableCell>

@@ -1,13 +1,15 @@
 'use client'
 
-// import Link from 'next/link'
 import { notFound, useParams } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import DashboardLayout from '@/app/components/DashboardLayout/DashboardLayout'
+import ModerationActionButton from '@/app/components/ModerationAction/ModerationActionButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { getFlaggedReviewById, type ReportPerson } from '@/lib/api/reports'
+import { flagUser } from '@/lib/api/designers'
+import { getFlaggedReviewById, removeReview, resolveReport, restoreReview, type ReportPerson } from '@/lib/api/reports'
 
 const formatPerson = (person?: Partial<ReportPerson> | null) => {
     if (!person) {
@@ -120,6 +122,8 @@ function FlaggedReviewPageSkeleton() {
 export default function FlaggedReviewDetailPage() {
     const params = useParams()
     const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
+    const queryClient = useQueryClient()
+    const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
     if (!rawId) {
         notFound();
@@ -133,6 +137,48 @@ export default function FlaggedReviewDetailPage() {
         enabled: !isNaN(numericId),
     });
 
+    const resolveMutation = useMutation({
+        mutationFn: (id: string) => resolveReport(id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+            await queryClient.invalidateQueries({ queryKey: ['reports', 'flagged-review', numericId] })
+        },
+    })
+
+    const removeMutation = useMutation({
+        mutationFn: (id: number) => removeReview(id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+            await queryClient.invalidateQueries({ queryKey: ['reports', 'flagged-review', numericId] })
+        },
+    })
+
+    const restoreMutation = useMutation({
+        mutationFn: (id: number) => restoreReview(id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+            await queryClient.invalidateQueries({ queryKey: ['reports', 'flagged-review', numericId] })
+        },
+    })
+
+    const flagMutation = useMutation({
+        mutationFn: ({ userId, reason }: { userId: number; reason: string }) =>
+            flagUser(userId, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['reports'] })
+        },
+    })
+
+    useEffect(() => {
+        if (!successMessage) {
+            return
+        }
+
+        const timeoutId = window.setTimeout(() => setSuccessMessage(null), 4000)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [successMessage])
+
     if (isError) {
         notFound()
     }
@@ -141,14 +187,31 @@ export default function FlaggedReviewDetailPage() {
         return <FlaggedReviewPageSkeleton />
     }
 
-    const { review, report } = data
+    const review = data?.review
+    const report = data?.report
+
     const reviewerName = formatPerson(review.reviewer)
     // const reportedUserName = formatPerson(report.reportedUser)
     const statusTone = getStatusTone(report.status)
     const statusLabel = getStatusLabel(report.status)
 
+    const isResolved = report.status === 'RESOLVED'
+
+
+
+
     return (
         <DashboardLayout>
+            {successMessage && (
+                <div
+                    className="fixed right-4 top-4 z-70 max-w-sm rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-lg"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {successMessage}
+                </div>
+            )}
+
             <div className="space-y-6 md:p-0">
                 <div className="flex flex-col gap-1 border-b pb-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -159,12 +222,27 @@ export default function FlaggedReviewDetailPage() {
                     </div>
 
                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="border-slate-200 text-slate-700 hover:bg-slate-50">
-                            Remove Review
-                        </Button>
-                        <Button size="sm" className="bg-[#1A0089] hover:bg-[#14006b]">
-                            Restore Review
-                        </Button>
+                        <ModerationActionButton
+                            action="remove-review"
+                            subject={review.identifier}
+                            buttonLabel="Remove Review"
+                            buttonSize="sm"
+                            buttonClassName="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
+                            disabled={removeMutation.isPending}
+                            onSuccess={setSuccessMessage}
+                            onConfirm={() => removeMutation.mutateAsync(review.id)}
+                        />
+                        <ModerationActionButton
+                            action="restore-review"
+                            subject={review.identifier}
+                            buttonLabel="Restore Review"
+                            buttonVariant="outline"
+                            buttonSize="sm"
+                            buttonClassName="border-slate-200 text-[#52525B] hover:bg-slate-50"
+                            disabled={restoreMutation.isPending}
+                            onSuccess={setSuccessMessage}
+                            onConfirm={() => restoreMutation.mutateAsync(review.id)}
+                        />
                     </div>
                 </div>
 
@@ -221,7 +299,7 @@ export default function FlaggedReviewDetailPage() {
                                     <h3 className="text-xs font-semibold text-muted-foreground">FULL REVIEW</h3>
                                 </div>
                                 <div className="p-2">
-                                    <p className="text-sm italic text-slate-700">“{review.description}”</p>
+                                    <p className="text-sm italic text-slate-700 font-medium">“{review.description}”</p>
                                 </div>
                             </div>
 
@@ -254,11 +332,50 @@ export default function FlaggedReviewDetailPage() {
                                         <span className="text-muted-foreground font-medium">Last updated</span>
                                         <span className="font-semibold">{formatDate(report.updatedAt)}</span>
                                     </div>
-                                    <div className="space-y-2 pt-2">
-                                        <Button className="w-full bg-[#1A0089] hover:bg-[#14006b]">Resolve Flag</Button>
-                                        <Button variant="destructive" className="w-full hover:bg-red-600">Remove Review</Button>
-                                        <Button variant="outline" className="w-full border-emerald-200 text-emerald-600 hover:bg-emerald-50">Restore Review</Button>
-                                        <Button variant="outline" className="w-full border-rose-200 text-rose-600 hover:bg-rose-50">Flag Reviewer</Button>
+                                    <div className="space-y-2 pt-2 font-semibold">
+
+                                        {!isResolved && (
+                                            <ModerationActionButton
+                                                action="resolve-report"
+                                                subject={report.identifier}
+                                                buttonLabel="Resolve Flag"
+                                                buttonClassName="w-full bg-[#1A0089] hover:bg-[#14006b]"
+                                                disabled={resolveMutation.isPending}
+                                                onSuccess={setSuccessMessage}
+                                                onConfirm={() => resolveMutation.mutateAsync(report.id)}
+                                            />
+                                        )}
+                                        <ModerationActionButton
+                                            action="remove-review"
+                                            subject={review.identifier}
+                                            buttonLabel="Remove Review"
+                                            buttonClassName="w-full bg-[#E11D48] text-white hover:bg-[#d01a40]"
+                                            disabled={removeMutation.isPending}
+                                            onSuccess={setSuccessMessage}
+                                            onConfirm={() => removeMutation.mutateAsync(review.id)}
+                                        />
+                                        <ModerationActionButton
+                                            action="restore-review"
+                                            subject={review.identifier}
+                                            buttonLabel="Restore Review"
+                                            buttonClassName="w-full bg-[#16A34A] text-white hover:bg-[#148c3d]"
+                                            disabled={restoreMutation.isPending}
+                                            onSuccess={setSuccessMessage}
+                                            onConfirm={() => restoreMutation.mutateAsync(review.id)}
+                                        />
+                                        <ModerationActionButton
+                                            action="flag-account"
+                                            subject={reviewerName}
+                                            buttonLabel="Flag Reviewer"
+                                            buttonClassName="w-full bg-[#D97706] text-white hover:bg-[#c06a05]"
+                                            requireReason
+                                            disabled={flagMutation.isPending}
+                                            onSuccess={setSuccessMessage}
+                                            onConfirm={(reason?: string) => {
+                                                if (!reason?.trim()) return
+                                                return flagMutation.mutateAsync({ userId: review.reviewer.id, reason: reason.trim() })
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             </div>

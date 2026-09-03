@@ -170,3 +170,11 @@ export async function getFlaggedReviewById(id: number): Promise<FlaggedReviewDet
 export async function resolveReport(id: string): Promise<void> {
   await axiosInstance.post(`/admin/reports/${id}/resolve`);
 }
+
+export async function removeReview(id: number): Promise<void> {
+  await axiosInstance.post(`/admin/reports/reviews/${id}/remove`);
+}
+
+export async function restoreReview(id: number): Promise<void> {
+  await axiosInstance.post(`/admin/reports/reviews/${id}/restore`);
+}

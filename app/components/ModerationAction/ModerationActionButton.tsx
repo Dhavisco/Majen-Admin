@@ -33,6 +33,7 @@ export type ModerationActionType =
     | 'show-product'
     | 'cancel-order'
     | 'remove-review'
+    | 'restore-review'
 
 type ConfirmTone = 'primary' | 'danger' | 'warning' | 'success'
 
@@ -183,6 +184,15 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         iconBoxClassName: 'bg-red-50',
         iconClassName: 'text-red-600',
     },
+    'restore-review': {
+        title: 'Restore review',
+        description: 'Makes this review visible to users again.',
+        confirmLabel: 'Restore Review',
+        tone: 'success',
+        icon: FaLockOpen,
+        iconBoxClassName: 'bg-emerald-50',
+        iconClassName: 'text-emerald-600',
+    },
 }
 
 const triggerIconByAction: Record<ModerationActionType, IconType> = {
@@ -199,6 +209,7 @@ const triggerIconByAction: Record<ModerationActionType, IconType> = {
     'show-product': FaEye,
     'cancel-order': FaTimes,
     'remove-review': FaTrash,
+    'restore-review': FaLockOpen,
 }
 
 const confirmToneClass: Record<ConfirmTone, string> = {

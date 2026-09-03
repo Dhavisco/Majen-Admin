@@ -121,7 +121,7 @@ const Header: React.FC = () => {
         }
         if (reviewFlagId && reviewFlagDetail) {
             return {
-                label: 'Flagged Reviews',
+                label: 'Reports',
                 href: '/dashboard/reports',
                 name: `Flagged Review #${reviewFlagDetail.report.identifier}`,
             };
