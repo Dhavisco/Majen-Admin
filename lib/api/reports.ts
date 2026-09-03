@@ -24,6 +24,7 @@ export interface ReportPerson {
 
 export interface OpenReportRecord {
   id: string;
+  status: string;
   reason: string;
   reporter: ReportPerson;
   reportedUser: ReportPerson;

@@ -23,29 +23,51 @@ function formatPerson(person: { firstName: string; lastName: string }) {
     return `${person.firstName} ${person.lastName}`.trim();
 }
 
-function formatReason(reason: string) {
-    const trimmedReason = reason.trim();
+// function formatReason(reason: string) {
+//     const trimmedReason = reason.trim();
 
-    return trimmedReason.length > 0 ? trimmedReason : 'Unspecified';
+//     return trimmedReason.length > 0 ? trimmedReason : 'Unspecified';
+// }
+
+// function getReasonTone(reason: string) {
+//     const normalizedReason = reason.toLowerCase();
+
+//     if (normalizedReason.includes('abuse') || normalizedReason.includes('harass')) {
+//         return 'bg-rose-100 text-rose-600';
+//     }
+
+//     if (normalizedReason.includes('scam') || normalizedReason.includes('fraud')) {
+//         return 'bg-orange-100 text-orange-600';
+//     }
+
+//     if (normalizedReason.includes('delay')) {
+//         return 'bg-amber-100 text-amber-700';
+//     }
+
+//     return 'bg-slate-100 text-slate-600';
+// }
+
+function getStatusTone(status: string) {
+    const normalized = status.toUpperCase()
+
+    if (normalized === 'RESOLVED') {
+        return 'bg-[#F0FDF4] border border-[#FFFFFF33] text-[#16A34A]'
+    }
+
+    if (normalized === 'OPEN') {
+        return 'bg-[#FFFBEB] border border-[#FFFFFF33] text-[#D97706]'
+    }
+
+    return 'bg-slate-100 text-slate-600'
+}
+function getStatusLabel(status: string) {
+    const normalized = status.toUpperCase()
+    if (normalized === 'RESOLVED') return 'Resolved'
+    if (normalized === 'OPEN') return 'Open'
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
 }
 
-function getReasonTone(reason: string) {
-    const normalizedReason = reason.toLowerCase();
 
-    if (normalizedReason.includes('abuse') || normalizedReason.includes('harass')) {
-        return 'bg-rose-100 text-rose-600';
-    }
-
-    if (normalizedReason.includes('scam') || normalizedReason.includes('fraud')) {
-        return 'bg-orange-100 text-orange-600';
-    }
-
-    if (normalizedReason.includes('delay')) {
-        return 'bg-amber-100 text-amber-700';
-    }
-
-    return 'bg-slate-100 text-slate-600';
-}
 
 const ReportPage: React.FC = () => {
     const summaryQuery = useQuery({
@@ -130,7 +152,7 @@ const ReportPage: React.FC = () => {
                                 <TableRow className="bg-gray-50/50">
                                     <TableHead className="font-semibold text-muted-foreground">REPORTER</TableHead>
                                     <TableHead className="font-semibold text-muted-foreground">AGAINST</TableHead>
-                                    <TableHead className="font-semibold text-muted-foreground">REASON</TableHead>
+                                    <TableHead className="font-semibold text-muted-foreground">STATUS</TableHead>
                                     <TableHead className="font-semibold text-muted-foreground">ACTION</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -146,16 +168,16 @@ const ReportPage: React.FC = () => {
                                     ))
                                 ) : openReports.length > 0 ? (
                                     openReports.map((item) => {
-                                        const tone = getReasonTone(item.reason);
+                                        // const tone = getReasonTone(item.reason);
 
                                         return (
                                             <TableRow key={item.id}>
                                                 <TableCell className="font-medium">{formatPerson(item.reporter)}</TableCell>
                                                 <TableCell className="font-medium">{formatPerson(item.reportedUser)}</TableCell>
                                                 <TableCell>
-                                                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${tone}`}>
+                                                    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 font-semibold ${getStatusTone(item.status)}`}>
                                                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                                                        {formatReason(item.reason)}
+                                                        {getStatusLabel(item.status)}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>
