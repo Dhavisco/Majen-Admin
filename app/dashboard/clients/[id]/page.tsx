@@ -20,6 +20,20 @@ const statusBadgeClass: Record<string, string> = {
     SUSPENDED: 'bg-yellow-500/20 text-yellow-200 hover:bg-yellow-500/20',
 }
 
+const statusIndicatorColor: Record<string, string> = {
+    ACTIVE: 'bg-emerald-400',
+    FLAGGED: 'bg-orange-400',
+    SUSPENDED: 'bg-yellow-400',
+    BANNED: 'bg-red-400',
+}
+
+const statusLabel: Record<string, string> = {
+    ACTIVE: 'Active',
+    FLAGGED: 'Flagged',
+    SUSPENDED: 'Suspended',
+    BANNED: 'Banned',
+}
+
 const formatDate = (value: string) => {
     const date = new Date(value)
 
@@ -125,11 +139,11 @@ export default function ClientProfilePage() {
                                     height={56}
                                     className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full object-cover ring-2 ring-white/30"
                                 />
-//                                 <img
-//   src={client.image}
-//   alt={fullName}
-//   className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full object-cover ring-2 ring-white/30"
-// />
+                                //                                 <img
+                                //   src={client.image}
+                                //   alt={fullName}
+                                //   className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full object-cover ring-2 ring-white/30"
+                                // />
                             ) : (
                                 <div className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 rounded-full bg-white/15 ring-2 ring-white/30 flex items-center justify-center text-lg sm:text-xl font-semibold">
                                     {getInitials(client.firstName, client.lastName)}
@@ -142,8 +156,19 @@ export default function ClientProfilePage() {
                                 <p className="text-white/70 text-xs sm:text-sm mt-1">Client since {formatDate(client.createdAt)}</p>
                                 <div className="mt-3 flex items-center gap-2 flex-wrap">
                                     <Badge className={statusBadgeClass[client.status] ?? 'bg-white/20 text-white hover:bg-white/20'}>
-                                        {client.status}
+                                        <span className={`inline-block h-2 w-2 rounded-full ${statusIndicatorColor[client.status] ?? 'bg-white/70'}`} />
+                                        {statusLabel[client.status] ?? client.status}
                                     </Badge>
+                                    {client.flagsReceived.length > 0 && (
+                                        <Badge className="bg-rose-500/20 text-rose-200 hover:bg-rose-500/20">
+                                            {client.flagsReceived.length} flagged
+                                        </Badge>
+                                    )}
+                                    {client.suspensionCount > 0 && (
+                                        <Badge className="bg-amber-500/20 text-amber-200 hover:bg-amber-500/20">
+                                            {client.suspensionCount} suspension{client.suspensionCount > 1 ? 's' : ''}
+                                        </Badge>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import { addClientNote, getClientOrders, type ClientDetail, type ClientOrderRecord } from '@/lib/api/clients'
+import { banUser, flagUser, getActiveOrders, reactivateUser, suspendUser } from '@/lib/api/designers'
 
 type ClientProfileTabsProps = {
     client: ClientDetail
@@ -121,6 +122,7 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
     const [activeTab, setActiveTab] = useState<TabId>('overview')
     const [currentPage, setCurrentPage] = useState(1)
     const [noteDraft, setNoteDraft] = useState('')
+    const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
     const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
         queryKey: ['clients', 'orders', clientId, currentPage],
@@ -136,6 +138,12 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
     const fullName = `${client.firstName} ${client.lastName}`.trim() || '—'
     const notes = client.notesReceived ?? []
 
+    const { data: activeOrdersData } = useQuery({
+        queryKey: ['client', 'activeOrders', clientId],
+        queryFn: () => getActiveOrders(clientId),
+        enabled: Number.isFinite(clientId),
+    })
+
     const addNoteMutation = useMutation({
         mutationFn: (note: string) => addClientNote(clientId, note),
         onSuccess: async () => {
@@ -143,6 +151,44 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
             await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
         },
     })
+
+    const flagMutation = useMutation({
+        mutationFn: (reason: string) => flagUser(clientId, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
+        },
+    })
+
+    const suspendMutation = useMutation({
+        mutationFn: (reason: string) => suspendUser(clientId, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
+        },
+    })
+
+    const banMutation = useMutation({
+        mutationFn: (reason: string) => banUser(clientId, reason),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
+        },
+    })
+
+    const reactivateMutation = useMutation({
+        mutationFn: () => reactivateUser(clientId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
+        },
+    })
+
+    useEffect(() => {
+        if (!successMessage) {
+            return
+        }
+
+        const timeoutId = window.setTimeout(() => setSuccessMessage(null), 4000)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [successMessage])
 
     const accountActions = useMemo<AccountAction[]>(() => {
         switch (client.status) {
@@ -180,6 +226,16 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
 
     return (
         <section className="space-y-4">
+            {successMessage && (
+                <div
+                    className="fixed right-4 top-4 z-70 max-w-sm rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 shadow-lg"
+                    role="status"
+                    aria-live="polite"
+                >
+                    {successMessage}
+                </div>
+            )}
+
             <div className="overflow-x-auto">
                 <div className="inline-flex w-max min-w-full gap-1 rounded-xl border bg-white p-1 sm:min-w-0" role="tablist" aria-label="Client profile sections">
                     {tabs.map((tab) => {
@@ -228,6 +284,8 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                                 </div>
                             </div>
                         </div>
+
+
 
                         <div className="overflow-hidden rounded-2xl border bg-white">
                             <div className="border-b px-3 py-3 sm:px-4 font-semibold">Admin notes</div>
@@ -281,6 +339,23 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                     </section>
 
                     <aside className="space-y-4">
+
+                        <div className="overflow-hidden rounded-2xl border bg-white">
+                            <div className="border-b px-3 py-3 sm:px-4 font-semibold">Flags ({client.flagsReceived.length})</div>
+                            <div className="divide-y divide-slate-200">
+                                {client.flagsReceived.length === 0 ? (
+                                    <p className="p-4 text-sm text-muted-foreground">No active flags on this account.</p>
+                                ) : (
+                                    client.flagsReceived.map((flag, index) => (
+                                        <div key={`${flag.createdAt}-${index}`} className="px-4 py-3 text-sm">
+                                            <p className="font-medium text-slate-900">{flag.reason}</p>
+                                            <p className="text-xs text-slate-500">{formatDate(flag.createdAt)}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
                         <div className="overflow-hidden rounded-2xl border border-red-200 bg-red-50/30">
                             <div className="border-b border-red-200 px-3 py-3 sm:px-4">
                                 <p className="font-semibold text-red-700">Account actions</p>
@@ -288,15 +363,43 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                             </div>
                             <div className="space-y-2 p-3 sm:p-4">
                                 {accountActions.map((action) => {
+                                    const isFlagAction = action.action === 'flag-account' && !action.disabled
+                                    const isSuspendAction = action.action === 'suspend-account' && !action.disabled
+                                    const isBanAction = action.action === 'ban-account' && !action.disabled
+                                    const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
+
                                     return (
                                         <ModerationActionButton
                                             key={action.label}
                                             action={action.action}
                                             subject={fullName}
                                             buttonLabel={action.label}
+                                            activeOrderCount={activeOrdersData}
                                             buttonSize="default"
                                             disabled={action.disabled}
                                             buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
+                                            onSuccess={setSuccessMessage}
+                                            requireReason={isFlagAction || isSuspendAction || isBanAction}
+                                            onConfirm={
+                                                isFlagAction
+                                                    ? (reason?: string) => {
+                                                        if (!reason?.trim()) return
+                                                        return flagMutation.mutateAsync(reason.trim())
+                                                    }
+                                                    : isSuspendAction
+                                                        ? (reason?: string) => {
+                                                            if (!reason?.trim()) return
+                                                            return suspendMutation.mutateAsync(reason.trim())
+                                                        }
+                                                        : isBanAction
+                                                            ? (reason?: string) => {
+                                                                if (!reason?.trim()) return
+                                                                return banMutation.mutateAsync(reason.trim())
+                                                            }
+                                                            : isReactivateAction
+                                                                ? () => reactivateMutation.mutateAsync()
+                                                                : undefined
+                                            }
                                         />
                                     )
                                 })}

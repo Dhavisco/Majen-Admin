@@ -67,7 +67,15 @@ export type ClientDetail = {
   createdAt: string
   image: string | null
   status: ClientStatus
+  suspensionCount: number
   notesReceived: ClientNote[]
+  flagsReceived: Array<{
+    reason: string
+    createdAt: string
+  }>
+  _count: {
+    flagsReceived: number
+  }
 }
 
 export type ClientDetailsResponse = {
