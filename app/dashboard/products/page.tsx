@@ -45,6 +45,7 @@ const tabs = [
     { label: 'Rejected', value: 'Rejected', color: 'bg-red-100 text-red-700' },
 ];
 
+
 // Map ProductRecord to UI Product type for table rendering
 type UIProduct = {
     id: number;
@@ -90,6 +91,7 @@ const ProductPage: React.FC = () => {
 
     const {
         metrics,
+        dashboardStats,
         products: apiProducts,
         pagination, currentPage, setCurrentPage,
         isLoading,
@@ -100,6 +102,14 @@ const ProductPage: React.FC = () => {
         search: searchInput || undefined,
     });
     const totalPages = Math.ceil(pagination.totalCount / pagination.perPage);
+
+    const counts: Record<string, number> = {
+        all: dashboardStats?.totalProducts ?? 0,
+        Pending: dashboardStats?.pendingProducts ?? 0,
+        Active: dashboardStats?.activeProducts ?? 0,
+        Rejected: dashboardStats?.rejectedProducts ?? 0,
+    }
+
 
     // Map API products to UI products
     const products: UIProduct[] = useMemo(() =>
@@ -116,16 +126,7 @@ const ProductPage: React.FC = () => {
             category: p.category?.name || '',
         })),
         [apiProducts]
-    );
-
-    // Build counts for tabs
-    const counts = useMemo(() => {
-        const result: Record<string, number> = { all: products.length };
-        products.forEach((d: UIProduct) => {
-            result[d.status] = (result[d.status] || 0) + 1;
-        });
-        return result;
-    }, [products]);
+    );;
 
     // Filtered products for UI (tab logic)
     const filteredProducts = useMemo(() => {

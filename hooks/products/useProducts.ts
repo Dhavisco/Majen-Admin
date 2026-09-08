@@ -9,6 +9,14 @@ export interface UseProductsOptions {
   search?: string;
 }
 
+interface DashboardStats {
+  totalProducts: number
+  activeProducts: number
+  pendingProducts: number
+  rejectedProducts: number
+}
+
+
 export function useProducts(options: UseProductsOptions = {}) {
   const { page = 1, limit = 10, status, search } = options;
   const [currentPage, setCurrentPage] = useState(page);
@@ -60,13 +68,23 @@ export function useProducts(options: UseProductsOptions = {}) {
       {
         title: "Rejected",
         value: data.dashboardStats.rejectedProducts,
-        indicator: { type: "text" as const, text: "Monitoring", tone: "neutral" },
+        // indicator: { type: "text" as const, text: "Monitoring", tone: "neutral" },
         color: "bg-red-100 text-red-600",
       },
     ];
   }, [data]);
 
   const products = useMemo(() => data.records ?? [], [data]);
+  
+const dashboardStats: DashboardStats = useMemo(() => {
+  return data.dashboardStats ?? {
+    totalProducts: 0,
+    activeProducts: 0,
+    pendingProducts: 0,
+    rejectedProducts: 0,
+  }
+}, [data])
+
 
    const pagination = useMemo(() => {
     if (!data.meta) {
@@ -102,6 +120,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   return {
     metrics,
     products,
+    dashboardStats,
     pagination,
     currentPage,
     setCurrentPage,

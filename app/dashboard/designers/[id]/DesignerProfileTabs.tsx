@@ -790,7 +790,17 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                         buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
                                                         requireReason
                                                     />
+                                                    <Link href={`/dashboard/products/${row.id}`}>
+                                                        <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            className="border-[#B7B1F3] text-[#1A0089] cursor-pointer hover:bg-[#F1EFFF]"
+                                                        >
+                                                            View
+                                                        </Button>
+                                                    </Link>
                                                 </div>
+
                                             ) : (
                                                 <Link href={`/dashboard/products/${row.id}`}>
                                                     <Button
