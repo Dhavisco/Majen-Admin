@@ -334,7 +334,7 @@ export default function FlaggedReviewDetailPage() {
                                     </div>
                                     <div className="space-y-2 pt-2 font-semibold">
 
-                                        {!isResolved && (
+                                        {!isResolved ? (
                                             <ModerationActionButton
                                                 action="resolve-report"
                                                 subject={report.identifier}
@@ -344,7 +344,10 @@ export default function FlaggedReviewDetailPage() {
                                                 onSuccess={setSuccessMessage}
                                                 onConfirm={() => resolveMutation.mutateAsync(report.id)}
                                             />
-                                        )}
+                                        ) :
+                                            (<Button disabled
+                                                className="w-full cursor-pointer border border-gray-200 bg-gray-100 text-gray-400 hover:bg-gray-100">Resolved</Button>)
+                                        }
                                         <ModerationActionButton
                                             action="remove-review"
                                             subject={review.identifier}

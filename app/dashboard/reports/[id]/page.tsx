@@ -326,7 +326,7 @@ export default function ReportDetailPage() {
 
 
                                     <div className="space-y-2 pt-2">
-                                        {!isResolved && (
+                                        {!isResolved ? (
                                             <ModerationActionButton
                                                 action="resolve-report"
                                                 subject={report.identifier}
@@ -336,7 +336,10 @@ export default function ReportDetailPage() {
                                                 onSuccess={setSuccessMessage}
                                                 onConfirm={() => resolveMutation.mutateAsync()}
                                             />
-                                        )}
+                                        ) : (<Button disabled
+                                            className="w-full cursor-pointer border border-gray-200 bg-gray-100 text-gray-400 hover:bg-gray-100">Resolved</Button>)
+
+                                        }
                                         <ModerationActionButton
                                             action="flag-account"
                                             subject={reportedUserName}
