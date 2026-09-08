@@ -195,7 +195,20 @@ export default function FlaggedReviewDetailPage() {
     const statusTone = getStatusTone(report.status)
     const statusLabel = getStatusLabel(report.status)
 
-    const isResolved = report.status === 'RESOLVED'
+    const isResolved = report.status === 'RESOLVED';
+    const isReviewRemoved = review.isDeleted;
+
+
+    function formatUserType(userType?: string): string {
+        switch (userType) {
+            case 'CREATOR':
+                return 'Designer'
+            case 'CLIENT':
+                return 'Client'
+            default:
+                return userType ?? ''
+        }
+    }
 
 
 
@@ -221,17 +234,7 @@ export default function FlaggedReviewDetailPage() {
                         </p>
                     </div>
 
-                    <div className="flex gap-2">
-                        <ModerationActionButton
-                            action="remove-review"
-                            subject={review.identifier}
-                            buttonLabel="Remove Review"
-                            buttonSize="sm"
-                            buttonClassName="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
-                            disabled={removeMutation.isPending}
-                            onSuccess={setSuccessMessage}
-                            onConfirm={() => removeMutation.mutateAsync(review.id)}
-                        />
+                    {isReviewRemoved ? (
                         <ModerationActionButton
                             action="restore-review"
                             subject={review.identifier}
@@ -243,7 +246,24 @@ export default function FlaggedReviewDetailPage() {
                             onSuccess={setSuccessMessage}
                             onConfirm={() => restoreMutation.mutateAsync(review.id)}
                         />
-                    </div>
+
+                    ) : (
+                        <ModerationActionButton
+                            action="remove-review"
+                            subject={review.identifier}
+                            buttonLabel="Remove Review"
+                            buttonSize="sm"
+                            buttonClassName="bg-[#DC2626] text-white hover:bg-[#B91C1C]"
+                            disabled={removeMutation.isPending}
+                            onSuccess={setSuccessMessage}
+                            onConfirm={() => removeMutation.mutateAsync(review.id)}
+                        />
+                    )
+                    }
+                    {/* <div className="flex gap-2">
+                       
+                       
+                    </div> */}
                 </div>
 
                 <section className="overflow-hidden rounded-xl bg-white">
@@ -348,24 +368,28 @@ export default function FlaggedReviewDetailPage() {
                                             (<Button disabled
                                                 className="w-full cursor-pointer border border-gray-200 bg-gray-100 text-gray-400 hover:bg-gray-100">Resolved</Button>)
                                         }
-                                        <ModerationActionButton
-                                            action="remove-review"
-                                            subject={review.identifier}
-                                            buttonLabel="Remove Review"
-                                            buttonClassName="w-full bg-[#E11D48] text-white hover:bg-[#d01a40]"
-                                            disabled={removeMutation.isPending}
-                                            onSuccess={setSuccessMessage}
-                                            onConfirm={() => removeMutation.mutateAsync(review.id)}
-                                        />
-                                        <ModerationActionButton
-                                            action="restore-review"
-                                            subject={review.identifier}
-                                            buttonLabel="Restore Review"
-                                            buttonClassName="w-full bg-[#16A34A] text-white hover:bg-[#148c3d]"
-                                            disabled={restoreMutation.isPending}
-                                            onSuccess={setSuccessMessage}
-                                            onConfirm={() => restoreMutation.mutateAsync(review.id)}
-                                        />
+
+                                        {
+                                            isReviewRemoved ? (<ModerationActionButton
+                                                action="restore-review"
+                                                subject={review.identifier}
+                                                buttonLabel="Restore Review"
+                                                buttonClassName="w-full bg-[#16A34A] text-white hover:bg-[#148c3d]"
+                                                disabled={restoreMutation.isPending}
+                                                onSuccess={setSuccessMessage}
+                                                onConfirm={() => restoreMutation.mutateAsync(review.id)}
+                                            />) : (<ModerationActionButton
+                                                action="remove-review"
+                                                subject={review.identifier}
+                                                buttonLabel="Remove Review"
+                                                buttonClassName="w-full bg-[#E11D48] text-white hover:bg-[#d01a40]"
+                                                disabled={removeMutation.isPending}
+                                                onSuccess={setSuccessMessage}
+                                                onConfirm={() => removeMutation.mutateAsync(review.id)}
+                                            />)
+                                        }
+
+
                                         <ModerationActionButton
                                             action="flag-account"
                                             subject={reviewerName}
@@ -394,7 +418,9 @@ export default function FlaggedReviewDetailPage() {
                                         </div>
                                         <div>
                                             <p className="font-semibold">{reviewerName}</p>
-                                            <p className="text-sm text-muted-foreground">{review.reviewer._count?.givenReviews ?? 0} reviews written</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {formatUserType(review.reviewer?.userType)} | {review.reviewer._count?.givenReviews ?? 0}{" "}  {(review.reviewer._count?.givenReviews ?? 0) <= 1 ? "review written" : "reviews written"}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>

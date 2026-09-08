@@ -200,6 +200,18 @@ export default function ReportDetailPage() {
 
     const isResolved = report.status === 'RESOLVED'
 
+    function formatUserType(userType?: string): string {
+        switch (userType) {
+            case 'CREATOR':
+                return 'Designer'
+            case 'CLIENT':
+                return 'Client'
+            default:
+                return userType ?? ''
+        }
+    }
+
+
 
     return (
         <DashboardLayout>
@@ -382,7 +394,10 @@ export default function ReportDetailPage() {
                                         </div>
                                         <div>
                                             <p className="font-semibold">{reportedUserName}</p>
-                                            <p className="text-sm text-muted-foreground">User #{report?.reportedUserId}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {formatUserType(report?.reportedUser?.userType)} | {report?.reportedUser?.business?.displayName}
+                                            </p>
+
                                         </div>
                                     </div>
                                 </div>

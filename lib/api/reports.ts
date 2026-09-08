@@ -17,6 +17,11 @@ export interface ReportPerson {
   id?: number;
   firstName: string;
   lastName: string;
+  status?: string;
+  userType?: "CREATOR" | "CLIENT";
+  business?: {
+    displayName: string;
+  };
   _count?: {
     givenReviews?: number;
   };
@@ -51,6 +56,7 @@ export interface FlaggedReviewDetail {
     description: string;
     rating: number;
     createdAt: string;
+    isDeleted: boolean;
     reviewer: ReportPerson & {
       id: number;
       _count: {
