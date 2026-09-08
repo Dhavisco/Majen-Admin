@@ -2,9 +2,9 @@ import { axiosInstance } from '@/lib/axios';
 
 export interface ReportsSummary {
   total: number;
-  flaggedReviews: number;
-  resolvedThisMonth: number;
-  growth: number;
+  pendingReview: number;
+  resolved: number;
+  removedReviews: number;
 }
 
 interface ReportsSummaryResponse {
