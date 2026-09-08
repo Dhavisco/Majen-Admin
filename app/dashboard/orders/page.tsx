@@ -43,13 +43,28 @@ import { FaArrowDownLong } from 'react-icons/fa6';
 
 const OrderPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 10;
+
+    const status = activeTab === 'Awaiting'
+        ? 'PENDING'
+        : activeTab === 'Confirmed'
+            ? 'CONFIRMED'
+            : activeTab === 'Delivered'
+                ? 'DELIVERED'
+                : activeTab === 'Cancelled'
+                    ? 'CANCELLED'
+                    : undefined;
 
     const { data: dashboardData } = useQuery({
-        queryKey: ['orders', 'dashboard'],
-        queryFn: () => getOrdersDashboard(),
+        queryKey: ['orders', 'dashboard', currentPage, pageSize, status],
+        queryFn: () => getOrdersDashboard({ page: currentPage, limit: pageSize, status }),
     });
 
     const records = useMemo(() => dashboardData?.records ?? [], [dashboardData]);
+    const totalCount = dashboardData?.meta?.totalCount ?? 0;
+    const perPage = dashboardData?.meta?.perPage ?? pageSize;
+    const pageCount = Math.max(Math.ceil(totalCount / perPage), 1);
 
     const orderStats = [
         {
@@ -82,33 +97,31 @@ const OrderPage: React.FC = () => {
         },
     ] as const;
 
+    // const tabs = [
+    //     { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
+    //     { label: 'Awaiting', value: 'Awaiting', color: 'bg-yellow-100 text-yellow-700' },
+    //     { label: 'Confirmed', value: 'Confirmed', color: 'bg-emerald-100 text-emerald-700' },
+    //     { label: 'Delivered', value: 'Delivered', color: 'bg-green-100 text-green-700' },
+    //     { label: 'Cancelled', value: 'Cancelled', color: 'bg-red-100 text-red-700' },
+    // ];
+
     const tabs = [
         { label: 'All', value: 'all', color: 'bg-gray-200 text-gray-700' },
         { label: 'Awaiting', value: 'Awaiting', color: 'bg-yellow-100 text-yellow-700' },
-        { label: 'Confirmed', value: 'Confirmed', color: 'bg-emerald-100 text-emerald-700' },
+        { label: 'Confirmed', value: 'Confirmed', color: 'bg-green-100 text-green-700' },
         { label: 'Delivered', value: 'Delivered', color: 'bg-green-100 text-green-700' },
         { label: 'Cancelled', value: 'Cancelled', color: 'bg-red-100 text-red-700' },
-    ];
+    ] as const
 
-    const counts = useMemo(() => {
-        const result: Record<string, number> = { all: records.length };
-        records.forEach((record) => {
-            const key = record.status === 'PENDING' ? 'Awaiting' : record.status === 'CONFIRMED' ? 'Confirmed' : record.status === 'DELIVERED' ? 'Delivered' : record.status;
-            result[key] = (result[key] || 0) + 1;
-        });
-        return result;
-    }, [records]);
+    type TabValue = typeof tabs[number]['value']
 
-    const filteredOrders = useMemo(() => {
-        if (activeTab === 'all') return records;
-        return records.filter((d) => {
-            if (activeTab === 'Awaiting') return d.status === 'PENDING';
-            if (activeTab === 'Confirmed') return d.status === 'CONFIRMED';
-            if (activeTab === 'Delivered') return d.status === 'DELIVERED';
-            if (activeTab === 'Cancelled') return d.status === 'CANCELLED';
-            return d.status === activeTab.toUpperCase();
-        });
-    }, [activeTab, records]);
+    const counts: Record<TabValue, number> = {
+        all: dashboardData?.meta?.totalCount ?? 0,
+        Awaiting: dashboardData?.dashboardStats?.awaitingOrders ?? 0,
+        Confirmed: dashboardData?.dashboardStats?.processingOrders ?? 0,
+        Delivered: dashboardData?.dashboardStats?.deliveredOrders ?? 0,
+        Cancelled: dashboardData?.dashboardStats?.cancelledOrders ?? 0,
+    }
 
     const getStatusBadge = (status: string) => {
         const s = status?.toUpperCase?.() ?? '';
@@ -179,7 +192,10 @@ const OrderPage: React.FC = () => {
                 <div className="bg-white rounded-xl border shadow-sm md:py-2 md:px-4 py-1 px-2">
                     <Tabs
                         value={activeTab}
-                        onValueChange={setActiveTab}
+                        onValueChange={(value) => {
+                            setActiveTab(value);
+                            setCurrentPage(1);
+                        }}
                         className="w-full rounded-none"
                     >
                         <div className="w-full overflow-x-auto scrollbar-thin max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-10rem)] lg:max-w-full">
@@ -245,7 +261,7 @@ const OrderPage: React.FC = () => {
                             </TableHeader>
 
                             <TableBody>
-                                {filteredOrders.map((order) => (
+                                {records.map((order) => (
                                     <TableRow key={order.id} className="group hover:bg-muted/50 transition-colors">
                                         <TableCell className="md:text-sm font-semibold text-[11px]">{new Date(order.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' })}</TableCell>
 
@@ -288,7 +304,7 @@ const OrderPage: React.FC = () => {
 
                         <div className="flex items-center justify-between border-t w-full py-4">
                             <p className="md:text-sm text-xs text-muted-foreground font-medium">
-                                Showing {filteredOrders.length} of {records.length} orders
+                                Showing {records.length} of {totalCount} orders
                             </p>
 
                             <div className="font-medium">
@@ -297,38 +313,38 @@ const OrderPage: React.FC = () => {
                                         <PaginationItem>
                                             <PaginationPrevious
                                                 href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px]"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    if (currentPage > 1) setCurrentPage((page) => page - 1);
+                                                }}
+                                                aria-disabled={currentPage <= 1}
+                                                className={`text-[#1A0089]! hover:text-[#14006b] border-[#1A00894b] md:text-xs text-[11px] border-[0.5px] ${currentPage <= 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                             />
                                         </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                isActive
-                                                className="bg-[#1A0089] text-white! hover:bg-[#14006b] md:text-xs text-[11px]"
-                                            >
-                                                1
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            >
-                                                2
-                                            </PaginationLink>
-                                        </PaginationItem>
-                                        <PaginationItem>
-                                            <PaginationLink
-                                                href="#"
-                                                className="text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
-                                            >
-                                                3
-                                            </PaginationLink>
-                                        </PaginationItem>
+                                        {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
+                                            <PaginationItem key={pageNumber}>
+                                                <PaginationLink
+                                                    href="#"
+                                                    isActive={pageNumber === currentPage}
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        setCurrentPage(pageNumber);
+                                                    }}
+                                                    className={`${pageNumber === currentPage ? 'bg-[#1A0089] text-white! hover:bg-[#14006b]' : 'text-[#1A0089]! hover:bg-[#1A0089]/10 hover:text-[#14006b]! border-[#1A00894b] border-[0.5px]'} md:text-xs text-[11px] cursor-pointer`}
+                                                >
+                                                    {pageNumber}
+                                                </PaginationLink>
+                                            </PaginationItem>
+                                        ))}
                                         <PaginationItem>
                                             <PaginationNext
                                                 href="#"
-                                                className="text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px]"
+                                                onClick={(event) => {
+                                                    event.preventDefault();
+                                                    if (currentPage < pageCount) setCurrentPage((page) => page + 1);
+                                                }}
+                                                aria-disabled={currentPage >= pageCount}
+                                                className={`text-[#1A0089]! hover:text-[#14006b]! border-[#1A00894b] border-[0.5px] md:text-xs text-[11px] ${currentPage >= pageCount ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                                             />
                                         </PaginationItem>
                                     </PaginationContent>

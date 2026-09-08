@@ -22,7 +22,12 @@ export type OrdersDashboardResponse = {
   success: boolean
   message: string
   data: {
-    meta: Record<string, unknown>
+    meta: {
+      totalCount: number
+      page: number
+      perPage: number
+      pageCount: number
+    }
     dashboardStats: {
       deliveredOrders: number
       processingOrders: number
@@ -31,6 +36,12 @@ export type OrdersDashboardResponse = {
     }
     records: OrdersDashboardRecord[]
   }
+}
+
+export type GetOrdersDashboardParams = {
+  page?: number
+  limit?: number
+  status?: 'PENDING' | 'CONFIRMED' | 'DELIVERED' | 'CANCELLED'
 }
 
 export type OrderDetailResponse = {
@@ -60,8 +71,18 @@ export type OrderDetailResponse = {
   }
 }
 
-export async function getOrdersDashboard() {
-  const { data } = await axiosInstance.get<OrdersDashboardResponse>('/admin/orders/dashboard')
+export async function getOrdersDashboard(params: GetOrdersDashboardParams = {}) {
+  const { page = 1, limit = 10, status } = params
+
+  const { data } = await axiosInstance.get<OrdersDashboardResponse>('/admin/orders/dashboard', {
+    params: {
+      pagination: true,
+      page,
+      limit,
+      ...(status ? { status } : {}),
+    },
+  })
+
   return data.data
 }
 
