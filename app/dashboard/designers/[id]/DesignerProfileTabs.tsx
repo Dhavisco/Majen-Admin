@@ -35,6 +35,7 @@ import {
     banUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
+import { removeReview } from '@/lib/api/reports'
 
 type DesignerProfileTabsProps = {
     designer: Designer
@@ -349,6 +350,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         },
     })
 
+    const removeMutation = useMutation({
+        mutationFn: (id: number) => removeReview(id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'reviews', designer.id, reviewPage] })
+        },
+    })
+
     useEffect(() => {
         if (!successMessage) {
             return
@@ -398,7 +406,8 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const reviewRows = useMemo(() => {
         if (!reviewsData) return [];
         return reviewsData.records.map((review) => ({
-            id: `review-${review.reviewer.firstName}-${review.reviewer.lastName}`,
+            id: review.id,
+            identifier: review.identifier,
             reviewer: `${review.reviewer.firstName} ${review.reviewer.lastName}`,
             product: review.product.title,
             rating: review.rating,
@@ -1127,11 +1136,15 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                 <td className="px-4 py-4">
                                                     <ModerationActionButton
                                                         action="remove-review"
-                                                        subject={`review #${review.id}`}
+                                                        // subject={`review #${review.id}`}
+                                                        subject={`review #${review.id} - ${review.identifier}`}
                                                         buttonLabel="Remove"
                                                         buttonVariant="outline"
                                                         buttonSize="sm"
                                                         buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
+                                                        disabled={removeMutation.isPending}
+                                                        onSuccess={setSuccessMessage}
+                                                        onConfirm={() => removeMutation.mutateAsync(review.id)}
                                                     />
                                                 </td>
                                             </tr>

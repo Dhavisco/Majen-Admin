@@ -413,6 +413,8 @@ export async function getDesignerTransactions(
 
 
 export interface DesignerReview {
+  id: number;
+  identifier: string;
   reviewer: {
     firstName: string;
     lastName: string;
