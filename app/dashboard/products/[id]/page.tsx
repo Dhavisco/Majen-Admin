@@ -61,6 +61,7 @@ type ProductViewModel = {
     fabricUsed: string
     categoryName: string
     businessName: string
+    businessType: string
     designerName: string
     designerImage: string | null
     verificationStatus: string
@@ -135,6 +136,7 @@ const mapProductToViewModel = (product: ProductDetail): ProductViewModel => {
         fabricUsed: product.fabricUsed,
         categoryName: product.category.name,
         businessName: product.business.businessName,
+        businessType: product.business.businessType,
         designerName,
         designerImage: product.business.user.image,
         verificationStatus: product.business.verification.status,
@@ -362,6 +364,18 @@ export default function ProductProfilePage() {
         await visibilityMutation.mutateAsync(visibility === 'VISIBLE' ? 'HIDDEN' : 'VISIBLE')
     }
 
+    function formatBusinessType(type?: string): string {
+        switch (type) {
+            case 'READY_TO_WEAR':
+                return 'Ready to wear'
+            case 'CUSTOM':
+                return 'Custom'
+            default:
+                return type ?? ''
+        }
+    }
+
+
     return (
         <DashboardLayout>
             <div className="space-y-4 md:space-y-6 md:p-0">
@@ -417,14 +431,14 @@ export default function ProductProfilePage() {
                                             className="block h-74 sm:h-150 lg:h-64 w-full overflow-hidden rounded-lg bg-[#DAD3F0]"
                                         >
                                             <div className="relative overflow-hidden rounded-xl bg-[#DAD3F0] aspect-3/4">
-                                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
-                                                src={selectedPhoto}
-                                                alt={product.title}
-                                                className="absolute inset-0 h-full w-full object-contain"
-                                            />  
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img
+                                                    src={selectedPhoto}
+                                                    alt={product.title}
+                                                    className="absolute inset-0 h-full w-full object-contain"
+                                                />
                                             </div>
-                                         
+
                                         </button>
                                     ) : (
                                         <div className="h-44 rounded-lg bg-[#DAD3F0]" />
@@ -595,7 +609,7 @@ export default function ProductProfilePage() {
                                         </span>
                                         <div>
                                             <p className="font-semibold uppercase">{product.designerName || product.businessName}</p>
-                                            <p className="text-xs text-muted-foreground">{product.businessName} · {product.verificationStatus}</p>
+                                            <p className="text-xs text-muted-foreground">{product.businessName} · {formatBusinessType(product.businessType)}</p>
                                         </div>
                                     </div>
                                     <div className="mt-3 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 text-center">

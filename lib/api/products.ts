@@ -25,6 +25,7 @@ export interface ProductSizeItem {
 
 export interface ProductDetailBusiness {
   businessName: string;
+  businessType: string;
   user: {
     firstName: string;
     lastName: string;
