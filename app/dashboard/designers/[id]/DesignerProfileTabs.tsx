@@ -35,7 +35,7 @@ import {
     banUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
-import { removeReview } from '@/lib/api/reports'
+import { removeReview, restoreReview } from '@/lib/api/reports'
 
 type DesignerProfileTabsProps = {
     designer: Designer
@@ -357,6 +357,13 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         },
     })
 
+    const restoreMutation = useMutation({
+        mutationFn: (id: number) => restoreReview(id),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'reviews', designer.id, reviewPage] })
+        },
+    })
+
     useEffect(() => {
         if (!successMessage) {
             return
@@ -412,6 +419,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
             product: review.product.title,
             rating: review.rating,
             review: review.description,
+            isDeleted: review.isDeleted,
             // type: mapTransactionDirection(review.direction),
             // amount: `${review.direction === 'CREDIT' ? '+' : '-'}₦${parseInt(review.amount, 10).toLocaleString()}`,
         }))
@@ -1144,18 +1152,33 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                 </td>
                                                 <td className="px-4 py-4 italic text-slate-700">&quot;{review.review}&quot;</td>
                                                 <td className="px-4 py-4">
-                                                    <ModerationActionButton
-                                                        action="remove-review"
-                                                        // subject={`review #${review.id}`}
-                                                        subject={`review #${review.id} - ${review.identifier}`}
-                                                        buttonLabel="Remove"
-                                                        buttonVariant="outline"
-                                                        buttonSize="sm"
-                                                        buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
-                                                        disabled={removeMutation.isPending}
-                                                        onSuccess={setSuccessMessage}
-                                                        onConfirm={() => removeMutation.mutateAsync(review.id)}
-                                                    />
+                                                    {review.isDeleted ? (
+                                                        <ModerationActionButton
+                                                            action="restore-review"
+                                                            subject={`review #${review.id} - ${review.identifier}`}
+                                                            buttonLabel="Restore Review"
+                                                            buttonVariant="outline"
+                                                            buttonSize="sm"
+                                                            buttonClassName="border-slate-200 text-[#52525B] hover:bg-slate-50"
+                                                            disabled={restoreMutation.isPending}
+                                                            onSuccess={setSuccessMessage}
+                                                            onConfirm={() => restoreMutation.mutateAsync(review.id)}
+                                                        />
+                                                    ) : (
+                                                        <ModerationActionButton
+                                                            action="remove-review"
+                                                            // subject={`review #${review.id}`}
+                                                            subject={`review #${review.id} - ${review.identifier}`}
+                                                            buttonLabel="Remove"
+                                                            buttonVariant="outline"
+                                                            buttonSize="sm"
+                                                            buttonClassName="border-red-300 text-red-600 hover:bg-red-50"
+                                                            disabled={removeMutation.isPending}
+                                                            onSuccess={setSuccessMessage}
+                                                            onConfirm={() => removeMutation.mutateAsync(review.id)}
+                                                        />
+                                                    )
+                                                    }
                                                 </td>
                                             </tr>
                                         ))}

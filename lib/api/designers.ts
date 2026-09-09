@@ -423,6 +423,7 @@ export interface DesignerReview {
     title: string;
     description: string;
   };
+  isDeleted: boolean;
   rating: number;
  description: string;
   createdAt: string;
