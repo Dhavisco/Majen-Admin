@@ -191,6 +191,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const transactionLimit = 10
     const reviewLimit = 10
     const hasVerification = designer.verificationStatus !== null
+    const rejectedVerificationStatus = designer.verificationStatus === 'REJECTED';
 
     const productStatusTabs = useMemo(
         () => [
@@ -650,7 +651,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </div>
                         </div>
 
-                        {hasVerification && (
+                        {hasVerification && !rejectedVerificationStatus && (
                             <div className="overflow-hidden rounded-2xl border border-red-200 bg-red-50/30">
                                 <div className="border-b border-red-200 px-3 py-3 sm:px-4">
                                     <p className="font-semibold text-red-700">Account actions</p>
