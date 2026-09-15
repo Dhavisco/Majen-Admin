@@ -44,8 +44,8 @@ const verificationBadgeClass: Record<string, string> = {
 }
 
 // Map uppercase status to both UI class and readable label
-function mapVerificationStatus(status: string): { label: string; className: string } {
-    const normalized = status.toUpperCase()
+function mapVerificationStatus(status: string | null): { label: string; className: string } {
+    const normalized = status?.toUpperCase() ?? ''
 
     const labelMap: Record<string, string> = {
         VERIFIED: 'Verified',
@@ -53,7 +53,7 @@ function mapVerificationStatus(status: string): { label: string; className: stri
     }
 
     return {
-        label: labelMap[normalized] || status, // fallback to original if unknown
+        label: labelMap[normalized] || status || 'Not Verified', // fallback to original if unknown
         className: verificationBadgeClass[normalized] || 'bg-[#FFFFFF1F] border border-[#FFFFFF33] text-[#E0D8FF] font-semibold text-[12px]',
     }
 }
@@ -117,8 +117,8 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
         email: designer.user.email,
         business: designer.businessName,
         type: mapBusinessType(designer.businessType),
-        cac: designer.verification.rcNumber,
-        verificationStatus: designer.verification.status,
+        cac: designer.verification?.rcNumber ?? '',
+        verificationStatus: designer.verification?.status ?? null,
         products: productCount,
         joined: formatDate(designer.user.createdAt),
         status: mapStatusToUI(designer.status),
@@ -141,7 +141,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
                     url: handle as string,
                 }
             }),
-        userStatus: mapStatusToUI(designer.user.status),
+        userStatus: mapStatusToUI(designer.status),
         suspensionCount: designer.user.suspensionCount ?? 0,
         flags: designer.user.flagsReceived.map((flag) => ({
             reason: flag.reason,

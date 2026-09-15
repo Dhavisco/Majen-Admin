@@ -190,6 +190,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     const [reviewPage, setReviewPage] = useState(1)
     const transactionLimit = 10
     const reviewLimit = 10
+    const hasVerification = designer.verificationStatus !== null
 
     const productStatusTabs = useMemo(
         () => [
@@ -649,61 +650,63 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                             </div>
                         </div>
 
-                        <div className="overflow-hidden rounded-2xl border border-red-200 bg-red-50/30">
-                            <div className="border-b border-red-200 px-3 py-3 sm:px-4">
-                                <p className="font-semibold text-red-700">Account actions</p>
-                                <p className="mt-1 text-xs text-red-600">Changes take effect immediately</p>
-                            </div>
-                            <div className="space-y-2 p-3 sm:p-4">
-                                {accountActions.map((action) => {
-                                    const isVerifyAction = action.action === 'verify-account' && !action.disabled
-                                    const isRejectAction = action.action === 'reject-application' && !action.disabled
-                                    const isSuspendAction = action.action === 'suspend-account' && !action.disabled
-                                    const isFlagAction = action.action === 'flag-account' && !action.disabled
-                                    const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
-                                    const isBanAction = action.action === 'ban-account' && !action.disabled
+                        {hasVerification && (
+                            <div className="overflow-hidden rounded-2xl border border-red-200 bg-red-50/30">
+                                <div className="border-b border-red-200 px-3 py-3 sm:px-4">
+                                    <p className="font-semibold text-red-700">Account actions</p>
+                                    <p className="mt-1 text-xs text-red-600">Changes take effect immediately</p>
+                                </div>
+                                <div className="space-y-2 p-3 sm:p-4">
+                                    {accountActions.map((action) => {
+                                        const isVerifyAction = action.action === 'verify-account' && !action.disabled
+                                        const isRejectAction = action.action === 'reject-application' && !action.disabled
+                                        const isSuspendAction = action.action === 'suspend-account' && !action.disabled
+                                        const isFlagAction = action.action === 'flag-account' && !action.disabled
+                                        const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
+                                        const isBanAction = action.action === 'ban-account' && !action.disabled
 
 
-                                    return (
-                                        <ModerationActionButton
-                                            key={action.label}
-                                            action={action.action}
-                                            subject={`${designer.name} · ${designer.business}`}
-                                            buttonLabel={action.label}
-                                            activeOrderCount={activeOrdersData}
-                                            buttonSize="default"
-                                            disabled={action.disabled}
-                                            onSuccess={setSuccessMessage}
-                                            requireReason={isFlagAction || isSuspendAction || isBanAction}
-                                            buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
-                                            onConfirm={
-                                                isVerifyAction
-                                                    ? () => verifyMutation.mutateAsync()
-                                                    : isRejectAction
-                                                        ? (reason: string | undefined) => rejectMutation.mutateAsync(reason ?? '')
-                                                        : isFlagAction
-                                                            ? (reason?: string) => {
-                                                                if (!reason?.trim()) return
-                                                                return flagMutation.mutateAsync(reason.trim())
-                                                            }
-                                                            : isSuspendAction
+                                        return (
+                                            <ModerationActionButton
+                                                key={action.label}
+                                                action={action.action}
+                                                subject={`${designer.name} · ${designer.business}`}
+                                                buttonLabel={action.label}
+                                                activeOrderCount={activeOrdersData}
+                                                buttonSize="default"
+                                                disabled={action.disabled}
+                                                onSuccess={setSuccessMessage}
+                                                requireReason={isFlagAction || isSuspendAction || isBanAction}
+                                                buttonClassName={`w-full justify-start ${toneClassByAction[action.tone]}`}
+                                                onConfirm={
+                                                    isVerifyAction
+                                                        ? () => verifyMutation.mutateAsync()
+                                                        : isRejectAction
+                                                            ? (reason: string | undefined) => rejectMutation.mutateAsync(reason ?? '')
+                                                            : isFlagAction
                                                                 ? (reason?: string) => {
                                                                     if (!reason?.trim()) return
-                                                                    return suspendMutation.mutateAsync(reason.trim())
-                                                                } : isReactivateAction
-                                                                    ? () => reactivateMutation.mutateAsync()
-                                                                    : isBanAction
-                                                                        ? (reason?: string) => {
-                                                                            if (!reason?.trim()) return
-                                                                            return banMutation.mutateAsync(reason.trim())
-                                                                        }
-                                                                        : undefined
-                                            }
-                                        />
-                                    )
-                                })}
+                                                                    return flagMutation.mutateAsync(reason.trim())
+                                                                }
+                                                                : isSuspendAction
+                                                                    ? (reason?: string) => {
+                                                                        if (!reason?.trim()) return
+                                                                        return suspendMutation.mutateAsync(reason.trim())
+                                                                    } : isReactivateAction
+                                                                        ? () => reactivateMutation.mutateAsync()
+                                                                        : isBanAction
+                                                                            ? (reason?: string) => {
+                                                                                if (!reason?.trim()) return
+                                                                                return banMutation.mutateAsync(reason.trim())
+                                                                            }
+                                                                            : undefined
+                                                }
+                                            />
+                                        )
+                                    })}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </aside>
                 </div>
             )}

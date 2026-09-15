@@ -7,7 +7,7 @@ export type Designer = {
   business: string
   type: 'Ready to wear' | 'Custom'
   cac: string
-  verificationStatus: string
+  verificationStatus: string | null
   products: number
   joined: string
   status: DesignerStatus

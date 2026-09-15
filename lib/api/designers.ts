@@ -41,7 +41,8 @@ export interface DesignerRecord {
   businessType: string;
   verification: {
     rcNumber: string;
-  };
+    status: string;
+  } | null;
   _count: {
     products: number;
   };
@@ -137,7 +138,7 @@ export interface DesignerProfile {
     verification: {
       rcNumber: string;
       status: string;
-    };
+    } | null;
   };
   averageRating: number;
   totalReviews: number;

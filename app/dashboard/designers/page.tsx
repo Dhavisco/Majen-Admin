@@ -104,8 +104,7 @@ const DesignersPageContent: React.FC = () => {
         search: searchInput || undefined,
     });
 
-    const totalPages = Math.ceil(pagination.totalCount / pagination.perPage)
-
+    const totalPages = Math.ceil(pagination.totalCount / pagination.perPage);
 
     const verifyMutation = useMutation({
         mutationFn: (id: number) => verifyDesigner(id),
@@ -343,7 +342,7 @@ const DesignersPageContent: React.FC = () => {
                                         <TableCell className="md:text-sm font-semibold text-[11px]">{getStatusBadge(designer.status)}</TableCell>
                                         <TableCell className=" bg-white z-10 group-hover:bg-muted/50 transition-colors before:absolute before:left-0 before:top-0 before:h-full before:w-px before:bg-border">
                                             <div className="flex gap-2 whitespace-nowrap">
-                                                {designer.status === 'Pending' ? (
+                                                {designer.status === 'Pending' && designer.verification !== null ? (
                                                     <>
                                                         <ModerationActionButton
                                                             action="verify-account"
