@@ -241,6 +241,10 @@ export async function banUser(id: number, reason: string): Promise<void> {
   });
 }
 
+export async function unBanUser(id: number): Promise<void> {
+  await axiosInstance.post(`/admin/user/${id}/unban`);
+}
+
 
 export type ActiveOrdersResponse = {
   success: boolean

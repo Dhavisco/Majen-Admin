@@ -33,6 +33,7 @@ import {
     getActiveOrders,
     reactivateUser,
     banUser,
+    unBanUser,
 } from '@/lib/api/designers'
 import { formatDate } from '@/hooks/designers/useDesigners'
 import { removeReview, restoreReview } from '@/lib/api/reports'
@@ -352,6 +353,14 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
         },
     })
 
+    const unBanMutation = useMutation({
+        mutationFn: () => unBanUser(designer.userId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['designers'] })
+            await queryClient.invalidateQueries({ queryKey: ['designer', 'profile', designer.id] })
+        },
+    })
+
     const removeMutation = useMutation({
         mutationFn: (id: number) => removeReview(id),
         onSuccess: async () => {
@@ -461,7 +470,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                 ]
             case 'Banned':
                 return [
-                    { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
+                    { label: 'Reactivate account', action: 'unban-account', tone: 'success' },
                     { label: 'Suspend (already banned)', action: 'suspend-account', tone: 'muted', disabled: true },
                     { label: 'Flag (already banned)', action: 'flag-account', tone: 'muted', disabled: true },
                     { label: 'Verify (resolve ban first)', action: 'verify-account', tone: 'muted', disabled: true },
@@ -665,6 +674,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                         const isFlagAction = action.action === 'flag-account' && !action.disabled
                                         const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
                                         const isBanAction = action.action === 'ban-account' && !action.disabled
+                                        const isUnBanAction = action.action === 'unban-account' && !action.disabled
 
 
                                         return (
@@ -700,7 +710,10 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                                                                 if (!reason?.trim()) return
                                                                                 return banMutation.mutateAsync(reason.trim())
                                                                             }
-                                                                            : undefined
+                                                                            : isUnBanAction
+                                                                                ? () => unBanMutation.mutateAsync()
+                                                                                :
+                                                                                undefined
                                                 }
                                             />
                                         )

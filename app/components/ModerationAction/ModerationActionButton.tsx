@@ -26,6 +26,7 @@ export type ModerationActionType =
     | 'flag-account'
     | 'suspend-account'
     | 'ban-account'
+    | 'unban-account'
     | 'reactivate-account'
     | 'approve-product'
     | 'reject-product'
@@ -111,6 +112,15 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         iconClassName: 'text-amber-700',
         warningText: 'This account has active orders. Clients will be notified and orders may be affected.',
     },
+    'reactivate-account': {
+        title: 'Reactivate account',
+        description: 'Restores full platform access and makes all approved listings visible to clients again.',
+        confirmLabel: 'Reactivate',
+        tone: 'success',
+        icon: FaLockOpen,
+        iconBoxClassName: 'bg-emerald-50',
+        iconClassName: 'text-emerald-600',
+    },
     'ban-account': {
         title: 'Ban account',
         description: 'Permanently blocks all platform access and hides all listings. Use only for serious violations.',
@@ -121,7 +131,7 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         iconClassName: 'text-red-600',
         warningText: 'This account has active orders. Clients will be notified and orders may be affected.',
     },
-    'reactivate-account': {
+    'unban-account': {
         title: 'Reactivate account',
         description: 'Restores full platform access and makes all approved listings visible to clients again.',
         confirmLabel: 'Reactivate',
@@ -130,6 +140,7 @@ const actionConfigByType: Record<ModerationActionType, ActionConfig> = {
         iconBoxClassName: 'bg-emerald-50',
         iconClassName: 'text-emerald-600',
     },
+
     'approve-product': {
         title: 'Approve product',
         description: 'The product will be listed publicly and become visible to clients immediately.',
@@ -201,8 +212,9 @@ const triggerIconByAction: Record<ModerationActionType, IconType> = {
     'reject-application': FaTimes,
     'flag-account': FaFlag,
     'suspend-account': FaPauseCircle,
-    'ban-account': FaBan,
     'reactivate-account': FaLockOpen,
+    'ban-account': FaBan,
+    'unban-account': FaLockOpen,
     'approve-product': FaCheckCircle,
     'reject-product': FaTimes,
     'hide-product': FaEyeSlash,

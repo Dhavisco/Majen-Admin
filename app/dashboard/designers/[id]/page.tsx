@@ -141,7 +141,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
                     url: handle as string,
                 }
             }),
-        userStatus: mapStatusToUI(designer.status),
+        userStatus: mapStatusToUI(designer.user.status),
         suspensionCount: designer.user.suspensionCount ?? 0,
         flags: designer.user.flagsReceived.map((flag) => ({
             reason: flag.reason,
