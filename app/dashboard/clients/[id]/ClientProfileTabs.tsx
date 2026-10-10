@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import ModerationActionButton, { type ModerationActionType } from '@/app/components/ModerationAction/ModerationActionButton'
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination'
 import { addClientNote, getClientOrders, type ClientDetail, type ClientOrderRecord } from '@/lib/api/clients'
-import { banUser, flagUser, getActiveOrders, reactivateUser, suspendUser } from '@/lib/api/designers'
+import { banUser, flagUser, getActiveOrders, reactivateUser, suspendUser, unBanUser } from '@/lib/api/designers'
 
 type ClientProfileTabsProps = {
     client: ClientDetail
@@ -166,6 +166,13 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
         },
     })
 
+    const reactivateMutation = useMutation({
+        mutationFn: () => reactivateUser(clientId),
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
+        },
+    })
+
     const banMutation = useMutation({
         mutationFn: (reason: string) => banUser(clientId, reason),
         onSuccess: async () => {
@@ -173,12 +180,13 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
         },
     })
 
-    const reactivateMutation = useMutation({
-        mutationFn: () => reactivateUser(clientId),
+    const unBanMutation = useMutation({
+        mutationFn: () => unBanUser(clientId),
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['clients', 'detail', clientId] })
         },
     })
+
 
     useEffect(() => {
         if (!successMessage) {
@@ -194,7 +202,7 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
         switch (client.status) {
             case 'BANNED':
                 return [
-                    { label: 'Reactivate account', action: 'reactivate-account', tone: 'success' },
+                    { label: 'Reactivate account', action: 'unban-account', tone: 'success' },
                     { label: 'Suspend (already banned)', action: 'suspend-account', tone: 'muted', disabled: true },
                     { label: 'Flag (already banned)', action: 'flag-account', tone: 'muted', disabled: true },
                     { label: 'Verify (resolve ban first)', action: 'verify-account', tone: 'muted', disabled: true },
@@ -367,6 +375,7 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                                     const isSuspendAction = action.action === 'suspend-account' && !action.disabled
                                     const isBanAction = action.action === 'ban-account' && !action.disabled
                                     const isReactivateAction = action.action === 'reactivate-account' && !action.disabled
+                                    const isUnBanAction = action.action === 'unban-account' && !action.disabled
 
                                     return (
                                         <ModerationActionButton
@@ -398,7 +407,10 @@ export default function ClientProfileTabs({ client, clientId }: ClientProfileTab
                                                             }
                                                             : isReactivateAction
                                                                 ? () => reactivateMutation.mutateAsync()
-                                                                : undefined
+                                                                : isUnBanAction
+                                                                    ? () => unBanMutation.mutateAsync()
+                                                                    :
+                                                                    undefined
                                             }
                                         />
                                     )
