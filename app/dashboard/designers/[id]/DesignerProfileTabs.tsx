@@ -545,7 +545,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                                 </div>
                                 <div>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Display name</p>
-                                    <p className="mt-1 font-semibold">{designer.business}</p>
+                                    <p className="mt-1 font-semibold">{designer.displayName}</p>
                                 </div>
                                 <div>
                                     <p className="text-xs uppercase tracking-wide text-muted-foreground">Business type</p>

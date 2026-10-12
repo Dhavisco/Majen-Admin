@@ -116,6 +116,7 @@ function mapProfileToDesigner(profile: DesignerProfile): Designer {
         name: `${designer.user.firstName} ${designer.user.lastName}`,
         email: designer.user.email,
         business: designer.businessName,
+        displayName: designer.displayName,
         type: mapBusinessType(designer.businessType),
         cac: designer.verification?.rcNumber ?? '',
         verificationStatus: designer.verification?.status ?? null,

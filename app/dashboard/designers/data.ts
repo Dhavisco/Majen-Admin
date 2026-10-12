@@ -15,6 +15,7 @@ export type Designer = {
   revenue: string
   rating: string
   registeredName: string
+  displayName: string 
   socials: Array<{ platform: string; handle: string; url: string }>
   userStatus: DesignerStatus  
   suspensionCount: number
@@ -42,6 +43,7 @@ export const designers: Designer[] = [
     name: 'Yvonne Onyata',
     email: 'info@yvelabel.com',
     business: 'YVE Label',
+    displayName: 'YVE Label',
     type: 'Ready to wear',
     cac: 'RC 1234567',
     verificationStatus: 'Verified',
@@ -79,6 +81,7 @@ export const designers: Designer[] = [
     name: 'Kike Johnson',
     email: 'kikejohnson3@gmail.com',
     business: 'Liz&Co',
+    displayName: 'Liz&Co',
     type: 'Ready to wear',
     cac: 'RC 1234567',
     verificationStatus: 'Not Verified',
@@ -96,33 +99,6 @@ export const designers: Designer[] = [
     _count  : {
       flagsReceived: 0
     },
-    notes: [],
-    balance: 'N0',
-    recentMovements: [],
-  },
-  {
-    id: 3,
-    userId: 3,
-    name: 'Mary Johnson',
-    email: 'maryjohnson@gmail.com',
-    business: 'Mary Atelier',
-    type: 'Custom',
-    cac: 'RC 1234567',
-    verificationStatus: 'Not Verified',
-    products: 5,
-    joined: 'Jan 2024',
-    status: 'Banned',
-    orders: 2,
-    revenue: 'N80K',
-    rating: '3.2',
-    registeredName: 'Mary Atelier LTD',
-    userStatus: 'Banned',
-    socials: [],
-    suspensionCount: 1,
-    flags: [{ createdAt: '2024-03-10', reason: 'Product listing dispute' }],
-    _count  : {
-      flagsReceived: 1
-    },  
     notes: [],
     balance: 'N0',
     recentMovements: [],
