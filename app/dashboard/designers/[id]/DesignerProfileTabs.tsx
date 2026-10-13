@@ -460,6 +460,18 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
     // )
 
     const accountActions = useMemo<AccountAction[]>(() => {
+
+
+        // 1. Pending verification → verification actions (not userStatus)
+        if (designer.verificationStatus === 'PENDING') {
+            return [
+                { label: 'Verify account', action: 'verify-account', tone: 'primary' },
+                { label: 'Reject application', action: 'reject-application', tone: 'danger' },
+                { label: 'Flag this account', action: 'flag-account', tone: 'warning' },
+                { label: 'Suspend (verify first)', action: 'suspend-account', tone: 'muted', disabled: true },
+            ]
+        }
+
         switch (designer.userStatus) {
             case 'Pending':
                 return [
@@ -492,7 +504,7 @@ export default function DesignerProfileTabs({ designer }: DesignerProfileTabsPro
                     { label: 'Verify (already verified)', action: 'verify-account', tone: 'muted', disabled: true },
                 ]
         }
-    }, [designer.userStatus])
+    }, [designer.userStatus, designer.verificationStatus])
 
     return (
         <section className="space-y-4">
